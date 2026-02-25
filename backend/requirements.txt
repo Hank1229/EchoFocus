@@ -1,0 +1,17 @@
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.3
+python-multipart==0.0.6
+
+# AI 相關 (需要時安裝)
+# google-generativeai==0.3.2
+
+# 排程任務 (需要時安裝)
+# apscheduler==3.10.4
+
+# 資料庫 (如果使用 PostgreSQL)
+# sqlalchemy==2.0.25
+# psycopg2-binary==2.9.9
+
+# 郵件發送 (需要時安裝)
+# sendgrid==6.11.0

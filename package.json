@@ -1,0 +1,22 @@
+{
+  "name": "echofocus",
+  "private": true,
+  "version": "0.1.0",
+  "description": "EchoFocus — AI-powered privacy-first productivity tracker",
+  "scripts": {
+    "dev:extension": "pnpm --filter @echofocus/extension dev",
+    "dev:web": "pnpm --filter @echofocus/web dev",
+    "dev": "pnpm run dev:extension",
+    "build:extension": "pnpm --filter @echofocus/extension build",
+    "build:web": "pnpm --filter @echofocus/web build",
+    "build": "pnpm run build:extension",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "pnpm -r exec rm -rf dist node_modules/.vite"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  }
+}

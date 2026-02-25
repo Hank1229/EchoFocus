@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "EchoFocus — 智慧生產力追蹤",
+  "version": "1.0.0",
+  "description": "AI-powered privacy-first productivity tracker. All browsing data stays on your device.",
+  "permissions": [
+    "tabs",
+    "storage",
+    "alarms",
+    "idle",
+    "identity"
+  ],
+  "background": {
+    "service_worker": "src/background/index.ts",
+    "type": "module"
+  },
+  "options_ui": {
+    "page": "src/options/index.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_title": "EchoFocus",
+    "default_icon": {
+      "16": "src/assets/icon-16.png",
+      "48": "src/assets/icon-48.png",
+      "128": "src/assets/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "src/assets/icon-16.png",
+    "48": "src/assets/icon-48.png",
+    "128": "src/assets/icon-128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://fnrzeeocityhfunfrlmh.supabase.co wss://fnrzeeocityhfunfrlmh.supabase.co"
+  }
+}
