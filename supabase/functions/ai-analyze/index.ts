@@ -89,9 +89,17 @@ async function callGemini(prompt: string): Promise<string> {
   const data = await res.json()
   const candidate = data?.candidates?.[0]
   const finishReason = candidate?.finishReason ?? 'UNKNOWN'
-  const text = candidate?.content?.parts?.[0]?.text ?? ''
 
-  console.log('[ai-analyze] Gemini finishReason:', finishReason, '| response text length:', text.length)
+  // Gemini can split a single response across multiple parts — join them all.
+  // Taking only parts[0] silently discards the rest of the text.
+  const parts: Array<{ text?: string }> = candidate?.content?.parts ?? []
+  const text = parts.map(p => p.text ?? '').join('')
+
+  console.log(
+    '[ai-analyze] Gemini finishReason:', finishReason,
+    '| parts count:', parts.length,
+    '| total text length:', text.length,
+  )
 
   if (finishReason === 'MAX_TOKENS') {
     console.warn('[ai-analyze] Response was cut by MAX_TOKENS — raise maxOutputTokens further if text is incomplete')
