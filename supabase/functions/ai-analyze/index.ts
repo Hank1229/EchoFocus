@@ -66,6 +66,9 @@ ${domainList || '  （無資料）'}
 }
 
 async function callGemini(prompt: string): Promise<string> {
+  const MAX_OUTPUT_TOKENS = 1024
+  console.log('[ai-analyze] Calling Gemini — maxOutputTokens:', MAX_OUTPUT_TOKENS)
+
   const res = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -73,7 +76,7 @@ async function callGemini(prompt: string): Promise<string> {
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 1024,
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
       },
     }),
   })
@@ -86,14 +89,14 @@ async function callGemini(prompt: string): Promise<string> {
   const data = await res.json()
   const candidate = data?.candidates?.[0]
   const finishReason = candidate?.finishReason ?? 'UNKNOWN'
+  const text = candidate?.content?.parts?.[0]?.text ?? ''
+
+  console.log('[ai-analyze] Gemini finishReason:', finishReason, '| response text length:', text.length)
 
   if (finishReason === 'MAX_TOKENS') {
-    console.warn('[ai-analyze] Gemini hit MAX_TOKENS — response was truncated. Consider raising maxOutputTokens further.')
-  } else {
-    console.log('[ai-analyze] Gemini finishReason:', finishReason)
+    console.warn('[ai-analyze] Response was cut by MAX_TOKENS — raise maxOutputTokens further if text is incomplete')
   }
 
-  const text = candidate?.content?.parts?.[0]?.text
   if (!text) throw new Error('Empty response from Gemini')
   return text.trim()
 }

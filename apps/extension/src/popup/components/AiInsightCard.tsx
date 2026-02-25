@@ -9,7 +9,7 @@ interface AiInsightCardProps {
 export default function AiInsightCard({ analysisText, analyzedAt, isLoading }: AiInsightCardProps) {
   const [expanded, setExpanded] = useState(false)
 
-  const PREVIEW_LEN = 80
+  const PREVIEW_LEN = 150
   const isLong = analysisText.length > PREVIEW_LEN
   const displayText = expanded || !isLong
     ? analysisText

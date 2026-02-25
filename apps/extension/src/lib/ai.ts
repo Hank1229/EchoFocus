@@ -68,7 +68,6 @@ export async function requestAiAnalysis(date: string): Promise<AiAnalysisResult 
 
     // Always consume the response body
     const responseBody = await res.text()
-    console.log('[EchoFocus] AI analysis: response', res.status, responseBody.slice(0, 200))
 
     if (!res.ok) {
       console.error('[EchoFocus] ai-analyze error:', res.status, responseBody)
@@ -76,6 +75,11 @@ export async function requestAiAnalysis(date: string): Promise<AiAnalysisResult 
     }
 
     const data = JSON.parse(responseBody) as { analysis_text: string; focus_score: number }
+    console.log(
+      '[EchoFocus] AI analysis: status=', res.status,
+      '| analysis_text length=', data.analysis_text?.length ?? 0,
+      '| preview=', data.analysis_text?.slice(0, 60),
+    )
     return {
       analysisText: data.analysis_text,
       focusScore: data.focus_score,
