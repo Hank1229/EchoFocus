@@ -73,7 +73,7 @@ async function callGemini(prompt: string): Promise<string> {
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 512,
+        maxOutputTokens: 1024,
       },
     }),
   })
@@ -84,7 +84,16 @@ async function callGemini(prompt: string): Promise<string> {
   }
 
   const data = await res.json()
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+  const candidate = data?.candidates?.[0]
+  const finishReason = candidate?.finishReason ?? 'UNKNOWN'
+
+  if (finishReason === 'MAX_TOKENS') {
+    console.warn('[ai-analyze] Gemini hit MAX_TOKENS — response was truncated. Consider raising maxOutputTokens further.')
+  } else {
+    console.log('[ai-analyze] Gemini finishReason:', finishReason)
+  }
+
+  const text = candidate?.content?.parts?.[0]?.text
   if (!text) throw new Error('Empty response from Gemini')
   return text.trim()
 }
