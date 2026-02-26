@@ -3,13 +3,15 @@
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { LogOut } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 
 interface DashboardHeaderProps {
   title: string
   userEmail?: string
 }
 
-export default function DashboardHeader({ title, userEmail }: DashboardHeaderProps) {
+export default function DashboardHeader({ title: _title, userEmail }: DashboardHeaderProps) {
   const router = useRouter()
 
   const handleSignOut = async () => {
@@ -21,7 +23,12 @@ export default function DashboardHeader({ title, userEmail }: DashboardHeaderPro
 
   return (
     <header className="border-b border-slate-800 px-6 py-4 flex items-center justify-between">
-      <h1 className="text-lg font-bold text-slate-100">{title}</h1>
+      <Link href="/" className="flex items-center gap-2">
+        <Image src="/images/logo-icon.png" alt="EchoFocus logo" width={32} height={32} className="rounded-lg" />
+        <span className="font-bold text-sm tracking-wide hidden md:inline">
+          <span style={{ color: '#E2E8F0' }}>Echo</span><span style={{ color: '#2DD4BF' }}>Focus</span>
+        </span>
+      </Link>
 
       <div className="flex items-center gap-4">
         {userEmail && (

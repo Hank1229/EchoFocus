@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { BarChart3, TrendingUp, Lightbulb, Settings, Lock } from 'lucide-react'
+import Image from 'next/image'
 
 const NAV_ITEMS = [
   { href: '/dashboard/today', label: "Today's Overview", Icon: BarChart3 },
@@ -19,8 +20,10 @@ export default function DashboardSidebar() {
       {/* Logo */}
       <div className="px-5 py-5 border-b border-slate-800">
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl">🎯</span>
-          <span className="font-bold text-slate-100 tracking-wide text-sm">EchoFocus</span>
+          <Image src="/images/logo-icon.png" alt="EchoFocus logo" width={32} height={32} className="rounded-lg" />
+          <span className="font-bold text-sm tracking-wide">
+            <span style={{ color: '#E2E8F0' }}>Echo</span><span style={{ color: '#2DD4BF' }}>Focus</span>
+          </span>
         </Link>
       </div>
 
