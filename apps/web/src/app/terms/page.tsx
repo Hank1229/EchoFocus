@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'Terms of Service — EchoFocus',
@@ -24,8 +25,10 @@ export default function TermsPage() {
       <header className="border-b border-slate-800">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-slate-100 hover:text-white transition-colors">
-            <span className="text-xl">🎯</span>
-            <span className="font-bold">EchoFocus</span>
+            <Image src="/images/logo-icon.png" alt="EchoFocus logo" width={28} height={28} className="rounded-lg" />
+            <span className="font-bold">
+              <span style={{ color: '#E2E8F0' }}>Echo</span><span style={{ color: '#2DD4BF' }}>Focus</span>
+            </span>
           </Link>
           <Link href="/" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
             ← Back to Home

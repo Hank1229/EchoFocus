@@ -1,4 +1,4 @@
-import { getSettings, saveSettings, getCustomRules, saveCustomRules, getAiAnalysis, saveAiAnalysis, recomputeAndSaveAggregate, getAllDataForExport, deleteAllTrackingData, getStorageInfo } from './storage'
+import { getSettings, saveSettings, getCustomRules, saveCustomRules, getAiAnalysis, saveAiAnalysis, recomputeAndSaveAggregate, getAggregateForDate, getAllDataForExport, deleteAllTrackingData, getStorageInfo } from './storage'
 import {
   restoreState,
   handleTabActivated,
@@ -12,6 +12,7 @@ import {
 import { setupAlarms, handleAlarm } from './alarms'
 import type { ClassificationRule } from '@echofocus/shared'
 import { requestAiAnalysis } from '../lib/ai'
+import { getSession } from '../lib/auth'
 
 // ─── Message Types ─────────────────────────────────────────────────────────
 
@@ -158,14 +159,25 @@ async function handleMessage(
 
     case 'REQUEST_AI_ANALYSIS': {
       const date = message.payload as string
-      // Ensure aggregate is fresh before calling AI
+
+      // Gate 1: must be signed in
+      const session = await getSession()
+      if (!session?.access_token) {
+        return { success: false, error: 'Please sign in first — go to Settings → Account' }
+      }
+
+      // Ensure aggregate is fresh, then check data exists
       await recomputeAndSaveAggregate(date)
+      const aggregate = await getAggregateForDate(date)
+      if (!aggregate || aggregate.totalSeconds === 0) {
+        return { success: false, error: "Not enough browsing data yet. Use Chrome for a bit and try again!" }
+      }
+
       const result = await requestAiAnalysis(date)
       if (result) {
         await saveAiAnalysis(date, result)
       }
-      // Return success:false if null so popup can show error
-      if (!result) return { success: false, error: 'Analysis failed: please sign in via Settings → Account, and make sure you have browsing data for today' }
+      if (!result) return { success: false, error: "Couldn't generate your snapshot — check your internet connection and try again" }
       return { success: true, data: result }
     }
 

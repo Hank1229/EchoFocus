@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import SettingsForm from './SettingsForm'
+import DeleteCloudDataButton from './DeleteCloudDataButton'
 import { redirect } from 'next/navigation'
 
 interface UserPreference {
@@ -45,32 +46,13 @@ export default async function SettingsPage() {
 
         {/* Danger zone */}
         <section className="rounded-2xl border border-red-500/20 bg-slate-900 shadow-sm p-6 space-y-3">
-          <p className="text-xs text-slate-500 uppercase tracking-wider">Reset</p>
+          <p className="text-xs text-red-400 uppercase tracking-wider">Reset</p>
           <p className="text-sm text-slate-400">
-            Delete all aggregated data synced to the cloud. Local tracking data is not affected.
+            Delete all synced data from the cloud. Your local extension data is not affected.
           </p>
-          <DeleteSyncedDataButton userId={user!.id} />
+          <DeleteCloudDataButton userId={user!.id} />
         </section>
       </main>
     </>
-  )
-}
-
-// Inline server-renderable button that delegates to a form action
-function DeleteSyncedDataButton({ userId }: { userId: string }) {
-  async function deleteSyncedData() {
-    'use server'
-    const { createClient: createServerClientFn } = await import('@/lib/supabase/server')
-    const supabase = await createServerClientFn()
-    await supabase.from('synced_aggregates').delete().eq('user_id', userId)
-  }
-
-  return (
-    <form action={deleteSyncedData}>
-      <button type="submit"
-        className="px-4 py-2 text-sm text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors">
-        Delete All Cloud-Synced Data
-      </button>
-    </form>
   )
 }

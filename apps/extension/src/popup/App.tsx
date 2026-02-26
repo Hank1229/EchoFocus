@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Lightbulb, Settings as SettingsIcon } from 'lucide-react'
+import iconSrc from '../assets/icon-32.png'
 import { useTodayStats } from './hooks/useTodayStats'
 import FocusScoreRing from './components/FocusScoreRing'
 import StatsBar from './components/StatsBar'
@@ -111,8 +112,10 @@ export default function App() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
         <div className="flex items-center gap-2">
-          <span className="text-lg">🎯</span>
-          <span className="text-sm font-bold text-slate-100 tracking-wide">EchoFocus</span>
+          <img src={iconSrc} alt="EchoFocus" width={24} height={24} className="rounded-md" />
+          <span className="text-sm font-bold tracking-wide">
+            <span style={{ color: '#E2E8F0' }}>Echo</span><span style={{ color: '#2DD4BF' }}>Focus</span>
+          </span>
         </div>
         <TrackingToggle
           isTracking={isTracking}
@@ -178,6 +181,13 @@ export default function App() {
         </div>
       )}
 
+      {/* Insufficient data hint */}
+      {displayTotalSeconds > 0 && displayTotalSeconds < 1800 && (
+        <p className="px-4 pb-1 text-right text-xs text-slate-600">
+          Need 30 min of data for AI snapshot
+        </p>
+      )}
+
       {/* Footer */}
       <div className="mt-auto border-t border-slate-800 px-4 py-3 flex items-center justify-between">
         <span className="text-xs text-slate-600">
@@ -189,9 +199,9 @@ export default function App() {
           </span>
           <button
             onClick={handleAnalyze}
-            disabled={isAnalyzing || (aggregate?.totalSeconds ?? 0) === 0}
+            disabled={isAnalyzing || displayTotalSeconds < 1800}
             className="text-slate-500 hover:text-blue-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            title="Generate your daily snapshot"
+            title={displayTotalSeconds > 0 && displayTotalSeconds < 1800 ? 'Need at least 30 min of browsing data' : 'Generate your daily snapshot'}
           >
             <Lightbulb size={18} strokeWidth={1.75} />
           </button>

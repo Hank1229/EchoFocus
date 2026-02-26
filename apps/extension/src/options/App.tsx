@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { Lock } from 'lucide-react'
+import iconSrc from '../assets/icon-32.png'
 import type { Settings, ClassificationRule, Category, MatchType, DailyAggregate } from '@echofocus/shared'
 import { DEFAULT_SETTINGS } from '@echofocus/shared'
 import type { Session } from '@supabase/supabase-js'
@@ -673,7 +674,7 @@ function AboutTab() {
     <div className="space-y-5">
       <section className="bg-slate-800 rounded-xl p-5 space-y-4">
         <div className="flex items-center gap-4">
-          <span className="text-4xl">🎯</span>
+          <img src={iconSrc} alt="EchoFocus" width={48} height={48} className="rounded-xl" />
           <div>
             <h2 className="text-base font-bold text-slate-100">EchoFocus</h2>
             <p className="text-xs text-slate-500 mt-0.5">Version {APP_VERSION}</p>
@@ -741,7 +742,7 @@ export default function App() {
       <div className="max-w-xl mx-auto px-6 py-10">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <span className="text-2xl">🎯</span>
+          <img src={iconSrc} alt="EchoFocus" width={36} height={36} className="rounded-xl" />
           <div>
             <h1 className="text-xl font-bold text-slate-100">EchoFocus Settings</h1>
             <p className="text-xs text-slate-500 mt-0.5">All data stays on your device</p>
