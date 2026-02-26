@@ -132,6 +132,13 @@ export async function cleanupOldData(): Promise<void> {
       if (ageInDays > 365) {
         keysToRemove.push(key)
       }
+    } else if (key.startsWith('ai_analysis:')) {
+      const dateStr = key.slice('ai_analysis:'.length)
+      const aiDate = new Date(dateStr)
+      const ageInDays = Math.floor((now.getTime() - aiDate.getTime()) / (1000 * 60 * 60 * 24))
+      if (ageInDays > 90) {
+        keysToRemove.push(key)
+      }
     }
   }
 

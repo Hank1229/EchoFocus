@@ -29,7 +29,7 @@ const CustomTooltip = ({ active, payload, label }: {
   return (
     <div className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-xs shadow-xl">
       <p className="text-slate-400 mb-1">{label}</p>
-      <p className="text-green-400 font-bold text-sm">{payload[0].value} 分</p>
+      <p className="text-green-400 font-bold text-sm">{payload[0].value} pts</p>
     </div>
   )
 }

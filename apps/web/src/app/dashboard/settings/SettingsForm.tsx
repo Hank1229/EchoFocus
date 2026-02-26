@@ -75,14 +75,14 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
   }
 
   return (
-    <section className="bg-slate-800 rounded-2xl p-6 space-y-5">
-      <p className="text-xs text-slate-500 uppercase tracking-wider">偏好設定</p>
+    <section className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-6 space-y-5">
+      <p className="text-xs text-slate-500 uppercase tracking-wider">Preferences</p>
 
       {/* email_report_enabled */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-200">每日 Email 報告</p>
-          <p className="text-xs text-slate-500 mt-0.5">每日傳送生產力摘要至您的信箱</p>
+          <p className="text-sm font-medium text-slate-200">Daily Email Report</p>
+          <p className="text-xs text-slate-500 mt-0.5">Receive a daily productivity summary in your inbox</p>
         </div>
         <button
           onClick={() => update('email_report_enabled', !prefs.email_report_enabled)}
@@ -95,16 +95,16 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
       {/* Send test email */}
       {prefs.email_report_enabled && (
         <div className="flex items-center justify-between pl-0 pt-0">
-          <p className="text-xs text-slate-500">立即發送測試報告至您的信箱</p>
+          <p className="text-xs text-slate-500">Send a test report to your inbox now</p>
           <button
             onClick={handleSendTestEmail}
             disabled={testEmailStatus === 'sending'}
             className="px-3 py-1.5 text-xs text-slate-300 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 rounded-lg transition-colors"
           >
-            {testEmailStatus === 'sending' ? '發送中...'
-              : testEmailStatus === 'sent' ? '✓ 已發送'
-              : testEmailStatus === 'error' ? '發送失敗'
-              : '發送測試郵件'}
+            {testEmailStatus === 'sending' ? 'Sending…'
+              : testEmailStatus === 'sent' ? '✓ Sent'
+              : testEmailStatus === 'error' ? 'Failed'
+              : 'Send Test Email'}
           </button>
         </div>
       )}
@@ -112,22 +112,22 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
       {/* daily_goal_minutes */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <p className="text-sm font-medium text-slate-200">每日專注目標</p>
+          <p className="text-sm font-medium text-slate-200">Daily Focus Goal</p>
           <span className="text-sm font-semibold text-green-400 tabular-nums">
-            {Math.floor(prefs.daily_goal_minutes / 60)} 小時{prefs.daily_goal_minutes % 60 > 0 ? ` ${prefs.daily_goal_minutes % 60} 分` : ''}
+            {Math.floor(prefs.daily_goal_minutes / 60)}h{prefs.daily_goal_minutes % 60 > 0 ? ` ${prefs.daily_goal_minutes % 60}m` : ''}
           </span>
         </div>
         <input type="range" min={60} max={720} step={30} value={prefs.daily_goal_minutes}
           onChange={e => update('daily_goal_minutes', Number(e.target.value))}
           className="w-full accent-green-500" />
-        <div className="flex justify-between text-xs text-slate-600 mt-1"><span>1 小時</span><span>12 小時</span></div>
+        <div className="flex justify-between text-xs text-slate-600 mt-1"><span>1 hr</span><span>12 hr</span></div>
       </div>
 
       <div className="flex items-center justify-between pt-1">
-        {savedAt ? <span className="text-xs text-green-400">✓ 已儲存</span> : <span />}
+        {savedAt ? <span className="text-xs text-green-400">✓ Saved</span> : <span />}
         <button onClick={handleSave} disabled={isSaving}
           className="px-5 py-2 bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
-          {isSaving ? '儲存中…' : '儲存設定'}
+          {isSaving ? 'Saving…' : 'Save Settings'}
         </button>
       </div>
     </section>

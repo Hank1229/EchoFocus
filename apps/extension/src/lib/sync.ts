@@ -67,21 +67,21 @@ export async function syncYesterdayAggregate(): Promise<void> {
 export async function syncAggregateForDate(date: string): Promise<{ ok: boolean; message: string }> {
   const session = await getSession()
   if (!session) {
-    return { ok: false, message: '請先登入' }
+    return { ok: false, message: 'Please sign in first' }
   }
 
   const aggregate = await getLocalAggregate(date)
   if (!aggregate) {
-    return { ok: false, message: `找不到 ${date} 的資料` }
+    return { ok: false, message: `No data found for ${date}` }
   }
 
   const success = await upsertAggregate(aggregate, session.user.id)
   if (success) {
     await chrome.storage.local.set({ [LAST_SYNC_KEY]: new Date().toISOString() })
-    return { ok: true, message: `已同步 ${date} 的資料` }
+    return { ok: true, message: `Synced data for ${date}` }
   }
 
-  return { ok: false, message: '同步失敗，請稍後再試' }
+  return { ok: false, message: 'Sync failed, please try again' }
 }
 
 export async function getLastSyncTime(): Promise<string | null> {

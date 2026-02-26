@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 
 interface TrackingToggleProps {
   isTracking: boolean
@@ -31,15 +32,13 @@ export default function TrackingToggle({ isTracking, onToggle }: TrackingToggleP
         }
         ${pending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
       `}
-      title={isTracking ? '點擊暫停追蹤' : '點擊開始追蹤'}
+      title={isTracking ? 'Click to pause tracking' : 'Click to resume tracking'}
     >
-      {/* Animated dot */}
-      <span
-        className={`w-2 h-2 rounded-full flex-shrink-0 ${
-          isTracking ? 'bg-green-400 animate-pulse' : 'bg-slate-500'
-        }`}
-      />
-      {isTracking ? '追蹤中' : '已暫停'}
+      {isTracking
+        ? <Eye size={18} strokeWidth={1.75} />
+        : <EyeOff size={18} strokeWidth={1.75} />
+      }
+      {isTracking ? 'Tracking' : 'Paused'}
     </button>
   )
 }

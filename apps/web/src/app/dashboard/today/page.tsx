@@ -3,6 +3,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { formatDuration } from '@echofocus/shared'
+import { Zap, Coffee, Minus, MessageCircle } from 'lucide-react'
 
 interface TopDomain {
   domain: string
@@ -22,18 +23,19 @@ interface SyncedRow {
   synced_at: string
 }
 
-const CATEGORY_COLORS = {
-  productive: 'bg-green-500',
-  distraction: 'bg-red-500',
-  neutral: 'bg-slate-500',
-  uncategorized: 'bg-slate-600',
+const CATEGORY_LABELS = {
+  productive: 'Productive',
+  distraction: 'Breaks & Browsing',
+  neutral: 'Neutral',
+  uncategorized: 'Uncategorized',
 }
 
-const CATEGORY_LABELS = {
-  productive: '生產力',
-  distraction: '分心',
-  neutral: '中性',
-  uncategorized: '未分類',
+function CategoryIcon({ category }: { category: TopDomain['category'] }) {
+  switch (category) {
+    case 'productive': return <Zap size={14} strokeWidth={1.75} className="text-emerald-400 flex-shrink-0" />
+    case 'distraction': return <Coffee size={14} strokeWidth={1.75} className="text-orange-400 flex-shrink-0" />
+    default: return <Minus size={14} strokeWidth={1.75} className="text-slate-400 flex-shrink-0" />
+  }
 }
 
 interface AiAnalysisRow {
@@ -71,112 +73,131 @@ export default async function TodayPage() {
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr + 'T00:00:00')
-    return d.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })
   }
 
   const formatSyncTime = (iso: string) => {
     const d = new Date(iso)
-    return d.toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
   }
 
   return (
     <>
-      <DashboardHeader title="今日概覽" userEmail={user?.email ?? undefined} />
+      <DashboardHeader title="Today's Overview" userEmail={user?.email ?? undefined} />
 
-      <main className="flex-1 px-6 py-8 space-y-6 max-w-3xl">
+      <main className="flex-1 px-6 py-8">
         {row ? (
           <>
-            {/* Date + sync info */}
-            <div className="flex items-center justify-between">
+            {/* Date + sync info — full width */}
+            <div className="flex items-center justify-between mb-6">
               <p className="text-sm text-slate-400">{formatDate(row.date)}</p>
-              <p className="text-xs text-slate-600">同步於 {formatSyncTime(row.synced_at)}</p>
+              <p className="text-xs text-slate-600">Synced {formatSyncTime(row.synced_at)}</p>
             </div>
 
-            {/* Focus score */}
-            <div className="bg-slate-800 rounded-2xl p-6 flex items-center gap-6">
-              <FocusRing score={row.focus_score} />
-              <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">專注分數</p>
-                <p className="text-4xl font-bold text-slate-100">{row.focus_score}</p>
-                <p className="text-sm text-slate-400 mt-1">{scoreLabel(row.focus_score)}</p>
-              </div>
-            </div>
+            {/* 3-column responsive grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            {/* Stats breakdown */}
-            <div className="bg-slate-800 rounded-2xl p-6 space-y-4">
-              <p className="text-xs text-slate-500 uppercase tracking-wider">時間分布</p>
-              <div className="grid grid-cols-3 gap-4">
-                {[
-                  { label: '生產效率', seconds: row.productive_seconds, color: 'text-green-400', bg: 'bg-green-500/10' },
-                  { label: '分心時間', seconds: row.distraction_seconds, color: 'text-red-400', bg: 'bg-red-500/10' },
-                  { label: '中性瀏覽', seconds: row.neutral_seconds + row.uncategorized_seconds, color: 'text-slate-400', bg: 'bg-slate-700' },
-                ].map(s => (
-                  <div key={s.label} className={`${s.bg} rounded-xl p-4`}>
-                    <p className={`text-xl font-bold ${s.color}`}>{formatDuration(s.seconds)}</p>
-                    <p className="text-xs text-slate-500 mt-1">{s.label}</p>
+              {/* ── Left col: Focus Score ─────────────────────────── */}
+              <div className="lg:col-span-3">
+                <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5 h-full">
+                  <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-4">Focus Score</p>
+                  <div className="flex flex-col items-center gap-3 py-2">
+                    <FocusRing score={row.focus_score} />
+                    <div className="text-center">
+                      <p className="text-5xl font-bold text-slate-100 tabular-nums">{row.focus_score}</p>
+                      <p className="text-xs text-slate-500 mt-1">pts</p>
+                      <p className="text-sm text-slate-400 mt-2">{scoreLabel(row.focus_score)}</p>
+                    </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Progress bar */}
-              {row.total_seconds > 0 && (
-                <div className="h-2 rounded-full bg-slate-700 overflow-hidden flex">
-                  <div className="bg-green-500 h-full" style={{ width: `${(row.productive_seconds / row.total_seconds) * 100}%` }} />
-                  <div className="bg-red-500 h-full" style={{ width: `${(row.distraction_seconds / row.total_seconds) * 100}%` }} />
-                  <div className="bg-slate-500 h-full" style={{ width: `${((row.neutral_seconds + row.uncategorized_seconds) / row.total_seconds) * 100}%` }} />
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* Top domains */}
-            <div className="bg-slate-800 rounded-2xl p-6">
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-4">今日網站</p>
-              {row.top_domains.length === 0 ? (
-                <p className="text-sm text-slate-500">無資料</p>
-              ) : (
-                <ul className="space-y-3">
-                  {row.top_domains.slice(0, 10).map(d => (
-                    <li key={d.domain} className="flex items-center gap-3">
-                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${CATEGORY_COLORS[d.category]}`} />
-                      <span className="flex-1 text-sm text-slate-300 truncate">{d.domain}</span>
-                      <span className="text-xs text-slate-500 flex-shrink-0">{CATEGORY_LABELS[d.category]}</span>
-                      <span className="text-xs text-slate-400 tabular-nums flex-shrink-0">{formatDuration(d.seconds)}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+              {/* ── Center col: Time Breakdown + Sites ───────────── */}
+              <div className="lg:col-span-6 space-y-6">
 
-            {/* AI insight card */}
-            {latestAi ? (
-              <div className="bg-slate-800 rounded-2xl p-6 border-l-4 border-green-500">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs text-slate-500 uppercase tracking-wider">🤖 AI 洞察</p>
-                  <Link href="/dashboard/ai-insights" className="text-xs text-green-400 hover:text-green-300 transition-colors">
-                    查看全部 →
-                  </Link>
+                {/* Time Breakdown */}
+                <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5">
+                  <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">Time Breakdown</p>
+                  <div className="grid grid-cols-3 gap-4">
+                    {[
+                      { label: 'Productive', seconds: row.productive_seconds, color: 'text-emerald-400', bg: 'bg-emerald-500/10', Icon: Zap },
+                      { label: 'Breaks & Browsing', seconds: row.distraction_seconds, color: 'text-orange-400', bg: 'bg-orange-500/10', Icon: Coffee },
+                      { label: 'Neutral', seconds: row.neutral_seconds + row.uncategorized_seconds, color: 'text-slate-400', bg: 'bg-slate-800', Icon: Minus },
+                    ].map(s => (
+                      <div key={s.label} className={`${s.bg} rounded-xl p-4`}>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <s.Icon size={14} strokeWidth={1.75} className={s.color} />
+                        </div>
+                        <p className={`text-xl font-bold ${s.color}`}>{formatDuration(s.seconds)}</p>
+                        <p className="text-xs text-slate-500 mt-1">{s.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {row.total_seconds > 0 && (
+                    <div className="h-2 rounded-full bg-slate-700 overflow-hidden flex mt-4">
+                      <div className="bg-emerald-500 h-full" style={{ width: `${(row.productive_seconds / row.total_seconds) * 100}%` }} />
+                      <div className="bg-orange-500 h-full" style={{ width: `${(row.distraction_seconds / row.total_seconds) * 100}%` }} />
+                      <div className="bg-slate-500 h-full" style={{ width: `${((row.neutral_seconds + row.uncategorized_seconds) / row.total_seconds) * 100}%` }} />
+                    </div>
+                  )}
                 </div>
-                <p className="text-sm text-slate-300 leading-relaxed">{latestAi.analysis_text}</p>
-                <p className="text-xs text-slate-600 mt-3">{latestAi.date}</p>
+
+                {/* Today's Sites */}
+                <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5">
+                  <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">Today's Sites</p>
+                  {row.top_domains.length === 0 ? (
+                    <p className="text-sm text-slate-500">No data</p>
+                  ) : (
+                    <ul className="space-y-3">
+                      {row.top_domains.slice(0, 10).map(d => (
+                        <li key={d.domain} className="flex items-center gap-3">
+                          <CategoryIcon category={d.category} />
+                          <span className="flex-1 text-sm text-slate-300 truncate">{d.domain}</span>
+                          <span className="text-xs text-slate-500 flex-shrink-0">{CATEGORY_LABELS[d.category]}</span>
+                          <span className="text-xs text-slate-400 tabular-nums flex-shrink-0">{formatDuration(d.seconds)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
-            ) : (
-              <div className="bg-slate-800/50 rounded-2xl p-6 border border-dashed border-slate-700 text-center">
-                <p className="text-sm text-slate-500 mb-2">尚無 AI 洞察</p>
-                <Link href="/dashboard/ai-insights" className="text-xs text-green-400 hover:text-green-300 transition-colors">
-                  前往 AI 洞察頁面分析 →
-                </Link>
+
+              {/* ── Right col: Daily Insight ─────────────────────── */}
+              <div className="lg:col-span-3">
+                {latestAi ? (
+                  <div className="rounded-2xl border border-slate-800 border-l-4 border-l-green-500 bg-slate-900 shadow-sm p-5 h-full">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-1.5">
+                        <MessageCircle size={18} strokeWidth={1.75} className="text-blue-400" />
+                        <p className="text-sm font-medium text-slate-400 uppercase tracking-wide">Daily Insight</p>
+                      </div>
+                      <Link href="/dashboard/ai-insights" className="text-xs text-green-400 hover:text-green-300 transition-colors">
+                        View all →
+                      </Link>
+                    </div>
+                    <p className="text-sm text-slate-300 leading-relaxed">{latestAi.analysis_text}</p>
+                    <p className="text-xs text-slate-600 mt-3">{latestAi.date}</p>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900 shadow-sm p-5 text-center h-full flex flex-col items-center justify-center gap-2">
+                    <p className="text-sm text-slate-500">No daily insights yet</p>
+                    <Link href="/dashboard/ai-insights" className="text-xs text-green-400 hover:text-green-300 transition-colors">
+                      Go to Daily Snapshots to analyze →
+                    </Link>
+                  </div>
+                )}
               </div>
-            )}
+
+            </div>
           </>
         ) : (
           /* Empty state */
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <p className="text-4xl mb-4">📭</p>
-            <h2 className="text-xl font-bold text-slate-300 mb-2">尚未有同步資料</h2>
+            <h2 className="text-xl font-bold text-slate-300 mb-2">No Synced Data Yet</h2>
             <p className="text-sm text-slate-500 max-w-sm leading-relaxed">
-              安裝 EchoFocus Chrome 擴充功能並登入帳戶後，
-              資料會在每日 00:05 自動同步至此。
-              也可在擴充功能設定的「帳戶」頁籤手動立即同步。
+              Install the EchoFocus Chrome extension and sign in — data syncs here automatically at 00:05 daily.
+              You can also sync manually from the extension settings under the Account tab.
             </p>
           </div>
         )}
@@ -186,18 +207,18 @@ export default async function TodayPage() {
 }
 
 function scoreLabel(score: number) {
-  if (score >= 70) return '優秀 🎉'
-  if (score >= 40) return '普通 💪'
-  return '待改善 📈'
+  if (score >= 70) return 'Excellent 🎉'
+  if (score >= 40) return 'Average 💪'
+  return 'Room to grow 📈'
 }
 
 function FocusRing({ score }: { score: number }) {
-  const size = 80
-  const stroke = 8
+  const size = 100
+  const stroke = 10
   const radius = (size - stroke) / 2
   const circumference = 2 * Math.PI * radius
   const progress = circumference - (score / 100) * circumference
-  const color = score >= 70 ? '#22c55e' : score >= 40 ? '#f59e0b' : '#ef4444'
+  const color = score >= 70 ? '#10b981' : score >= 40 ? '#f59e0b' : '#ef4444'
 
   return (
     <svg width={size} height={size} className="flex-shrink-0">

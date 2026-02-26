@@ -54,9 +54,9 @@ export default function ActivityBarChart({ data }: ActivityBarChartProps) {
           formatter={(value) => <span className="text-xs text-slate-400">{value}</span>}
           iconType="circle" iconSize={8}
         />
-        <Bar dataKey="productive" name="生產效率" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} />
-        <Bar dataKey="distraction" name="分心時間" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
-        <Bar dataKey="neutral" name="中性瀏覽" stackId="a" fill="#475569" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="productive" name="Productive" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} />
+        <Bar dataKey="distraction" name="Distraction" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
+        <Bar dataKey="neutral" name="Neutral" stackId="a" fill="#475569" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   )

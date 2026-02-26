@@ -1,5 +1,6 @@
 import React from 'react'
 import { formatDuration } from '@echofocus/shared'
+import { Zap, Coffee, Minus } from 'lucide-react'
 
 interface StatsBarProps {
   productiveSeconds: number
@@ -13,17 +14,14 @@ interface StatRowProps {
   label: string
   seconds: number
   color: string
-  dotColor: string
+  icon: React.ReactNode
 }
 
-function StatRow({ label, seconds, color, dotColor }: StatRowProps) {
+function StatRow({ label, seconds, color, icon }: StatRowProps) {
   return (
     <div className="flex items-center justify-between py-1">
       <div className="flex items-center gap-2">
-        <span
-          className="w-2 h-2 rounded-full flex-shrink-0"
-          style={{ backgroundColor: dotColor }}
-        />
+        {icon}
         <span className="text-sm text-slate-300">{label}</span>
       </div>
       <span className="text-sm font-semibold tabular-nums" style={{ color }}>
@@ -58,7 +56,7 @@ export default function StatsBar({
         )}
         {distractionPct > 0 && (
           <div
-            className="bg-red-500 transition-all duration-500"
+            className="bg-orange-500 transition-all duration-500"
             style={{ width: `${distractionPct}%` }}
           />
         )}
@@ -71,27 +69,27 @@ export default function StatsBar({
       </div>
 
       <StatRow
-        label="生產效率"
+        label="Productive"
         seconds={productiveSeconds}
-        color="#22c55e"
-        dotColor="#22c55e"
+        color="#34d399"
+        icon={<Zap size={18} strokeWidth={1.75} className="text-emerald-400" />}
       />
       <StatRow
-        label="分心時間"
+        label="Breaks & Browsing"
         seconds={distractionSeconds}
-        color="#ef4444"
-        dotColor="#ef4444"
+        color="#fb923c"
+        icon={<Coffee size={18} strokeWidth={1.75} className="text-orange-400" />}
       />
       <StatRow
-        label="中性瀏覽"
+        label="Neutral"
         seconds={neutralSeconds + uncategorizedSeconds}
         color="#94a3b8"
-        dotColor="#64748b"
+        icon={<Minus size={18} strokeWidth={1.75} className="text-slate-400" />}
       />
 
       <div className="border-t border-slate-700 mt-2 pt-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-500">今日總計</span>
+          <span className="text-xs text-slate-500">Today's Total</span>
           <span className="text-sm font-bold text-slate-200 tabular-nums">
             {formatDuration(totalSeconds)}
           </span>

@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { BarChart3, TrendingUp, Lightbulb, Settings, Lock } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { href: '/dashboard/today', label: '今日概覽', icon: '📊' },
-  { href: '/dashboard/trends', label: '趨勢分析', icon: '📈' },
-  { href: '/dashboard/ai-insights', label: 'AI 洞察', icon: '🤖' },
-  { href: '/dashboard/settings', label: '帳戶設定', icon: '⚙️' },
+  { href: '/dashboard/today', label: "Today's Overview", Icon: BarChart3 },
+  { href: '/dashboard/trends', label: 'Trends', Icon: TrendingUp },
+  { href: '/dashboard/ai-insights', label: 'Daily Snapshots', Icon: Lightbulb },
+  { href: '/dashboard/settings', label: 'Settings', Icon: Settings },
 ]
 
 export default function DashboardSidebar() {
@@ -37,7 +38,7 @@ export default function DashboardSidebar() {
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
               }`}
             >
-              <span className="text-base">{item.icon}</span>
+              <item.Icon size={18} strokeWidth={1.75} />
               {item.label}
             </Link>
           )
@@ -46,9 +47,12 @@ export default function DashboardSidebar() {
 
       {/* Privacy note */}
       <div className="px-4 py-4 border-t border-slate-800">
-        <p className="text-xs text-slate-600 leading-relaxed">
-          🔒 瀏覽資料僅儲存<br />於您的本機裝置
-        </p>
+        <div className="flex items-start gap-1.5">
+          <Lock size={18} strokeWidth={1.75} className="text-slate-600 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Browsing data stored<br />only on your device
+          </p>
+        </div>
       </div>
     </aside>
   )

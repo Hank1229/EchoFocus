@@ -35,8 +35,8 @@ export default function LoginPage() {
       </Link>
 
       <div className="w-full max-w-sm bg-slate-800 border border-slate-700 rounded-2xl p-8">
-        <h1 className="text-xl font-bold text-slate-100 mb-2 text-center">歡迎回來</h1>
-        <p className="text-sm text-slate-400 text-center mb-8">登入以查看您的生產力 Dashboard</p>
+        <h1 className="text-xl font-bold text-slate-100 mb-2 text-center">Welcome Back</h1>
+        <p className="text-sm text-slate-400 text-center mb-8">Sign in to view your productivity dashboard</p>
 
         {error && (
           <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400">
@@ -52,12 +52,12 @@ export default function LoginPage() {
           {isLoading ? (
             <>
               <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
-              登入中…
+              Signing in…
             </>
           ) : (
             <>
               <GoogleIcon />
-              使用 Google 帳戶登入
+              Sign in with Google
             </>
           )}
         </button>
@@ -65,8 +65,8 @@ export default function LoginPage() {
         <div className="mt-6 flex items-start gap-2.5 px-3 py-3 bg-slate-700/50 border border-slate-700 rounded-xl">
           <span className="text-sm mt-0.5">🔒</span>
           <p className="text-xs text-slate-400 leading-relaxed">
-            登入後可查看 Dashboard 趨勢分析。
-            所有瀏覽資料仍儲存於您的本機裝置，不會上傳。
+            Sign in to view dashboard trends.
+            All browsing data stays on your local device — never uploaded.
           </p>
         </div>
       </div>

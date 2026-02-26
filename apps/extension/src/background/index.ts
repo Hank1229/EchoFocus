@@ -97,7 +97,7 @@ chrome.runtime.onMessage.addListener(
       .then(sendResponse)
       .catch((err) => {
         console.error('[EchoFocus] Message handler error:', err)
-        sendResponse({ success: false, error: String(err) })
+        sendResponse({ success: false, error: 'Something went wrong — please try again or reload the extension' })
       })
     return true
   },
@@ -165,7 +165,7 @@ async function handleMessage(
         await saveAiAnalysis(date, result)
       }
       // Return success:false if null so popup can show error
-      if (!result) return { success: false, error: '分析失敗：請確認已在設定頁面登入 Google 帳戶，且今日有瀏覽記錄' }
+      if (!result) return { success: false, error: 'Analysis failed: please sign in via Settings → Account, and make sure you have browsing data for today' }
       return { success: true, data: result }
     }
 

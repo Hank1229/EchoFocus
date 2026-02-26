@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { MessageCircle } from 'lucide-react'
 
 interface AiInsightCardProps {
   analysisText: string
@@ -15,7 +16,7 @@ export default function AiInsightCard({ analysisText, analyzedAt, isLoading }: A
     ? analysisText
     : `${analysisText.slice(0, PREVIEW_LEN)}...`
 
-  const timeStr = new Date(analyzedAt).toLocaleTimeString('zh-TW', {
+  const timeStr = new Date(analyzedAt).toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
   })
@@ -24,7 +25,7 @@ export default function AiInsightCard({ analysisText, analyzedAt, isLoading }: A
     return (
       <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center gap-3">
         <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-        <p className="text-xs text-slate-400">AI 分析中...</p>
+        <p className="text-xs text-slate-400">Generating your snapshot…</p>
       </div>
     )
   }
@@ -32,7 +33,8 @@ export default function AiInsightCard({ analysisText, analyzedAt, isLoading }: A
   return (
     <div className="bg-slate-800 border-l-2 border-green-500 rounded-r-xl rounded-l-sm p-3">
       <div className="flex items-center gap-1.5 mb-1.5">
-        <span className="text-xs font-semibold text-green-400 uppercase tracking-wider">🤖 AI 洞察</span>
+        <MessageCircle size={18} strokeWidth={1.75} className="text-blue-400 flex-shrink-0" />
+        <span className="text-xs font-semibold text-green-400 uppercase tracking-wider">Daily Insight</span>
       </div>
       <p className="text-xs text-slate-300 leading-relaxed">
         {displayText}
@@ -43,10 +45,10 @@ export default function AiInsightCard({ analysisText, analyzedAt, isLoading }: A
             onClick={() => setExpanded(e => !e)}
             className="text-xs text-slate-500 hover:text-green-400 transition-colors"
           >
-            {expanded ? '收起' : '展開'}
+            {expanded ? 'Collapse' : 'Read more'}
           </button>
         )}
-        <span className="ml-auto text-xs text-slate-600">{timeStr} 分析</span>
+        <span className="ml-auto text-xs text-slate-600">{timeStr} analyzed</span>
       </div>
     </div>
   )

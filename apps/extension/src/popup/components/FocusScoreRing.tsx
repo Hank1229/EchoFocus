@@ -1,4 +1,5 @@
 import React from 'react'
+import { Flame } from 'lucide-react'
 
 interface FocusScoreRingProps {
   score: number  // 0-100
@@ -18,15 +19,15 @@ export default function FocusScoreRing({ score, size = 120 }: FocusScoreRingProp
   if (score >= 70) {
     ringColor = '#22c55e'    // green
     scoreColor = '#22c55e'
-    label = '優秀'
+    label = 'Excellent'
   } else if (score >= 40) {
     ringColor = '#f59e0b'    // amber
     scoreColor = '#f59e0b'
-    label = '普通'
+    label = 'Average'
   } else {
     ringColor = '#ef4444'    // red
     scoreColor = '#ef4444'
-    label = '待改善'
+    label = 'Room to grow'
   }
 
   return (
@@ -73,12 +74,15 @@ export default function FocusScoreRing({ score, size = 120 }: FocusScoreRingProp
           >
             {score}
           </span>
-          <span className="text-xs text-slate-400 mt-0.5">分</span>
+          <span className="text-xs text-slate-400 mt-0.5">pts</span>
         </div>
       </div>
 
       <div className="text-center">
-        <p className="text-xs font-medium text-slate-400">專注評分</p>
+        <div className="flex items-center justify-center gap-1 mb-0.5">
+          <Flame size={18} strokeWidth={1.75} className="text-emerald-400" />
+          <p className="text-xs font-medium text-slate-400">Focus Score</p>
+        </div>
         <p className="text-xs font-semibold" style={{ color: scoreColor }}>{label}</p>
       </div>
     </div>

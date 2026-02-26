@@ -1,6 +1,7 @@
 import React from 'react'
 import type { TopDomain } from '@echofocus/shared'
 import { formatDuration } from '@echofocus/shared'
+import { Zap, Coffee, Minus } from 'lucide-react'
 
 interface DomainListProps {
   domains: TopDomain[]
@@ -11,18 +12,27 @@ interface DomainListProps {
 function categoryDot(category: TopDomain['category']): string {
   switch (category) {
     case 'productive': return '#22c55e'
-    case 'distraction': return '#ef4444'
+    case 'distraction': return '#f97316'
     case 'neutral': return '#64748b'
     default: return '#475569'
   }
 }
 
+function categoryIcon(category: TopDomain['category']): React.ReactNode {
+  switch (category) {
+    case 'productive': return <Zap size={12} strokeWidth={1.75} className="text-emerald-400 flex-shrink-0" />
+    case 'distraction': return <Coffee size={12} strokeWidth={1.75} className="text-orange-400 flex-shrink-0" />
+    case 'neutral': return <Minus size={12} strokeWidth={1.75} className="text-slate-400 flex-shrink-0" />
+    default: return <Minus size={12} strokeWidth={1.75} className="text-slate-500 flex-shrink-0" />
+  }
+}
+
 function categoryLabel(category: TopDomain['category']): string {
   switch (category) {
-    case 'productive': return '生產'
-    case 'distraction': return '分心'
-    case 'neutral': return '中性'
-    default: return '未分類'
+    case 'productive': return 'Productive'
+    case 'distraction': return 'Breaks & Browsing'
+    case 'neutral': return 'Neutral'
+    default: return 'Uncategorized'
   }
 }
 
@@ -46,8 +56,8 @@ export default function DomainList({ domains, currentDomain, currentElapsedSecon
   if (topFive.length === 0) {
     return (
       <div className="px-4 py-4 text-center">
-        <p className="text-xs text-slate-500">尚未記錄任何瀏覽活動</p>
-        <p className="text-xs text-slate-600 mt-1">繼續瀏覽網頁，統計將在這裡顯示</p>
+        <p className="text-xs text-slate-500">No browsing activity recorded yet</p>
+        <p className="text-xs text-slate-600 mt-1">Keep browsing — stats will appear here</p>
       </div>
     )
   }
@@ -60,6 +70,7 @@ export default function DomainList({ domains, currentDomain, currentElapsedSecon
         const barWidth = (domain.seconds / maxSeconds) * 100
         const isActive = domain.domain === currentDomain
         const dot = categoryDot(domain.category)
+        const icon = categoryIcon(domain.category)
         const label = categoryLabel(domain.category)
 
         return (
@@ -78,10 +89,7 @@ export default function DomainList({ domains, currentDomain, currentElapsedSecon
 
             <div className="relative flex items-center justify-between">
               <div className="flex items-center gap-2 min-w-0">
-                <span
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: dot }}
-                />
+                {icon}
                 <span className="text-sm text-slate-200 truncate max-w-[160px]">
                   {domain.domain}
                 </span>

@@ -39,30 +39,34 @@ interface RequestBody {
 function buildPrompt(agg: AggregatePayload): string {
   const domainList = agg.topDomains
     .slice(0, 8)
-    .map(d => `  - ${d.domain}（${d.minutes} 分鐘，${d.category === 'productive' ? '生產力' : d.category === 'distraction' ? '分心' : '中性'}）`)
+    .map(d => `  - ${d.domain} (${d.minutes} min, ${d.category === 'productive' ? 'Productive' : d.category === 'distraction' ? 'Breaks & Browsing' : 'Neutral'})`)
     .join('\n')
 
-  return `你是一位專業的生產力教練。請根據以下用戶的每日活動摘要，提供具體可執行的洞察建議。
+  return `You are a supportive, encouraging productivity advisor. Be specific and data-driven, but always frame feedback positively — never guilt-trip the user about distraction time.
 
-數據摘要：
-- 日期：${agg.date}
-- 總上網時間：${agg.totalMinutes} 分鐘
-- 生產效率時間：${agg.productiveMinutes} 分鐘
-- 分心時間：${agg.distractionMinutes} 分鐘
-- 中性瀏覽：${agg.neutralMinutes} 分鐘
-- 專注分數：${agg.focusScore}/100
-- 主要瀏覽網站：
-${domainList || '  （無資料）'}
+IMPORTANT: If total browsing time is under 30 minutes, respond only with: "Not enough data for a meaningful analysis today. Try again tomorrow!" and do not provide any further analysis.
 
-請提供：
-1. 整體評估（鼓勵且誠實的語氣）
-2. 發現的行為模式（具體指出數據中的現象）
-3. 3 個具體可執行的改善建議
-4. 激勵性的結語
+Based on the user's daily browsing summary below, provide specific and actionable insights.
 
-語言：繁體中文
-字數：150-250 字
-格式：純文字，不要使用 Markdown 標記`
+Data Summary:
+- Date: ${agg.date}
+- Total online time: ${agg.totalMinutes} minutes
+- Productive time: ${agg.productiveMinutes} minutes
+- Breaks & browsing: ${agg.distractionMinutes} minutes
+- Neutral browsing: ${agg.neutralMinutes} minutes
+- Focus score: ${agg.focusScore}/100
+- Top sites visited:
+${domainList || '  (no data)'}
+
+Please provide:
+1. Overall assessment (encouraging and honest tone)
+2. Behavioral patterns observed (cite specific data points)
+3. 3 specific, actionable improvement suggestions
+4. A motivational closing remark
+
+Language: English
+Length: 150–250 words
+Format: Plain text, no Markdown formatting`
 }
 
 async function callGemini(prompt: string): Promise<string> {
@@ -123,7 +127,7 @@ Deno.serve(async (req: Request) => {
     // Verify user auth
     const authHeader = req.headers.get('Authorization')
     if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: '未授權' }), {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       })
     }
@@ -134,7 +138,7 @@ Deno.serve(async (req: Request) => {
     // Verify the JWT and get user
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: '無效的認證' }), {
+      return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
         status: 401, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       })
     }
@@ -144,14 +148,14 @@ Deno.serve(async (req: Request) => {
     // Privacy check — reject if raw URL/title fields sneak in
     const bodyStr = JSON.stringify(body)
     if (bodyStr.includes('"url"') || bodyStr.includes('"title"')) {
-      return new Response(JSON.stringify({ error: '拒絕包含原始 URL 或標題的請求' }), {
+      return new Response(JSON.stringify({ error: 'Requests containing raw URLs or page titles are rejected' }), {
         status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       })
     }
 
     const { date, aggregate } = body
     if (!date || !aggregate) {
-      return new Response(JSON.stringify({ error: '缺少必要欄位' }), {
+      return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       })
     }
@@ -181,7 +185,7 @@ Deno.serve(async (req: Request) => {
   } catch (err) {
     console.error('ai-analyze error:', err)
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : '伺服器錯誤' }),
+      JSON.stringify({ error: err instanceof Error ? err.message : 'Server error' }),
       { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
     )
   }

@@ -101,6 +101,14 @@ async function runSync(): Promise<void> {
 async function runAiAnalysis(): Promise<void> {
   const today = getTodayDateString()
   console.log('[EchoFocus] Running daily AI analysis for', today)
+
+  // Guard: skip if less than 30 minutes of browsing data — avoids misleading analysis
+  const aggregate = await recomputeAndSaveAggregate(today)
+  if (aggregate.totalSeconds < 30 * 60) {
+    console.log('[EchoFocus] Insufficient data, skipping AI analysis')
+    return
+  }
+
   const result = await requestAiAnalysis(today)
   if (result) {
     await saveAiAnalysis(today, result)

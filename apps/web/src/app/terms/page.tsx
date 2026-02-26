@@ -2,11 +2,11 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: '服務條款 — EchoFocus',
-  description: 'EchoFocus 服務條款：使用我們的生產力追蹤工具前請閱讀以下條款。',
+  title: 'Terms of Service — EchoFocus',
+  description: 'EchoFocus Terms of Service: please read these terms before using our productivity tracking tool.',
 }
 
-const LAST_UPDATED = '2025 年 1 月 1 日'
+const LAST_UPDATED = 'January 1, 2025'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -28,7 +28,7 @@ export default function TermsPage() {
             <span className="font-bold">EchoFocus</span>
           </Link>
           <Link href="/" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
-            ← 返回首頁
+            ← Back to Home
           </Link>
         </div>
       </header>
@@ -36,112 +36,114 @@ export default function TermsPage() {
       {/* Content */}
       <main className="max-w-3xl mx-auto px-6 py-12 space-y-10">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-slate-100">服務條款</h1>
-          <p className="text-sm text-slate-500">最後更新：{LAST_UPDATED}</p>
+          <h1 className="text-3xl font-bold text-slate-100">Terms of Service</h1>
+          <p className="text-sm text-slate-500">Last updated: {LAST_UPDATED}</p>
         </div>
 
         <div className="bg-slate-800 rounded-xl px-5 py-4">
           <p className="text-sm text-slate-300 leading-relaxed">
-            感謝您使用 EchoFocus。請在使用前仔細閱讀以下條款。安裝並使用 EchoFocus 即表示您同意遵守這些條款。
+            Thank you for using EchoFocus. Please read these terms carefully before use. Installing and using EchoFocus constitutes your agreement to these terms.
           </p>
         </div>
 
-        <Section title="1. 服務說明">
+        <Section title="1. Description of Service">
           <p>
-            EchoFocus 是一款 Chrome 瀏覽器擴充功能，提供自動瀏覽行為追蹤、AI 生產力分析、
-            視覺化 Dashboard 及每日 Email 報告等功能，旨在幫助您提升個人生產力。
+            EchoFocus is a Chrome browser extension that provides automatic browsing behavior tracking, AI productivity analysis,
+            a visual dashboard, and daily email reports — designed to help you improve your personal productivity.
           </p>
         </Section>
 
-        <Section title="2. 使用資格">
-          <p>使用 EchoFocus 需要：</p>
+        <Section title="2. Eligibility">
+          <p>To use EchoFocus you must:</p>
           <ul className="space-y-1 list-disc list-inside">
-            <li>年滿 13 歲（或您所在地區法定最低年齡）</li>
-            <li>使用 Chrome 116 或更新版本</li>
-            <li>同意本條款及我們的隱私政策</li>
+            <li>Be at least 13 years old (or the minimum age required in your jurisdiction)</li>
+            <li>Use Chrome 116 or later</li>
+            <li>Agree to these terms and our Privacy Policy</li>
           </ul>
         </Section>
 
-        <Section title="3. 帳戶與驗證">
+        <Section title="3. Account & Authentication">
           <p>
-            基本追蹤功能無需帳戶即可使用。若要使用 Dashboard、AI 分析及 Email 報告功能，
-            您需要使用 Google 帳戶登入。您有責任維護帳戶的安全性，並對帳戶下的所有活動負責。
+            Basic tracking features work without an account. To access the dashboard, AI analysis, and email reports,
+            you must sign in with a Google account. You are responsible for maintaining the security of your account
+            and all activity that occurs under it.
           </p>
         </Section>
 
-        <Section title="4. 可接受的使用方式">
-          <p>您同意不得：</p>
+        <Section title="4. Acceptable Use">
+          <p>You agree not to:</p>
           <ul className="space-y-1 list-disc list-inside">
-            <li>嘗試反向工程或破解 EchoFocus 的任何部分</li>
-            <li>使用 EchoFocus 追蹤他人而未獲得其同意</li>
-            <li>以任何可能損害服務或其他使用者的方式使用 EchoFocus</li>
-            <li>繞過或干擾 EchoFocus 的安全功能</li>
+            <li>Attempt to reverse-engineer or circumvent any part of EchoFocus</li>
+            <li>Use EchoFocus to track other people without their consent</li>
+            <li>Use EchoFocus in any way that could harm the service or other users</li>
+            <li>Bypass or interfere with EchoFocus's security features</li>
           </ul>
         </Section>
 
-        <Section title="5. 資料與隱私">
+        <Section title="5. Data & Privacy">
           <p>
-            您的瀏覽資料歸您所有。EchoFocus 採用本地優先設計，
-            原始瀏覽記錄永遠只儲存在您的設備上。
-            詳情請參閱我們的<Link href="/privacy" className="text-green-400 hover:text-green-300 underline underline-offset-2">隱私政策</Link>。
+            Your browsing data belongs to you. EchoFocus uses a local-first design —
+            raw browsing records are always stored only on your device.
+            See our <Link href="/privacy" className="text-green-400 hover:text-green-300 underline underline-offset-2">Privacy Policy</Link> for full details.
           </p>
         </Section>
 
-        <Section title="6. 免責聲明">
+        <Section title="6. Disclaimer of Warranties">
           <p>
-            EchoFocus 依「現狀」提供，不附帶任何明示或默示的保證。
-            我們不保證服務不中斷、無錯誤或符合您的特定需求。
-            生產力改善結果因人而異，我們無法保證特定的使用效果。
+            EchoFocus is provided "as is" without any express or implied warranties.
+            We do not guarantee that the service will be uninterrupted, error-free, or meet your specific requirements.
+            Productivity improvements vary by individual and cannot be guaranteed.
           </p>
         </Section>
 
-        <Section title="7. 責任限制">
+        <Section title="7. Limitation of Liability">
           <p>
-            在法律允許的最大範圍內，EchoFocus 的開發者對因使用或無法使用本服務而產生的
-            任何間接、偶然、特殊或衍生損害不承擔責任，即使已被告知此類損害的可能性。
+            To the fullest extent permitted by law, the developers of EchoFocus shall not be liable for any indirect,
+            incidental, special, or consequential damages arising from your use or inability to use the service,
+            even if advised of the possibility of such damages.
           </p>
         </Section>
 
-        <Section title="8. 第三方服務">
+        <Section title="8. Third-Party Services">
           <p>
-            EchoFocus 使用 Supabase、Google Gemini API 及 Resend 等第三方服務。
-            使用這些服務受其各自服務條款約束。EchoFocus 對第三方服務的可用性或內容不承擔責任。
+            EchoFocus uses Supabase, Google Gemini API, and Resend. Use of these services is subject to their respective terms.
+            EchoFocus is not responsible for the availability or content of third-party services.
           </p>
         </Section>
 
-        <Section title="9. 服務變更與終止">
+        <Section title="9. Changes & Termination">
           <p>
-            我們保留隨時修改、暫停或終止 EchoFocus（或其任何部分）的權利，
-            恕不另行通知。我們不對服務的任何修改、暫停或終止承擔責任。
+            We reserve the right to modify, suspend, or terminate EchoFocus (or any part of it) at any time without notice.
+            We are not liable for any modification, suspension, or termination of the service.
           </p>
           <p>
-            您可以隨時從 Chrome 移除 EchoFocus 並刪除您的帳戶，以終止使用本服務。
-          </p>
-        </Section>
-
-        <Section title="10. 條款變更">
-          <p>
-            我們可能不定期修訂這些條款。重大變更將透過擴充功能或 Email 通知您。
-            在通知後繼續使用 EchoFocus 即表示您接受更新後的條款。
+            You may terminate your use of EchoFocus at any time by removing the extension from Chrome and deleting your account.
           </p>
         </Section>
 
-        <Section title="11. 準據法">
+        <Section title="10. Changes to These Terms">
           <p>
-            本條款依中華民國（台灣）法律管轄並解釋，不適用法律衝突原則。
+            We may revise these terms from time to time. Significant changes will be communicated through the extension or by email.
+            Continued use of EchoFocus after notification constitutes acceptance of the updated terms.
           </p>
         </Section>
 
-        <Section title="12. 聯絡我們">
+        <Section title="11. Governing Law">
           <p>
-            如有任何關於本條款的問題，請透過 GitHub Issues 聯絡我們。
+            These terms are governed by and construed in accordance with applicable law, without regard to conflict of law principles.
+          </p>
+        </Section>
+
+        <Section title="12. Contact Us">
+          <p>
+            For any questions about these terms, please reach out via GitHub Issues.
           </p>
         </Section>
 
         {/* Footer links */}
         <div className="border-t border-slate-800 pt-8 flex flex-wrap gap-4 text-sm text-slate-500">
-          <Link href="/" className="hover:text-slate-300 transition-colors">首頁</Link>
-          <Link href="/privacy" className="hover:text-slate-300 transition-colors">隱私政策</Link>
+          <Link href="/" className="hover:text-slate-300 transition-colors">Home</Link>
+          <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
         </div>
       </main>
     </div>

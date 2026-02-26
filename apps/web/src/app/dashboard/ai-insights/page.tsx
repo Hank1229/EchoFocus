@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import AnalyzeButton from './AnalyzeButton'
 import { redirect } from 'next/navigation'
+import { Lightbulb } from 'lucide-react'
 
 interface AiAnalysisRow {
   id: string
@@ -39,55 +40,63 @@ export default async function AiInsightsPage() {
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr + 'T00:00:00')
-    return d.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
   }
 
   return (
     <>
-      <DashboardHeader title="AI 洞察" userEmail={user?.email ?? undefined} />
+      <DashboardHeader title="Daily Snapshots" userEmail={user?.email ?? undefined} />
 
-      <main className="flex-1 px-6 py-8 space-y-6 max-w-3xl">
-        {/* Analyze section */}
-        <div className="bg-slate-800 rounded-2xl p-6 space-y-4">
-          <div>
-            <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">立即分析</p>
-            <p className="text-sm text-slate-400">
-              使用 Gemini AI 分析今日的瀏覽模式，獲得個人化生產力建議。
-            </p>
+      <main className="flex-1 px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          {/* ── Left: Generate Now ───────────────────────────── */}
+          <div className="lg:col-span-5">
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5 space-y-4">
+              <div>
+                <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-1">Generate Now</p>
+                <p className="text-sm text-slate-400">
+                  Use Gemini AI to analyze today's browsing patterns and get personalized productivity tips.
+                </p>
+              </div>
+              <AnalyzeButton />
+            </div>
           </div>
-          <AnalyzeButton />
-        </div>
 
-        {/* History */}
-        <div>
-          <p className="text-xs text-slate-500 uppercase tracking-wider mb-4">歷史洞察</p>
+          {/* ── Right: Snapshot History ───────────────────────── */}
+          <div className="lg:col-span-7">
+            <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-4">Snapshot History</p>
 
-          {analyses.length === 0 ? (
-            <div className="bg-slate-800/50 rounded-2xl p-12 text-center border border-dashed border-slate-700">
-              <p className="text-3xl mb-3">🤖</p>
-              <p className="text-slate-300 font-medium mb-1">尚無 AI 洞察</p>
-              <p className="text-sm text-slate-500">點擊上方按鈕分析今日數據，生成你的第一份 AI 洞察報告</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {analyses.map(row => (
-                <div key={row.id} className="bg-slate-800 rounded-2xl p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <p className="text-sm font-medium text-slate-200">{formatDate(row.date)}</p>
-                      <p className="text-xs text-slate-600 mt-0.5">
-                        {new Date(row.created_at).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} 分析
-                      </p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${scoreBg(row.focus_score)} ${scoreColor(row.focus_score)}`}>
-                      {row.focus_score} 分
-                    </span>
-                  </div>
-                  <p className="text-sm text-slate-300 leading-relaxed">{row.analysis_text}</p>
+            {analyses.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900 shadow-sm p-12 text-center">
+                <div className="flex justify-center mb-3">
+                  <Lightbulb size={36} strokeWidth={1.5} className="text-slate-600" />
                 </div>
-              ))}
-            </div>
-          )}
+                <p className="text-slate-300 font-medium mb-1">No Daily Snapshots Yet</p>
+                <p className="text-sm text-slate-500">Click the button to analyze today's data and generate your first snapshot</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {analyses.map(row => (
+                  <div key={row.id} className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <p className="text-sm font-medium text-slate-200">{formatDate(row.date)}</p>
+                        <p className="text-xs text-slate-600 mt-0.5">
+                          {new Date(row.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} analyzed
+                        </p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${scoreBg(row.focus_score)} ${scoreColor(row.focus_score)}`}>
+                        {row.focus_score} pts
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-300 leading-relaxed">{row.analysis_text}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
         </div>
       </main>
     </>

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "EchoFocus — 智慧生產力追蹤",
+  "name": "EchoFocus — Privacy-First Productivity Tracker",
   "version": "1.0.0",
   "description": "AI-powered privacy-first productivity tracker. All browsing data stays on your device.",
   "permissions": [

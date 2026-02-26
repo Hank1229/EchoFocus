@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { Lightbulb, MessageCircle } from 'lucide-react'
 
 const SUPABASE_FUNCTIONS_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1`
@@ -29,7 +30,7 @@ export default function AnalyzeButton() {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        setError('請先登入')
+        setError('Please sign in first')
         return
       }
 
@@ -43,7 +44,7 @@ export default function AnalyzeButton() {
         .maybeSingle()
 
       if (!agg) {
-        setError('今日尚無同步資料，請先在擴充功能中手動同步')
+        setError('No synced data for today — please sync manually from the extension first')
         return
       }
 
@@ -76,7 +77,7 @@ export default function AnalyzeButton() {
 
       if (!res.ok) {
         const errText = await res.text()
-        setError(`分析失敗：${errText}`)
+        setError(`Analysis failed: ${errText}`)
         return
       }
 
@@ -84,7 +85,7 @@ export default function AnalyzeButton() {
       setResult(data)
       router.refresh()  // Reload server data so history list shows new entry
     } catch (err) {
-      setError(err instanceof Error ? err.message : '發生未知錯誤')
+      setError(err instanceof Error ? err.message : 'An unknown error occurred')
     } finally {
       setLoading(false)
     }
@@ -95,14 +96,19 @@ export default function AnalyzeButton() {
       <button
         onClick={handleAnalyze}
         disabled={loading}
-        className="px-5 py-2.5 bg-green-500 hover:bg-green-400 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors"
+        className="flex items-center gap-2 px-5 py-2.5 bg-green-500 hover:bg-green-400 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors"
       >
         {loading ? (
-          <span className="flex items-center gap-2">
+          <>
             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            AI 分析中...
-          </span>
-        ) : '分析今日數據'}
+            Generating your snapshot…
+          </>
+        ) : (
+          <>
+            <Lightbulb size={18} strokeWidth={1.75} />
+            {"Generate Today's Snapshot"}
+          </>
+        )}
       </button>
 
       {error && (
@@ -114,11 +120,14 @@ export default function AnalyzeButton() {
       {result && (
         <div className="bg-slate-800 border-l-4 border-green-500 rounded-r-xl p-5">
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-xs text-slate-500 uppercase tracking-wider">🤖 今日 AI 洞察</span>
-            <span className="ml-auto text-sm font-bold text-green-400">{result.focus_score} 分</span>
+            <div className="flex items-center gap-1.5">
+              <MessageCircle size={18} strokeWidth={1.75} className="text-blue-400" />
+              <span className="text-xs text-slate-500 uppercase tracking-wider">Today's Daily Snapshot</span>
+            </div>
+            <span className="ml-auto text-sm font-bold text-green-400">{result.focus_score} pts</span>
           </div>
           <p className="text-sm text-slate-300 leading-relaxed">{result.analysis_text}</p>
-          <p className="text-xs text-slate-600 mt-3">頁面重新載入後可在下方列表查看</p>
+          <p className="text-xs text-slate-600 mt-3">Reload the page to see this in the list below</p>
         </div>
       )}
     </div>

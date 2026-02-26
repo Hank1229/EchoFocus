@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
+import { Lock } from 'lucide-react'
 import type { Settings, ClassificationRule, Category, MatchType, DailyAggregate } from '@echofocus/shared'
 import { DEFAULT_SETTINGS } from '@echofocus/shared'
 import type { Session } from '@supabase/supabase-js'
@@ -24,16 +25,16 @@ async function sendMessage<T>(type: string, payload?: unknown): Promise<T | null
 type Tab = 'general' | 'categories' | 'privacy' | 'account' | 'about'
 
 const CATEGORY_LABELS: Record<Category, string> = {
-  productive: '生產力',
-  distraction: '分心',
-  neutral: '中性',
-  uncategorized: '未分類',
+  productive: 'Productive',
+  distraction: 'Breaks & Browsing',
+  neutral: 'Neutral',
+  uncategorized: 'Uncategorized',
 }
 
 const MATCH_TYPE_LABELS: Record<MatchType, string> = {
-  exact: '完整網域',
-  wildcard: '萬用字元',
-  path: '路徑',
+  exact: 'Exact Domain',
+  wildcard: 'Wildcard',
+  path: 'Path',
 }
 
 const CATEGORY_COLORS: Record<Category, string> = {
@@ -79,13 +80,13 @@ function GeneralTab() {
   return (
     <div className="space-y-6">
       <section className="bg-slate-800 rounded-xl p-5 space-y-5">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">追蹤設定</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tracking</h2>
 
         {/* trackingEnabled */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-200">啟用追蹤</p>
-            <p className="text-xs text-slate-500 mt-0.5">開啟後自動記錄瀏覽時間</p>
+            <p className="text-sm font-medium text-slate-200">Enable Tracking</p>
+            <p className="text-xs text-slate-500 mt-0.5">Automatically records browsing time when enabled</p>
           </div>
           <button
             onClick={() => update('trackingEnabled', !settings.trackingEnabled)}
@@ -99,59 +100,59 @@ function GeneralTab() {
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <div>
-              <p className="text-sm font-medium text-slate-200">閒置逾時</p>
-              <p className="text-xs text-slate-500 mt-0.5">無操作超過此時間後暫停追蹤</p>
+              <p className="text-sm font-medium text-slate-200">Idle Timeout</p>
+              <p className="text-xs text-slate-500 mt-0.5">Pause tracking after this period of inactivity</p>
             </div>
-            <span className="text-sm font-semibold text-green-400 tabular-nums">{settings.idleTimeoutMinutes} 分鐘</span>
+            <span className="text-sm font-semibold text-green-400 tabular-nums">{settings.idleTimeoutMinutes} min</span>
           </div>
           <input type="range" min={1} max={30} value={settings.idleTimeoutMinutes}
             onChange={e => update('idleTimeoutMinutes', Number(e.target.value))}
             className="w-full accent-green-500" />
-          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>1 分</span><span>30 分</span></div>
+          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>1 min</span><span>30 min</span></div>
         </div>
       </section>
 
       <section className="bg-slate-800 rounded-xl p-5 space-y-5">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">目標與資料</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Goals & Data</h2>
 
         {/* dailyGoalMinutes */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <div>
-              <p className="text-sm font-medium text-slate-200">每日專注目標</p>
-              <p className="text-xs text-slate-500 mt-0.5">每天希望達到的生產力時間</p>
+              <p className="text-sm font-medium text-slate-200">Daily Focus Goal</p>
+              <p className="text-xs text-slate-500 mt-0.5">Target productive time per day</p>
             </div>
             <span className="text-sm font-semibold text-green-400 tabular-nums">
-              {Math.floor(settings.dailyGoalMinutes / 60)} 小時{settings.dailyGoalMinutes % 60 > 0 ? ` ${settings.dailyGoalMinutes % 60} 分` : ''}
+              {Math.floor(settings.dailyGoalMinutes / 60)}h{settings.dailyGoalMinutes % 60 > 0 ? ` ${settings.dailyGoalMinutes % 60}m` : ''}
             </span>
           </div>
           <input type="range" min={60} max={720} step={30} value={settings.dailyGoalMinutes}
             onChange={e => update('dailyGoalMinutes', Number(e.target.value))}
             className="w-full accent-green-500" />
-          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>1 小時</span><span>12 小時</span></div>
+          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>1 hr</span><span>12 hr</span></div>
         </div>
 
         {/* dataRetentionDays */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <div>
-              <p className="text-sm font-medium text-slate-200">資料保留天數</p>
-              <p className="text-xs text-slate-500 mt-0.5">超過此天數的原始記錄將自動清除</p>
+              <p className="text-sm font-medium text-slate-200">Data Retention</p>
+              <p className="text-xs text-slate-500 mt-0.5">Raw records older than this are automatically deleted</p>
             </div>
-            <span className="text-sm font-semibold text-green-400 tabular-nums">{settings.dataRetentionDays} 天</span>
+            <span className="text-sm font-semibold text-green-400 tabular-nums">{settings.dataRetentionDays} d</span>
           </div>
           <input type="range" min={7} max={365} step={7} value={settings.dataRetentionDays}
             onChange={e => update('dataRetentionDays', Number(e.target.value))}
             className="w-full accent-green-500" />
-          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>7 天</span><span>365 天</span></div>
+          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>7 d</span><span>365 d</span></div>
         </div>
       </section>
 
       <div className="flex items-center justify-between pt-1">
-        {savedAt ? <span className="text-xs text-green-400">✓ 已儲存</span> : <span />}
+        {savedAt ? <span className="text-xs text-green-400">✓ Saved</span> : <span />}
         <button onClick={handleSave} disabled={isSaving}
           className="px-5 py-2 bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
-          {isSaving ? '儲存中…' : '儲存設定'}
+          {isSaving ? 'Saving…' : 'Save Settings'}
         </button>
       </div>
     </div>
@@ -218,14 +219,14 @@ function CategoriesTab() {
     <div className="space-y-5">
       {/* Add rule form */}
       <section className="bg-slate-800 rounded-xl p-5">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">新增自訂規則</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Add Custom Rule</h2>
         <div className="space-y-3">
           <input
             type="text"
             value={newPattern}
             onChange={e => setNewPattern(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') void addRule() }}
-            placeholder="例：notion.so 或 *.google.com"
+            placeholder="e.g. notion.so or *.google.com"
             className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-green-500"
           />
           <div className="flex gap-2">
@@ -244,7 +245,7 @@ function CategoriesTab() {
           </div>
           <button onClick={() => void addRule()} disabled={!newPattern.trim() || isSaving}
             className="w-full py-2 bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
-            新增規則
+            Add Rule
           </button>
         </div>
       </section>
@@ -253,14 +254,14 @@ function CategoriesTab() {
       <section className="bg-slate-800 rounded-xl overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-700 flex items-center justify-between">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            自訂規則 ({rules.length})
+            Custom Rules ({rules.length})
           </h2>
-          {savedAt && <span className="text-xs text-green-400">✓ 已儲存</span>}
+          {savedAt && <span className="text-xs text-green-400">✓ Saved</span>}
         </div>
 
         {rules.length === 0 ? (
           <div className="px-5 py-8 text-center text-sm text-slate-500">
-            尚無自訂規則。新增規則可覆蓋預設分類。
+            No custom rules yet. Add a rule to override the default categories.
           </div>
         ) : (
           <ul className="divide-y divide-slate-700">
@@ -275,7 +276,7 @@ function CategoriesTab() {
                 </span>
                 <button onClick={() => void deleteRule(rule.id)}
                   className="text-slate-600 hover:text-red-400 transition-colors text-lg leading-none flex-shrink-0"
-                  title="刪除規則">
+                  title="Delete rule">
                   ×
                 </button>
               </li>
@@ -285,7 +286,7 @@ function CategoriesTab() {
       </section>
 
       <p className="text-xs text-slate-600 text-center">
-        自訂規則優先於預設分類。變更即時生效。
+        Custom rules take priority over defaults. Changes apply immediately.
       </p>
     </div>
   )
@@ -298,7 +299,7 @@ function AccountTab() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSigningIn, setIsSigningIn] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
-  const [syncMessage, setSyncMessage] = useState<string | null>(null)
+  const [syncMessage, setSyncMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const [lastSync, setLastSync] = useState<string | null>(null)
 
   useEffect(() => {
@@ -330,7 +331,7 @@ function AccountTab() {
     setSyncMessage(null)
     const today = getTodayDateString()
     const result = await syncAggregateForDate(today)
-    setSyncMessage(result.message)
+    setSyncMessage({ text: result.message, ok: result.ok })
     if (result.ok) {
       const ls = await getLastSyncTime()
       setLastSync(ls)
@@ -340,7 +341,7 @@ function AccountTab() {
 
   const formatSyncTime = (iso: string) => {
     const d = new Date(iso)
-    return d.toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
   }
 
   if (isLoading) {
@@ -353,7 +354,7 @@ function AccountTab() {
         <>
           {/* Logged in state */}
           <section className="bg-slate-800 rounded-xl p-5 space-y-4">
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">帳戶資訊</h2>
+            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Account</h2>
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center">
                 <span className="text-green-400 text-sm font-bold">
@@ -362,81 +363,75 @@ function AccountTab() {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-slate-200 truncate">{session.user.email}</p>
-                <p className="text-xs text-green-400 mt-0.5">已連線</p>
+                <p className="text-xs text-green-400 mt-0.5">Connected</p>
               </div>
             </div>
           </section>
 
           {/* Sync */}
           <section className="bg-slate-800 rounded-xl p-5 space-y-3">
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">資料同步</h2>
+            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Data Sync</h2>
             <p className="text-xs text-slate-500">
-              每日 00:05 自動同步至雲端 Dashboard。
-              僅同步匿名聚合統計，原始瀏覽紀錄永遠留在您的裝置。
+              Auto-syncs daily at 00:05. Only anonymous aggregates are uploaded — raw browsing data always stays on your device.
             </p>
             {lastSync && (
               <p className="text-xs text-slate-500">
-                上次同步：<span className="text-slate-400">{formatSyncTime(lastSync)}</span>
+                Last sync: <span className="text-slate-400">{formatSyncTime(lastSync)}</span>
               </p>
             )}
             {syncMessage && (
-              <p className={`text-xs ${syncMessage.includes('已同步') ? 'text-green-400' : 'text-red-400'}`}>
-                {syncMessage}
+              <p className={`text-xs ${syncMessage.ok ? 'text-green-400' : 'text-red-400'}`}>
+                {syncMessage.text}
               </p>
             )}
             <button onClick={() => void handleSyncNow()} disabled={isSyncing}
               className="w-full py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-600">
-              {isSyncing ? '同步中…' : '立即同步今日資料'}
+              {isSyncing ? 'Syncing…' : "Sync Today's Data"}
             </button>
           </section>
 
           {/* Dashboard link */}
           <section className="bg-slate-800 rounded-xl p-5">
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">網頁 Dashboard</h2>
+            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Web Dashboard</h2>
             <a
               href={`${DASHBOARD_URL}/dashboard`}
               target="_blank"
               rel="noreferrer"
               className="flex items-center justify-center gap-2 w-full py-2 border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 text-sm font-medium rounded-lg transition-colors"
             >
-              開啟 Dashboard ↗
+              Open Dashboard ↗
             </a>
           </section>
 
           {/* Sign out */}
           <button onClick={() => void handleSignOut()}
             className="w-full py-2 text-red-400 hover:text-red-300 text-sm transition-colors">
-            登出
+            Sign Out
           </button>
         </>
       ) : (
         <>
           {/* Logged out state */}
           <section className="bg-slate-800 rounded-xl p-5 space-y-4">
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">連接帳戶</h2>
+            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Connect Account</h2>
             <p className="text-sm text-slate-400 leading-relaxed">
-              登入後可將每日生產力統計同步至網頁 Dashboard，並跨裝置查看趨勢分析。
+              Sign in to sync daily stats to the web dashboard and view trends across devices.
             </p>
             <div className="flex items-start gap-3 px-4 py-3 bg-slate-700/50 border border-slate-700 rounded-lg">
-              <span className="text-base mt-0.5">🔒</span>
+              <Lock size={14} strokeWidth={1.75} className="text-slate-400 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-slate-400 leading-relaxed">
-                僅同步匿名聚合數據（網域名稱＋時長）。原始 URL 與瀏覽紀錄永遠不會離開您的裝置。
+                Only anonymous aggregates (domain + duration) are synced. Raw URLs never leave your device.
               </p>
             </div>
             <button onClick={() => void handleSignIn()} disabled={isSigningIn}
               className="w-full flex items-center justify-center gap-2 py-2.5 bg-white hover:bg-slate-100 disabled:opacity-50 text-slate-900 text-sm font-semibold rounded-lg transition-colors">
               {isSigningIn ? (
-                <><div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />登入中…</>
+                <><div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />Signing in…</>
               ) : (
-                <><GoogleIcon />使用 Google 帳戶登入</>
+                <><GoogleIcon />Sign in with Google</>
               )}
             </button>
           </section>
-
-          <p className="text-xs text-slate-600 text-center">
-            需要先在 Supabase 設定 Google OAuth 和<br />
-            將 chromiumapp.org 加入重定向白名單
-          </p>
         </>
       )}
     </div>
@@ -462,6 +457,14 @@ function PrivacyTab() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [statusMessage, setStatusMessage] = useState<{ text: string; ok: boolean } | null>(null)
+  const [exportRange, setExportRange] = useState<'all' | '30d'>('all')
+
+  function getExportCutoff(): string | null {
+    if (exportRange === 'all') return null
+    const d = new Date()
+    d.setDate(d.getDate() - 30)
+    return d.toISOString().slice(0, 10)
+  }
 
   useEffect(() => {
     const load = async () => {
@@ -478,9 +481,19 @@ function PrivacyTab() {
 
   const handleExportJSON = async () => {
     setIsExporting(true)
-    const data = await sendMessage<object>('EXPORT_DATA')
+    const data = await sendMessage<Record<string, unknown>>('EXPORT_DATA')
     if (data) {
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const cutoff = getExportCutoff()
+      const exportData = cutoff ? {
+        ...data,
+        entries: Object.fromEntries(
+          Object.entries(data.entries as Record<string, unknown>).filter(([d]) => d >= cutoff)
+        ),
+        aggregates: Object.fromEntries(
+          Object.entries(data.aggregates as Record<string, unknown>).filter(([d]) => d >= cutoff)
+        ),
+      } : data
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -495,9 +508,11 @@ function PrivacyTab() {
     setIsExporting(true)
     const data = await sendMessage<{ aggregates: Record<string, DailyAggregate> }>('EXPORT_DATA')
     if (data?.aggregates) {
+      const cutoff = getExportCutoff()
       const rows = [
         'date,totalMinutes,productiveMinutes,distractionMinutes,neutralMinutes,uncategorizedMinutes,focusScore',
         ...Object.entries(data.aggregates)
+          .filter(([date]) => !cutoff || date >= cutoff)
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([date, agg]) =>
             [
@@ -526,7 +541,7 @@ function PrivacyTab() {
     setIsDeleting(true)
     await sendMessage('DELETE_ALL_DATA')
     setShowDeleteConfirm(false)
-    setStatusMessage({ text: '✓ 所有追蹤資料已刪除', ok: true })
+    setStatusMessage({ text: '✓ All tracking data deleted', ok: true })
     await refreshStorageInfo()
     setIsDeleting(false)
   }
@@ -538,10 +553,10 @@ function PrivacyTab() {
     <div className="space-y-5">
       {/* Storage usage */}
       <section className="bg-slate-800 rounded-xl p-5 space-y-3">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">本地儲存空間</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Local Storage</h2>
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-400">已使用</span>
+            <span className="text-slate-400">Used</span>
             <span className="text-slate-200 tabular-nums">{usedMB} MB / 10 MB</span>
           </div>
           <div className="w-full bg-slate-700 rounded-full h-2">
@@ -550,38 +565,57 @@ function PrivacyTab() {
               style={{ width: `${usedPercent}%` }}
             />
           </div>
-          <p className="text-xs text-slate-500">所有資料儲存於您的裝置，絕不上傳至任何伺服器</p>
+          <p className="text-xs text-slate-500">All data is stored on your device and never uploaded</p>
         </div>
       </section>
 
       {/* Export */}
       <section className="bg-slate-800 rounded-xl p-5 space-y-3">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">匯出資料</h2>
-        <p className="text-xs text-slate-500">下載您所有的瀏覽記錄與聚合統計</p>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Export Data</h2>
+        <p className="text-xs text-slate-500">Download your browsing records and aggregate stats</p>
+
+        {/* Range selector */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-slate-500">Range:</span>
+          {(['all', '30d'] as const).map(r => (
+            <button
+              key={r}
+              onClick={() => setExportRange(r)}
+              className={`px-3 py-1 text-xs rounded-lg border transition-colors ${
+                exportRange === r
+                  ? 'bg-green-500/10 text-green-400 border-green-500/30'
+                  : 'text-slate-500 border-slate-700 hover:text-slate-300'
+              }`}
+            >
+              {r === 'all' ? 'All data' : 'Last 30 days'}
+            </button>
+          ))}
+        </div>
+
         <div className="flex gap-2">
           <button
             onClick={() => void handleExportJSON()}
             disabled={isExporting}
             className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-600"
           >
-            {isExporting ? '匯出中…' : '匯出 JSON'}
+            {isExporting ? 'Exporting…' : 'Export JSON'}
           </button>
           <button
             onClick={() => void handleExportCSV()}
             disabled={isExporting}
             className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-600"
           >
-            {isExporting ? '匯出中…' : '匯出 CSV'}
+            {isExporting ? 'Exporting…' : 'Export CSV'}
           </button>
         </div>
       </section>
 
       {/* Links */}
       <section className="bg-slate-800 rounded-xl p-5 space-y-1">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">相關文件</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Documents</h2>
         {[
-          { label: '隱私政策', href: `${DASHBOARD_URL}/privacy` },
-          { label: '服務條款', href: `${DASHBOARD_URL}/terms` },
+          { label: 'Privacy Policy', href: `${DASHBOARD_URL}/privacy` },
+          { label: 'Terms of Service', href: `${DASHBOARD_URL}/terms` },
         ].map(({ label, href }) => (
           <a key={label} href={href} target="_blank" rel="noreferrer"
             className="flex items-center justify-between text-sm text-slate-300 hover:text-white transition-colors py-2 border-b border-slate-700 last:border-0">
@@ -591,38 +625,38 @@ function PrivacyTab() {
         ))}
       </section>
 
-      {/* Danger zone */}
+      {/* Reset zone */}
       <section className="bg-slate-800 rounded-xl p-5 space-y-3 border border-red-900/40">
-        <h2 className="text-xs font-semibold text-red-400 uppercase tracking-wider">危險區域</h2>
+        <h2 className="text-xs font-semibold text-red-400 uppercase tracking-wider">Reset</h2>
         {statusMessage && (
           <p className={`text-xs ${statusMessage.ok ? 'text-green-400' : 'text-red-400'}`}>{statusMessage.text}</p>
         )}
         {!showDeleteConfirm ? (
           <>
-            <p className="text-xs text-slate-500">刪除所有追蹤記錄，包含每日統計與 AI 分析（設定與帳戶資料將保留）</p>
+            <p className="text-xs text-slate-500">Delete all tracking records, daily stats, and AI analyses. Settings and account data are kept.</p>
             <button
               onClick={() => { setShowDeleteConfirm(true); setStatusMessage(null) }}
               className="w-full py-2 border border-red-800 text-red-400 hover:bg-red-500/10 text-sm font-medium rounded-lg transition-colors"
             >
-              刪除所有追蹤資料
+              Delete All Tracking Data
             </button>
           </>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-red-400 font-medium">確定要刪除所有追蹤資料？此操作無法復原。</p>
+            <p className="text-sm text-red-400 font-medium">Start fresh? This removes all tracking data and can't be undone.</p>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 className="flex-1 py-2 bg-slate-700 text-slate-300 text-sm rounded-lg transition-colors hover:bg-slate-600"
               >
-                取消
+                Cancel
               </button>
               <button
                 onClick={() => void handleDeleteAll()}
                 disabled={isDeleting}
                 className="flex-1 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
               >
-                {isDeleting ? '刪除中…' : '確認刪除'}
+                {isDeleting ? 'Deleting…' : 'Confirm Delete'}
               </button>
             </div>
           </div>
@@ -642,22 +676,22 @@ function AboutTab() {
           <span className="text-4xl">🎯</span>
           <div>
             <h2 className="text-base font-bold text-slate-100">EchoFocus</h2>
-            <p className="text-xs text-slate-500 mt-0.5">版本 {APP_VERSION}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Version {APP_VERSION}</p>
           </div>
         </div>
         <p className="text-sm text-slate-400 leading-relaxed">
-          AI 驅動的隱私優先生產力追蹤工具。自動記錄瀏覽行為，用 Gemini AI 分析工作模式，並提供個人化的改善建議。
+          Privacy-first productivity tracker that automatically records your browsing behavior, analyzes work patterns with Gemini AI, and delivers personalized improvement suggestions.
         </p>
       </section>
 
       <section className="bg-slate-800 rounded-xl p-5 space-y-2">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">我們如何保護您的隱私</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">How We Protect Your Privacy</h2>
         <ul className="space-y-2.5">
           {[
-            '所有瀏覽記錄僅儲存於您的裝置（chrome.storage.local）',
-            'AI 分析只使用匿名聚合數據（網域名稱＋時長，無完整 URL）',
-            '原始 URL 與頁面標題永遠不會離開您的設備',
-            '帳戶資料使用 Supabase 安全加密儲存',
+            'All browsing data is stored only on your device (chrome.storage.local)',
+            'AI analysis uses only anonymous aggregates (domain + duration — no full URLs)',
+            'Raw URLs and page titles never leave your device',
+            'Account data is securely encrypted via Supabase',
           ].map((item, i) => (
             <li key={i} className="flex items-start gap-2 text-sm text-slate-400">
               <span className="text-green-400 mt-0.5 flex-shrink-0">✓</span>
@@ -668,11 +702,11 @@ function AboutTab() {
       </section>
 
       <section className="bg-slate-800 rounded-xl p-5 space-y-1">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">連結</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Links</h2>
         {[
-          { label: '隱私政策', href: `${DASHBOARD_URL}/privacy` },
-          { label: '服務條款', href: `${DASHBOARD_URL}/terms` },
-          { label: '回報問題 / 意見回饋', href: 'https://github.com/anthropics/claude-code/issues' },
+          { label: 'Privacy Policy', href: `${DASHBOARD_URL}/privacy` },
+          { label: 'Terms of Service', href: `${DASHBOARD_URL}/terms` },
+          { label: 'Report an Issue / Feedback', href: 'https://github.com/Hank1229/EchoFocus/issues' },
         ].map(({ label, href }) => (
           <a key={label} href={href} target="_blank" rel="noreferrer"
             className="flex items-center justify-between text-sm text-slate-300 hover:text-white transition-colors py-2 border-b border-slate-700 last:border-0">
@@ -695,11 +729,11 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('general')
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'general', label: '一般' },
-    { id: 'categories', label: '類別' },
-    { id: 'privacy', label: '隱私' },
-    { id: 'account', label: '帳戶' },
-    { id: 'about', label: '關於' },
+    { id: 'general', label: 'General' },
+    { id: 'categories', label: 'Categories' },
+    { id: 'privacy', label: 'Privacy' },
+    { id: 'account', label: 'Account' },
+    { id: 'about', label: 'About' },
   ]
 
   return (
@@ -709,8 +743,8 @@ export default function App() {
         <div className="flex items-center gap-3 mb-8">
           <span className="text-2xl">🎯</span>
           <div>
-            <h1 className="text-xl font-bold text-slate-100">EchoFocus 設定</h1>
-            <p className="text-xs text-slate-500 mt-0.5">所有資料僅儲存於您的裝置</p>
+            <h1 className="text-xl font-bold text-slate-100">EchoFocus Settings</h1>
+            <p className="text-xs text-slate-500 mt-0.5">All data stays on your device</p>
           </div>
         </div>
 

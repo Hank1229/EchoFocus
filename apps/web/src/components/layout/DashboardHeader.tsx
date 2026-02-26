@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { LogOut } from 'lucide-react'
 
 interface DashboardHeaderProps {
   title: string
@@ -30,9 +31,11 @@ export default function DashboardHeader({ title, userEmail }: DashboardHeaderPro
         )}
         <button
           onClick={handleSignOut}
-          className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+          className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+          title="Sign out"
         >
-          登出
+          <LogOut size={18} strokeWidth={1.75} />
+          Sign Out
         </button>
       </div>
     </header>

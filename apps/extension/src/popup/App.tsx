@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import { Lightbulb, Settings as SettingsIcon } from 'lucide-react'
 import { useTodayStats } from './hooks/useTodayStats'
 import FocusScoreRing from './components/FocusScoreRing'
 import StatsBar from './components/StatsBar'
@@ -27,7 +28,7 @@ async function sendMessage<T>(type: string, payload?: unknown): Promise<T | null
 async function sendMessageRaw<T>(type: string, payload?: unknown): Promise<MessageResponse<T>> {
   try {
     const response = await chrome.runtime.sendMessage({ type, payload }) as MessageResponse<T>
-    return response ?? { success: false, error: '無回應' }
+    return response ?? { success: false, error: 'No response' }
   } catch (err) {
     return { success: false, error: String(err) }
   }
@@ -60,7 +61,7 @@ export default function App() {
     if (res.success && res.data) {
       setAiAnalysis(res.data)
     } else {
-      setAiError(res.error ?? '分析失敗，請稍後再試')
+      setAiError(res.error ?? "Couldn't generate your snapshot — check your internet connection and try again")
     }
     setIsAnalyzing(false)
   }, [isAnalyzing, today])
@@ -70,7 +71,7 @@ export default function App() {
       <div className="flex items-center justify-center h-48 bg-slate-900">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs text-slate-500">載入中...</p>
+          <p className="text-xs text-slate-500">Loading...</p>
         </div>
       </div>
     )
@@ -129,7 +130,7 @@ export default function App() {
         <div className="mx-4 mb-3 px-3 py-2 bg-slate-800 rounded-lg flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
           <span className="text-xs text-slate-400 truncate">
-            目前：<span className="text-slate-200 font-medium">{currentSession.domain}</span>
+            Now: <span className="text-slate-200 font-medium">{currentSession.domain}</span>
           </span>
           <span className="ml-auto text-xs text-slate-500 tabular-nums flex-shrink-0">
             {Math.floor(currentElapsed / 60)}:{String(currentElapsed % 60).padStart(2, '0')}
@@ -151,7 +152,7 @@ export default function App() {
       {/* Top domains */}
       <div className="px-4 mb-3">
         <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-          今日網站
+          Today's Sites
         </h2>
         <DomainList
           domains={topDomains}
@@ -180,25 +181,26 @@ export default function App() {
       {/* Footer */}
       <div className="mt-auto border-t border-slate-800 px-4 py-3 flex items-center justify-between">
         <span className="text-xs text-slate-600">
-          {new Date().toLocaleDateString('zh-TW', { month: 'long', day: 'numeric' })}
+          {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
         </span>
         <div className="flex items-center gap-3">
           <span className="text-xs text-slate-600">
-            {trackingState?.isIdle ? '🌙 閒置中' : ''}
+            {trackingState?.isIdle ? '🌙 Idle' : ''}
           </span>
           <button
             onClick={handleAnalyze}
             disabled={isAnalyzing || (aggregate?.totalSeconds ?? 0) === 0}
-            className="text-xs text-slate-500 hover:text-green-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            title="AI 分析今日數據"
+            className="text-slate-500 hover:text-blue-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            title="Generate your daily snapshot"
           >
-            🤖 AI
+            <Lightbulb size={18} strokeWidth={1.75} />
           </button>
           <button
             onClick={() => chrome.runtime.openOptionsPage?.()}
-            className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+            className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+            title="Open settings"
           >
-            設定
+            <SettingsIcon size={18} strokeWidth={1.75} />
           </button>
         </div>
       </div>
