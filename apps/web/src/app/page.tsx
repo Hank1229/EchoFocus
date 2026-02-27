@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Lightbulb, BarChart3, Lock, Shield } from 'lucide-react'
+import { Compass, BarChart2, ShieldCheck, Shield, Lock } from 'lucide-react'
 
 export default function LandingPage() {
   return (
@@ -64,20 +64,20 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
-              Icon: Lightbulb,
-              iconClass: 'text-blue-400',
-              title: 'AI Productivity Advisor',
+              Icon: Compass,
+              iconClass: 'text-amber-400',
+              title: 'Daily Productivity Insights',
               desc: 'Google Gemini AI analyzes your work patterns and gives specific, actionable improvement tips — like having a personal coach on standby.',
             },
             {
-              Icon: BarChart3,
-              iconClass: 'text-emerald-400',
+              Icon: BarChart2,
+              iconClass: 'text-blue-400',
               title: 'Visual Data Insights',
               desc: 'Clear charts reveal daily and weekly trends, showing your most focused periods and the sites that distract you most.',
             },
             {
-              Icon: Lock,
-              iconClass: 'text-slate-300',
+              Icon: ShieldCheck,
+              iconClass: 'text-emerald-400',
               title: 'Your Data, Your Rules',
               desc: 'All browsing history is stored entirely on your device — never uploaded to any server. Even AI analysis uses only anonymized aggregate data.',
             },

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -30,8 +31,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center px-4">
       <Link href="/" className="flex items-center gap-2 mb-12">
-        <span className="text-2xl">🎯</span>
-        <span className="text-lg font-bold text-slate-100 tracking-wide">EchoFocus</span>
+        <Image src="/images/logo-icon.png" alt="EchoFocus logo" width={32} height={32} className="rounded-lg" />
+        <span className="text-lg font-bold tracking-wide">
+          <span style={{ color: '#E2E8F0' }}>Echo</span><span style={{ color: '#2DD4BF' }}>Focus</span>
+        </span>
       </Link>
 
       <div className="w-full max-w-sm bg-slate-800 border border-slate-700 rounded-2xl p-8">

@@ -3,7 +3,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { formatDuration } from '@echofocus/shared'
-import { Zap, Coffee, Minus, MessageCircle } from 'lucide-react'
+import { Zap, Coffee, Minus, FileText } from 'lucide-react'
 
 interface TopDomain {
   domain: string
@@ -168,7 +168,7 @@ export default async function TodayPage() {
                   <div className="rounded-2xl border border-slate-800 border-l-4 border-l-green-500 bg-slate-900 shadow-sm p-5 h-full">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1.5">
-                        <MessageCircle size={18} strokeWidth={1.75} className="text-blue-400" />
+                        <FileText size={18} strokeWidth={1.75} className="text-blue-400" />
                         <p className="text-sm font-medium text-slate-400 uppercase tracking-wide">Daily Insight</p>
                       </div>
                       <Link href="/dashboard/ai-insights" className="text-xs text-green-400 hover:text-green-300 transition-colors">

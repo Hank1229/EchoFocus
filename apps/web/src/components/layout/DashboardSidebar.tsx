@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, TrendingUp, Lightbulb, Settings, Lock } from 'lucide-react'
+import { Sun, TrendingUp, BookOpen, Settings, Lock } from 'lucide-react'
 import Image from 'next/image'
 
 const NAV_ITEMS = [
-  { href: '/dashboard/today', label: "Today's Overview", Icon: BarChart3 },
-  { href: '/dashboard/trends', label: 'Trends', Icon: TrendingUp },
-  { href: '/dashboard/ai-insights', label: 'Daily Snapshots', Icon: Lightbulb },
-  { href: '/dashboard/settings', label: 'Settings', Icon: Settings },
+  { href: '/dashboard/today', label: "Today's Overview", Icon: Sun, inactiveColor: 'text-amber-500/60' },
+  { href: '/dashboard/trends', label: 'Trends', Icon: TrendingUp, inactiveColor: 'text-blue-400/60' },
+  { href: '/dashboard/ai-insights', label: 'Daily Snapshots', Icon: BookOpen, inactiveColor: 'text-violet-400/60' },
+  { href: '/dashboard/settings', label: 'Settings', Icon: Settings, inactiveColor: 'text-slate-400' },
 ]
 
 export default function DashboardSidebar() {
@@ -41,7 +41,11 @@ export default function DashboardSidebar() {
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
               }`}
             >
-              <item.Icon size={18} strokeWidth={1.75} />
+              <item.Icon
+                size={18}
+                strokeWidth={1.75}
+                className={isActive ? 'text-green-400' : item.inactiveColor}
+              />
               {item.label}
             </Link>
           )
