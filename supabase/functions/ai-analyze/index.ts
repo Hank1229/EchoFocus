@@ -33,18 +33,27 @@ interface AggregatePayload {
 
 interface RequestBody {
   date: string
+  language?: string
   aggregate: AggregatePayload
 }
 
-function buildPrompt(agg: AggregatePayload): string {
+function buildPrompt(agg: AggregatePayload, language = 'en'): string {
   const domainList = agg.topDomains
     .slice(0, 8)
     .map(d => `  - ${d.domain} (${d.minutes} min, ${d.category === 'productive' ? 'Productive' : d.category === 'distraction' ? 'Breaks & Browsing' : 'Neutral'})`)
     .join('\n')
 
+  const insufficientDataMsg = language === 'zh-TW'
+    ? '今日瀏覽資料不足，無法提供有意義的分析。明天再試試吧！'
+    : 'Not enough data for a meaningful analysis today. Try again tomorrow!'
+
+  const languageInstruction = language === 'zh-TW'
+    ? 'Language: Traditional Chinese (繁體中文) — respond entirely in Traditional Chinese'
+    : 'Language: English'
+
   return `You are a supportive, encouraging productivity advisor. Be specific and data-driven, but always frame feedback positively — never guilt-trip the user about distraction time.
 
-IMPORTANT: If total browsing time is under 30 minutes, respond only with: "Not enough data for a meaningful analysis today. Try again tomorrow!" and do not provide any further analysis.
+IMPORTANT: If total browsing time is under 30 minutes, respond only with: "${insufficientDataMsg}" and do not provide any further analysis.
 
 Based on the user's daily browsing summary below, provide specific and actionable insights.
 
@@ -64,7 +73,7 @@ Please provide:
 3. 3 specific, actionable improvement suggestions
 4. A motivational closing remark
 
-Language: English
+${languageInstruction}
 Length: 150–250 words
 Format: Plain text, no Markdown formatting`
 }
@@ -153,7 +162,7 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    const { date, aggregate } = body
+    const { date, language, aggregate } = body
     if (!date || !aggregate) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
@@ -161,7 +170,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Call Gemini
-    const prompt = buildPrompt(aggregate)
+    const prompt = buildPrompt(aggregate, language)
     const analysisText = await callGemini(prompt)
 
     // Save to ai_analyses (upsert by user_id + date)

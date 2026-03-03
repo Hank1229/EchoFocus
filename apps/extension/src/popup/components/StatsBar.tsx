@@ -1,6 +1,7 @@
 import React from 'react'
 import { formatDuration } from '@echofocus/shared'
 import { Zap, Coffee, Minus } from 'lucide-react'
+import { useLocale } from '../../lib/i18n'
 
 interface StatsBarProps {
   productiveSeconds: number
@@ -38,6 +39,8 @@ export default function StatsBar({
   uncategorizedSeconds,
   totalSeconds,
 }: StatsBarProps) {
+  const { t } = useLocale()
+
   // Visual bar breakdown
   const total = Math.max(totalSeconds, 1)
   const productivePct = (productiveSeconds / total) * 100
@@ -69,19 +72,19 @@ export default function StatsBar({
       </div>
 
       <StatRow
-        label="Productive"
+        label={t.categories.categoryLabels.productive}
         seconds={productiveSeconds}
         color="#34d399"
         icon={<Zap size={18} strokeWidth={1.75} className="text-emerald-400" />}
       />
       <StatRow
-        label="Breaks & Browsing"
+        label={t.categories.categoryLabels.distraction}
         seconds={distractionSeconds}
         color="#fb923c"
         icon={<Coffee size={18} strokeWidth={1.75} className="text-orange-400" />}
       />
       <StatRow
-        label="Neutral"
+        label={t.categories.categoryLabels.neutral}
         seconds={neutralSeconds + uncategorizedSeconds}
         color="#94a3b8"
         icon={<Minus size={18} strokeWidth={1.75} className="text-slate-400" />}
@@ -89,7 +92,7 @@ export default function StatsBar({
 
       <div className="border-t border-slate-700 mt-2 pt-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-500">Today's Total</span>
+          <span className="text-xs text-slate-500">{t.popup.todaysTotal}</span>
           <span className="text-sm font-bold text-slate-200 tabular-nums">
             {formatDuration(totalSeconds)}
           </span>

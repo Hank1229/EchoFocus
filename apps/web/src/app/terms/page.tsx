@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
+import { getLocale } from '@/lib/i18n-server'
 
 export const metadata: Metadata = {
   title: 'Terms of Service — EchoFocus',
@@ -18,7 +19,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const { t } = await getLocale()
+
   return (
     <div className="min-h-screen bg-slate-900">
       {/* Header */}
@@ -31,7 +34,7 @@ export default function TermsPage() {
             </span>
           </Link>
           <Link href="/" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
-            ← Back to Home
+            {t.terms.backToHome}
           </Link>
         </div>
       </header>
@@ -39,24 +42,24 @@ export default function TermsPage() {
       {/* Content */}
       <main className="max-w-3xl mx-auto px-6 py-12 space-y-10">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-slate-100">Terms of Service</h1>
-          <p className="text-sm text-slate-500">Last updated: {LAST_UPDATED}</p>
+          <h1 className="text-3xl font-bold text-slate-100">{t.common.termsOfService}</h1>
+          <p className="text-sm text-slate-500">{t.terms.lastUpdated} {LAST_UPDATED}</p>
         </div>
 
         <div className="bg-slate-800 rounded-xl px-5 py-4">
           <p className="text-sm text-slate-300 leading-relaxed">
-            Thank you for using EchoFocus. Please read these terms carefully before use. Installing and using EchoFocus constitutes your agreement to these terms.
+            {t.terms.intro}
           </p>
         </div>
 
-        <Section title="1. Description of Service">
+        <Section title={t.terms.section1Title}>
           <p>
             EchoFocus is a Chrome browser extension that provides automatic browsing behavior tracking, AI productivity analysis,
             a visual dashboard, and daily email reports — designed to help you improve your personal productivity.
           </p>
         </Section>
 
-        <Section title="2. Eligibility">
+        <Section title={t.terms.section2Title}>
           <p>To use EchoFocus you must:</p>
           <ul className="space-y-1 list-disc list-inside">
             <li>Be at least 13 years old (or the minimum age required in your jurisdiction)</li>
@@ -65,7 +68,7 @@ export default function TermsPage() {
           </ul>
         </Section>
 
-        <Section title="3. Account & Authentication">
+        <Section title={t.terms.section3Title}>
           <p>
             Basic tracking features work without an account. To access the dashboard, AI analysis, and email reports,
             you must sign in with a Google account. You are responsible for maintaining the security of your account
@@ -73,7 +76,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section title="4. Acceptable Use">
+        <Section title={t.terms.section4Title}>
           <p>You agree not to:</p>
           <ul className="space-y-1 list-disc list-inside">
             <li>Attempt to reverse-engineer or circumvent any part of EchoFocus</li>
@@ -83,15 +86,15 @@ export default function TermsPage() {
           </ul>
         </Section>
 
-        <Section title="5. Data & Privacy">
+        <Section title={t.terms.section5Title}>
           <p>
             Your browsing data belongs to you. EchoFocus uses a local-first design —
             raw browsing records are always stored only on your device.
-            See our <Link href="/privacy" className="text-green-400 hover:text-green-300 underline underline-offset-2">Privacy Policy</Link> for full details.
+            See our <Link href="/privacy" className="text-green-400 hover:text-green-300 underline underline-offset-2">{t.common.privacyPolicy}</Link> for full details.
           </p>
         </Section>
 
-        <Section title="6. Disclaimer of Warranties">
+        <Section title={t.terms.section6Title}>
           <p>
             EchoFocus is provided "as is" without any express or implied warranties.
             We do not guarantee that the service will be uninterrupted, error-free, or meet your specific requirements.
@@ -99,7 +102,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section title="7. Limitation of Liability">
+        <Section title={t.terms.section7Title}>
           <p>
             To the fullest extent permitted by law, the developers of EchoFocus shall not be liable for any indirect,
             incidental, special, or consequential damages arising from your use or inability to use the service,
@@ -107,14 +110,14 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section title="8. Third-Party Services">
+        <Section title={t.terms.section8Title}>
           <p>
             EchoFocus uses Supabase, Google Gemini API, and Resend. Use of these services is subject to their respective terms.
             EchoFocus is not responsible for the availability or content of third-party services.
           </p>
         </Section>
 
-        <Section title="9. Changes & Termination">
+        <Section title={t.terms.section9Title}>
           <p>
             We reserve the right to modify, suspend, or terminate EchoFocus (or any part of it) at any time without notice.
             We are not liable for any modification, suspension, or termination of the service.
@@ -124,20 +127,20 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section title="10. Changes to These Terms">
+        <Section title={t.terms.section10Title}>
           <p>
             We may revise these terms from time to time. Significant changes will be communicated through the extension or by email.
             Continued use of EchoFocus after notification constitutes acceptance of the updated terms.
           </p>
         </Section>
 
-        <Section title="11. Governing Law">
+        <Section title={t.terms.section11Title}>
           <p>
             These terms are governed by and construed in accordance with applicable law, without regard to conflict of law principles.
           </p>
         </Section>
 
-        <Section title="12. Contact Us">
+        <Section title={t.terms.section12Title}>
           <p>
             For any questions about these terms, please reach out via GitHub Issues.
           </p>
@@ -145,8 +148,8 @@ export default function TermsPage() {
 
         {/* Footer links */}
         <div className="border-t border-slate-800 pt-8 flex flex-wrap gap-4 text-sm text-slate-500">
-          <Link href="/" className="hover:text-slate-300 transition-colors">Home</Link>
-          <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
+          <Link href="/" className="hover:text-slate-300 transition-colors">{t.common.home}</Link>
+          <Link href="/privacy" className="hover:text-slate-300 transition-colors">{t.common.privacyPolicy}</Link>
         </div>
       </main>
     </div>

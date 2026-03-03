@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
+import { cookies } from 'next/headers'
 import './globals.css'
+import { LanguageProvider, type Language } from '@/lib/i18n'
 
 export const metadata: Metadata = {
   title: 'EchoFocus — Privacy-First Productivity Tracker',
@@ -7,11 +9,16 @@ export const metadata: Metadata = {
   icons: { icon: '/favicon.ico' },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies()
+  const lang = (cookieStore.get('echofocus-lang')?.value ?? 'en') as Language
+
   return (
-    <html lang="en" className="dark">
+    <html lang={lang === 'zh-TW' ? 'zh-TW' : 'en'} className="dark">
       <body className="min-h-screen bg-slate-900 text-slate-100 antialiased" suppressHydrationWarning>
-        {children}
+        <LanguageProvider initialLanguage={lang}>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   )

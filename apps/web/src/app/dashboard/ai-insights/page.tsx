@@ -3,6 +3,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader'
 import AnalyzeButton from './AnalyzeButton'
 import { redirect } from 'next/navigation'
 import { Lightbulb } from 'lucide-react'
+import { getLocale } from '@/lib/i18n-server'
 
 interface AiAnalysisRow {
   id: string
@@ -26,6 +27,7 @@ function scoreBg(score: number) {
 
 export default async function AiInsightsPage() {
   const supabase = await createClient()
+  const { t, language } = await getLocale()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -38,14 +40,16 @@ export default async function AiInsightsPage() {
 
   const analyses = (data ?? []) as AiAnalysisRow[]
 
+  const dateLocale = language === 'zh-TW' ? 'zh-TW' : 'en-US'
+
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr + 'T00:00:00')
-    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
+    return d.toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
   }
 
   return (
     <>
-      <DashboardHeader title="Daily Snapshots" userEmail={user?.email ?? undefined} />
+      <DashboardHeader title={t.aiInsights.title} userEmail={user?.email ?? undefined} avatarUrl={user?.user_metadata?.avatar_url as string | undefined} />
 
       <main className="flex-1 px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -54,9 +58,9 @@ export default async function AiInsightsPage() {
           <div className="lg:col-span-5">
             <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5 space-y-4">
               <div>
-                <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-1">Generate Now</p>
+                <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-1">{t.aiInsights.generateNow}</p>
                 <p className="text-sm text-slate-400">
-                  Use Gemini AI to analyze today's browsing patterns and get personalized productivity tips.
+                  {t.aiInsights.generateDesc}
                 </p>
               </div>
               <AnalyzeButton />
@@ -65,15 +69,15 @@ export default async function AiInsightsPage() {
 
           {/* ── Right: Snapshot History ───────────────────────── */}
           <div className="lg:col-span-7">
-            <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-4">Snapshot History</p>
+            <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-4">{t.aiInsights.snapshotHistory}</p>
 
             {analyses.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900 shadow-sm p-12 text-center">
                 <div className="flex justify-center mb-3">
                   <Lightbulb size={36} strokeWidth={1.5} className="text-slate-600" />
                 </div>
-                <p className="text-slate-300 font-medium mb-1">No Daily Snapshots Yet</p>
-                <p className="text-sm text-slate-500">Click the button to analyze today's data and generate your first snapshot</p>
+                <p className="text-slate-300 font-medium mb-1">{t.aiInsights.noSnapshots}</p>
+                <p className="text-sm text-slate-500">{t.aiInsights.noSnapshotsDesc}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -83,11 +87,11 @@ export default async function AiInsightsPage() {
                       <div>
                         <p className="text-sm font-medium text-slate-200">{formatDate(row.date)}</p>
                         <p className="text-xs text-slate-600 mt-0.5">
-                          {new Date(row.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} analyzed
+                          {new Date(row.created_at).toLocaleString(dateLocale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} {t.aiInsights.analyzed}
                         </p>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${scoreBg(row.focus_score)} ${scoreColor(row.focus_score)}`}>
-                        {row.focus_score} pts
+                        {row.focus_score} {t.aiInsights.pts}
                       </span>
                     </div>
                     <p className="text-sm text-slate-300 leading-relaxed">{row.analysis_text}</p>

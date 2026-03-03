@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useLocale } from '@/lib/i18n'
 
 export default function LoginPage() {
+  const { t } = useLocale()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -38,8 +40,8 @@ export default function LoginPage() {
       </Link>
 
       <div className="w-full max-w-sm bg-slate-800 border border-slate-700 rounded-2xl p-8">
-        <h1 className="text-xl font-bold text-slate-100 mb-2 text-center">Welcome Back</h1>
-        <p className="text-sm text-slate-400 text-center mb-8">Sign in to view your productivity dashboard</p>
+        <h1 className="text-xl font-bold text-slate-100 mb-2 text-center">{t.login.welcomeBack}</h1>
+        <p className="text-sm text-slate-400 text-center mb-8">{t.login.signInDesc}</p>
 
         {error && (
           <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400">
@@ -55,12 +57,12 @@ export default function LoginPage() {
           {isLoading ? (
             <>
               <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
-              Signing in…
+              {t.login.signingIn}
             </>
           ) : (
             <>
               <GoogleIcon />
-              Sign in with Google
+              {t.login.signInWithGoogle}
             </>
           )}
         </button>
@@ -68,8 +70,7 @@ export default function LoginPage() {
         <div className="mt-6 flex items-start gap-2.5 px-3 py-3 bg-slate-700/50 border border-slate-700 rounded-xl">
           <span className="text-sm mt-0.5">🔒</span>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Sign in to view dashboard trends.
-            All browsing data stays on your local device — never uploaded.
+            {t.login.privacyNote}
           </p>
         </div>
       </div>

@@ -109,7 +109,8 @@ async function runAiAnalysis(): Promise<void> {
     return
   }
 
-  const result = await requestAiAnalysis(today)
+  const { language = 'en' } = await chrome.storage.local.get('language')
+  const result = await requestAiAnalysis(today, language as string)
   if (result) {
     await saveAiAnalysis(today, result)
     console.log('[EchoFocus] AI analysis saved for', today)

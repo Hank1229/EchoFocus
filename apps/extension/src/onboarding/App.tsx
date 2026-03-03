@@ -1,86 +1,82 @@
 import React, { useState } from 'react'
+import { useLocale } from '../lib/i18n'
 
 type Step = 0 | 1 | 2 | 3
 
-const STEPS = [
-  {
-    icon: '🎯',
-    title: 'Welcome to EchoFocus',
-    subtitle: 'AI-Powered Smart Productivity Tracker',
-    content: (
-      <p className="text-slate-400 text-sm leading-relaxed text-center max-w-sm mx-auto">
-        EchoFocus automatically records your browsing, analyzes work patterns with AI,
-        and delivers actionable productivity tips — so you always know where your time goes.
-      </p>
-    ),
-    cta: 'Get Started →',
-  },
-  {
-    icon: '🔒',
-    title: 'Your Data, Fully Under Your Control',
-    subtitle: 'Privacy-First Design',
-    content: (
-      <ul className="space-y-3 w-full max-w-sm mx-auto">
-        {[
-          { icon: '💾', text: 'All browsing data stays on your device — never uploaded to any server' },
-          { icon: '💡', text: 'AI analysis uses only anonymous data (domain + duration) — never full URLs' },
-          { icon: '🛡️', text: 'Account data is securely encrypted with Supabase' },
-        ].map(({ icon, text }) => (
-          <li key={text} className="flex items-start gap-3 bg-slate-800 rounded-xl px-4 py-3">
-            <span className="text-lg flex-shrink-0">{icon}</span>
-            <span className="text-sm text-slate-300 leading-relaxed">{text}</span>
-          </li>
-        ))}
-      </ul>
-    ),
-    cta: 'Continue →',
-  },
-  {
-    icon: '⚡',
-    title: '3 Steps to Better Productivity',
-    subtitle: 'Automated. Intelligent. Visual.',
-    content: (
-      <div className="grid grid-cols-3 gap-3 w-full max-w-sm mx-auto">
-        {[
-          { icon: '👀', title: 'Auto Track', desc: 'Silently logs time on every site — zero manual input' },
-          { icon: '💡', title: 'Daily Snapshot', desc: 'Gemini AI identifies your patterns and gives specific tips' },
-          { icon: '📊', title: 'Visual Reports', desc: 'Daily dashboard & email reports at a glance' },
-        ].map(({ icon, title, desc }) => (
-          <div key={title} className="bg-slate-800 rounded-xl p-3 text-center">
-            <div className="text-2xl mb-2">{icon}</div>
-            <p className="text-xs font-semibold text-slate-200 mb-1">{title}</p>
-            <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
-          </div>
-        ))}
-      </div>
-    ),
-    cta: 'Continue →',
-  },
-  {
-    icon: '🎉',
-    title: "You're All Set!",
-    subtitle: 'Start Tracking Your Productivity',
-    content: (
-      <div className="space-y-3 w-full max-w-sm mx-auto">
-        <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3">
-          <p className="text-sm text-green-400 leading-relaxed text-center">
-            EchoFocus is now tracking in the background. Click the toolbar icon anytime to view today's stats.
-          </p>
-        </div>
-        <p className="text-xs text-slate-500 text-center leading-relaxed">
-          Sign in to unlock the web dashboard, daily snapshots, and email reports.
-          You can also start with basic tracking and connect your account later.
-        </p>
-      </div>
-    ),
-    cta: null, // handled by final step buttons
-  },
-] as const
-
 export default function App() {
+  const { t } = useLocale()
   const [step, setStep] = useState<Step>(0)
 
-  const current = STEPS[step]
+  const steps = [
+    {
+      icon: '🎯',
+      title: t.onboarding.step0Title,
+      subtitle: t.onboarding.step0Subtitle,
+      content: (
+        <p className="text-slate-400 text-sm leading-relaxed text-center max-w-sm mx-auto">
+          {t.onboarding.step0Desc}
+        </p>
+      ),
+      cta: t.onboarding.step0Cta,
+    },
+    {
+      icon: '🔒',
+      title: t.onboarding.step1Title,
+      subtitle: t.onboarding.step1Subtitle,
+      content: (
+        <ul className="space-y-3 w-full max-w-sm mx-auto">
+          {[t.onboarding.step1Privacy0, t.onboarding.step1Privacy1, t.onboarding.step1Privacy2].map((text, i) => (
+            <li key={i} className="flex items-start gap-3 bg-slate-800 rounded-xl px-4 py-3">
+              <span className="text-lg flex-shrink-0">{['💾', '💡', '🛡️'][i]}</span>
+              <span className="text-sm text-slate-300 leading-relaxed">{text}</span>
+            </li>
+          ))}
+        </ul>
+      ),
+      cta: t.onboarding.step1Cta,
+    },
+    {
+      icon: '⚡',
+      title: t.onboarding.step2Title,
+      subtitle: t.onboarding.step2Subtitle,
+      content: (
+        <div className="grid grid-cols-3 gap-3 w-full max-w-sm mx-auto">
+          {[
+            { icon: '👀', title: t.onboarding.step2Feature0Title, desc: t.onboarding.step2Feature0Desc },
+            { icon: '💡', title: t.onboarding.step2Feature1Title, desc: t.onboarding.step2Feature1Desc },
+            { icon: '📊', title: t.onboarding.step2Feature2Title, desc: t.onboarding.step2Feature2Desc },
+          ].map(({ icon, title, desc }) => (
+            <div key={title} className="bg-slate-800 rounded-xl p-3 text-center">
+              <div className="text-2xl mb-2">{icon}</div>
+              <p className="text-xs font-semibold text-slate-200 mb-1">{title}</p>
+              <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </div>
+      ),
+      cta: t.onboarding.step2Cta,
+    },
+    {
+      icon: '🎉',
+      title: t.onboarding.step3Title,
+      subtitle: t.onboarding.step3Subtitle,
+      content: (
+        <div className="space-y-3 w-full max-w-sm mx-auto">
+          <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3">
+            <p className="text-sm text-green-400 leading-relaxed text-center">
+              {t.onboarding.step3TrackingNote}
+            </p>
+          </div>
+          <p className="text-xs text-slate-500 text-center leading-relaxed">
+            {t.onboarding.step3SignInNote}
+          </p>
+        </div>
+      ),
+      cta: null,
+    },
+  ]
+
+  const current = steps[step]
 
   const handleOpenOptions = () => {
     chrome.runtime.openOptionsPage()
@@ -102,13 +98,13 @@ export default function App() {
         onClick={handleClose}
         className="absolute top-5 right-6 text-xs text-slate-600 hover:text-slate-400 transition-colors"
       >
-        Skip
+        {t.onboarding.skip}
       </button>
 
       <div className="w-full max-w-lg">
         {/* Progress dots */}
         <div className="flex items-center justify-center gap-2 mb-10">
-          {STEPS.map((_, i) => (
+          {steps.map((_, i) => (
             <div
               key={i}
               className={`rounded-full transition-all duration-300 ${
@@ -154,13 +150,13 @@ export default function App() {
               onClick={handleOpenOptions}
               className="w-full py-3 bg-green-500 hover:bg-green-400 text-white font-semibold rounded-xl transition-colors text-sm"
             >
-              Sign In to Unlock All Features
+              {t.onboarding.step3SignIn}
             </button>
             <button
               onClick={handleClose}
               className="w-full py-2.5 border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-slate-300 text-sm rounded-xl transition-colors"
             >
-              Skip for now, use basic features
+              {t.onboarding.step3SkipBasic}
             </button>
           </div>
         )}
@@ -172,7 +168,7 @@ export default function App() {
               onClick={() => setStep((step - 1) as Step)}
               className="text-xs text-slate-600 hover:text-slate-400 transition-colors"
             >
-              ← Back
+              {t.onboarding.back}
             </button>
           </div>
         )}

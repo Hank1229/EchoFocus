@@ -1,5 +1,6 @@
 import React from 'react'
 import { Flame } from 'lucide-react'
+import { useLocale } from '../../lib/i18n'
 
 interface FocusScoreRingProps {
   score: number  // 0-100
@@ -7,6 +8,7 @@ interface FocusScoreRingProps {
 }
 
 export default function FocusScoreRing({ score, size = 120 }: FocusScoreRingProps) {
+  const { t } = useLocale()
   const strokeWidth = 10
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
@@ -19,15 +21,15 @@ export default function FocusScoreRing({ score, size = 120 }: FocusScoreRingProp
   if (score >= 70) {
     ringColor = '#22c55e'    // green
     scoreColor = '#22c55e'
-    label = 'Excellent'
+    label = t.popup.excellent
   } else if (score >= 40) {
     ringColor = '#f59e0b'    // amber
     scoreColor = '#f59e0b'
-    label = 'Average'
+    label = t.popup.average
   } else {
     ringColor = '#ef4444'    // red
     scoreColor = '#ef4444'
-    label = 'Room to grow'
+    label = t.popup.roomToGrow
   }
 
   return (
@@ -74,14 +76,14 @@ export default function FocusScoreRing({ score, size = 120 }: FocusScoreRingProp
           >
             {score}
           </span>
-          <span className="text-xs text-slate-400 mt-0.5">pts</span>
+          <span className="text-xs text-slate-400 mt-0.5">{t.popup.pts}</span>
         </div>
       </div>
 
       <div className="text-center">
         <div className="flex items-center justify-center gap-1 mb-0.5">
           <Flame size={18} strokeWidth={1.75} className="text-emerald-400" />
-          <p className="text-xs font-medium text-slate-400">Focus Score</p>
+          <p className="text-xs font-medium text-slate-400">{t.popup.focusScore}</p>
         </div>
         <p className="text-xs font-semibold" style={{ color: scoreColor }}>{label}</p>
       </div>

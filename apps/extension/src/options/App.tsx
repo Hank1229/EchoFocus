@@ -7,6 +7,7 @@ import type { Session } from '@supabase/supabase-js'
 import { signInWithGoogle, signOut, getSession } from '../lib/auth'
 import { syncAggregateForDate, getLastSyncTime } from '../lib/sync'
 import { getTodayDateString } from '@echofocus/shared'
+import { useLocale, type Language } from '../lib/i18n'
 
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL ?? 'http://localhost:3000'
 const APP_VERSION = '1.0.0'
@@ -25,19 +26,6 @@ async function sendMessage<T>(type: string, payload?: unknown): Promise<T | null
 
 type Tab = 'general' | 'categories' | 'privacy' | 'account' | 'about'
 
-const CATEGORY_LABELS: Record<Category, string> = {
-  productive: 'Productive',
-  distraction: 'Breaks & Browsing',
-  neutral: 'Neutral',
-  uncategorized: 'Uncategorized',
-}
-
-const MATCH_TYPE_LABELS: Record<MatchType, string> = {
-  exact: 'Exact Domain',
-  wildcard: 'Wildcard',
-  path: 'Path',
-}
-
 const CATEGORY_COLORS: Record<Category, string> = {
   productive: 'text-green-400',
   distraction: 'text-red-400',
@@ -48,6 +36,7 @@ const CATEGORY_COLORS: Record<Category, string> = {
 // ─── General Tab ──────────────────────────────────────────────────────────
 
 function GeneralTab() {
+  const { t, language, setLanguage } = useLocale()
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -81,13 +70,13 @@ function GeneralTab() {
   return (
     <div className="space-y-6">
       <section className="bg-slate-800 rounded-xl p-5 space-y-5">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tracking</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.general.tracking}</h2>
 
         {/* trackingEnabled */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-200">Enable Tracking</p>
-            <p className="text-xs text-slate-500 mt-0.5">Automatically records browsing time when enabled</p>
+            <p className="text-sm font-medium text-slate-200">{t.general.enableTracking}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{t.general.enableTrackingDesc}</p>
           </div>
           <button
             onClick={() => update('trackingEnabled', !settings.trackingEnabled)}
@@ -101,27 +90,27 @@ function GeneralTab() {
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <div>
-              <p className="text-sm font-medium text-slate-200">Idle Timeout</p>
-              <p className="text-xs text-slate-500 mt-0.5">Pause tracking after this period of inactivity</p>
+              <p className="text-sm font-medium text-slate-200">{t.general.idleTimeout}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{t.general.idleTimeoutDesc}</p>
             </div>
-            <span className="text-sm font-semibold text-green-400 tabular-nums">{settings.idleTimeoutMinutes} min</span>
+            <span className="text-sm font-semibold text-green-400 tabular-nums">{settings.idleTimeoutMinutes} {t.general.min}</span>
           </div>
           <input type="range" min={1} max={30} value={settings.idleTimeoutMinutes}
             onChange={e => update('idleTimeoutMinutes', Number(e.target.value))}
             className="w-full accent-green-500" />
-          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>1 min</span><span>30 min</span></div>
+          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>{t.general.range1Min}</span><span>{t.general.range30Min}</span></div>
         </div>
       </section>
 
       <section className="bg-slate-800 rounded-xl p-5 space-y-5">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Goals & Data</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.general.goalsAndData}</h2>
 
         {/* dailyGoalMinutes */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <div>
-              <p className="text-sm font-medium text-slate-200">Daily Focus Goal</p>
-              <p className="text-xs text-slate-500 mt-0.5">Target productive time per day</p>
+              <p className="text-sm font-medium text-slate-200">{t.general.dailyFocusGoal}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{t.general.dailyFocusGoalDesc}</p>
             </div>
             <span className="text-sm font-semibold text-green-400 tabular-nums">
               {Math.floor(settings.dailyGoalMinutes / 60)}h{settings.dailyGoalMinutes % 60 > 0 ? ` ${settings.dailyGoalMinutes % 60}m` : ''}
@@ -130,30 +119,51 @@ function GeneralTab() {
           <input type="range" min={60} max={720} step={30} value={settings.dailyGoalMinutes}
             onChange={e => update('dailyGoalMinutes', Number(e.target.value))}
             className="w-full accent-green-500" />
-          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>1 hr</span><span>12 hr</span></div>
+          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>{t.general.range1hr}</span><span>{t.general.range12hr}</span></div>
         </div>
 
         {/* dataRetentionDays */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <div>
-              <p className="text-sm font-medium text-slate-200">Data Retention</p>
-              <p className="text-xs text-slate-500 mt-0.5">Raw records older than this are automatically deleted</p>
+              <p className="text-sm font-medium text-slate-200">{t.general.dataRetention}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{t.general.dataRetentionDesc}</p>
             </div>
-            <span className="text-sm font-semibold text-green-400 tabular-nums">{settings.dataRetentionDays} d</span>
+            <span className="text-sm font-semibold text-green-400 tabular-nums">{settings.dataRetentionDays} {t.general.day}</span>
           </div>
           <input type="range" min={7} max={365} step={7} value={settings.dataRetentionDays}
             onChange={e => update('dataRetentionDays', Number(e.target.value))}
             className="w-full accent-green-500" />
-          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>7 d</span><span>365 d</span></div>
+          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>{t.general.range7d}</span><span>{t.general.range365d}</span></div>
+        </div>
+      </section>
+
+      {/* Language setting */}
+      <section className="bg-slate-800 rounded-xl p-5 space-y-3">
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.general.language}</h2>
+        <p className="text-xs text-slate-500">{t.general.languageDesc}</p>
+        <div className="flex gap-2">
+          {(['en', 'zh-TW'] as Language[]).map(lang => (
+            <button
+              key={lang}
+              onClick={() => setLanguage(lang)}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                language === lang
+                  ? 'bg-green-500/10 text-green-400 border-green-500/30'
+                  : 'text-slate-400 border-slate-700 hover:text-slate-200 hover:border-slate-600'
+              }`}
+            >
+              {lang === 'en' ? t.general.english : t.general.traditionalChinese}
+            </button>
+          ))}
         </div>
       </section>
 
       <div className="flex items-center justify-between pt-1">
-        {savedAt ? <span className="text-xs text-green-400">✓ Saved</span> : <span />}
+        {savedAt ? <span className="text-xs text-green-400">{t.general.saved}</span> : <span />}
         <button onClick={handleSave} disabled={isSaving}
           className="px-5 py-2 bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
-          {isSaving ? 'Saving…' : 'Save Settings'}
+          {isSaving ? t.general.saving : t.general.saveSettings}
         </button>
       </div>
     </div>
@@ -163,6 +173,7 @@ function GeneralTab() {
 // ─── Categories Tab ───────────────────────────────────────────────────────
 
 function CategoriesTab() {
+  const { t } = useLocale()
   const [rules, setRules] = useState<ClassificationRule[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -172,6 +183,19 @@ function CategoriesTab() {
   const [newPattern, setNewPattern] = useState('')
   const [newMatchType, setNewMatchType] = useState<MatchType>('exact')
   const [newCategory, setNewCategory] = useState<Category>('productive')
+
+  const CATEGORY_LABELS: Record<Category, string> = {
+    productive: t.categories.categoryLabels.productive,
+    distraction: t.categories.categoryLabels.distraction,
+    neutral: t.categories.categoryLabels.neutral,
+    uncategorized: t.categories.categoryLabels.uncategorized,
+  }
+
+  const MATCH_TYPE_LABELS: Record<MatchType, string> = {
+    exact: t.categories.matchTypes.exact,
+    wildcard: t.categories.matchTypes.wildcard,
+    path: t.categories.matchTypes.path,
+  }
 
   const load = useCallback(async () => {
     const loaded = await sendMessage<ClassificationRule[]>('GET_CUSTOM_RULES')
@@ -220,14 +244,14 @@ function CategoriesTab() {
     <div className="space-y-5">
       {/* Add rule form */}
       <section className="bg-slate-800 rounded-xl p-5">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Add Custom Rule</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">{t.categories.addCustomRule}</h2>
         <div className="space-y-3">
           <input
             type="text"
             value={newPattern}
             onChange={e => setNewPattern(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') void addRule() }}
-            placeholder="e.g. notion.so or *.google.com"
+            placeholder={t.categories.patternPlaceholder}
             className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-green-500"
           />
           <div className="flex gap-2">
@@ -246,7 +270,7 @@ function CategoriesTab() {
           </div>
           <button onClick={() => void addRule()} disabled={!newPattern.trim() || isSaving}
             className="w-full py-2 bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
-            Add Rule
+            {t.categories.addRule}
           </button>
         </div>
       </section>
@@ -255,14 +279,14 @@ function CategoriesTab() {
       <section className="bg-slate-800 rounded-xl overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-700 flex items-center justify-between">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Custom Rules ({rules.length})
+            {t.categories.customRules} ({rules.length})
           </h2>
-          {savedAt && <span className="text-xs text-green-400">✓ Saved</span>}
+          {savedAt && <span className="text-xs text-green-400">{t.categories.saved}</span>}
         </div>
 
         {rules.length === 0 ? (
           <div className="px-5 py-8 text-center text-sm text-slate-500">
-            No custom rules yet. Add a rule to override the default categories.
+            {t.categories.noRules}
           </div>
         ) : (
           <ul className="divide-y divide-slate-700">
@@ -277,7 +301,7 @@ function CategoriesTab() {
                 </span>
                 <button onClick={() => void deleteRule(rule.id)}
                   className="text-slate-600 hover:text-red-400 transition-colors text-lg leading-none flex-shrink-0"
-                  title="Delete rule">
+                  title={t.categories.deleteRule}>
                   ×
                 </button>
               </li>
@@ -287,7 +311,7 @@ function CategoriesTab() {
       </section>
 
       <p className="text-xs text-slate-600 text-center">
-        Custom rules take priority over defaults. Changes apply immediately.
+        {t.categories.rulesNote}
       </p>
     </div>
   )
@@ -296,6 +320,7 @@ function CategoriesTab() {
 // ─── Account Tab ──────────────────────────────────────────────────────────
 
 function AccountTab() {
+  const { t, language } = useLocale()
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSigningIn, setIsSigningIn] = useState(false)
@@ -342,7 +367,8 @@ function AccountTab() {
 
   const formatSyncTime = (iso: string) => {
     const d = new Date(iso)
-    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    const locale = language === 'zh-TW' ? 'zh-TW' : 'en-US'
+    return d.toLocaleString(locale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
   }
 
   if (isLoading) {
@@ -355,7 +381,7 @@ function AccountTab() {
         <>
           {/* Logged in state */}
           <section className="bg-slate-800 rounded-xl p-5 space-y-4">
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Account</h2>
+            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.account.account}</h2>
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center">
                 <span className="text-green-400 text-sm font-bold">
@@ -364,20 +390,20 @@ function AccountTab() {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-slate-200 truncate">{session.user.email}</p>
-                <p className="text-xs text-green-400 mt-0.5">Connected</p>
+                <p className="text-xs text-green-400 mt-0.5">{t.account.connected}</p>
               </div>
             </div>
           </section>
 
           {/* Sync */}
           <section className="bg-slate-800 rounded-xl p-5 space-y-3">
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Data Sync</h2>
+            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.account.dataSync}</h2>
             <p className="text-xs text-slate-500">
-              Auto-syncs daily at 00:05. Only anonymous aggregates are uploaded — raw browsing data always stays on your device.
+              {t.account.autoSyncNote}
             </p>
             {lastSync && (
               <p className="text-xs text-slate-500">
-                Last sync: <span className="text-slate-400">{formatSyncTime(lastSync)}</span>
+                {t.account.lastSync} <span className="text-slate-400">{formatSyncTime(lastSync)}</span>
               </p>
             )}
             {syncMessage && (
@@ -387,49 +413,49 @@ function AccountTab() {
             )}
             <button onClick={() => void handleSyncNow()} disabled={isSyncing}
               className="w-full py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-600">
-              {isSyncing ? 'Syncing…' : "Sync Today's Data"}
+              {isSyncing ? t.account.syncing : t.account.syncToday}
             </button>
           </section>
 
           {/* Dashboard link */}
           <section className="bg-slate-800 rounded-xl p-5">
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Web Dashboard</h2>
+            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t.account.webDashboard}</h2>
             <a
               href={`${DASHBOARD_URL}/dashboard`}
               target="_blank"
               rel="noreferrer"
               className="flex items-center justify-center gap-2 w-full py-2 border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 text-sm font-medium rounded-lg transition-colors"
             >
-              Open Dashboard ↗
+              {t.account.openDashboard}
             </a>
           </section>
 
           {/* Sign out */}
           <button onClick={() => void handleSignOut()}
             className="w-full py-2 text-red-400 hover:text-red-300 text-sm transition-colors">
-            Sign Out
+            {t.account.signOut}
           </button>
         </>
       ) : (
         <>
           {/* Logged out state */}
           <section className="bg-slate-800 rounded-xl p-5 space-y-4">
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Connect Account</h2>
+            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.account.connectAccount}</h2>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Sign in to sync daily stats to the web dashboard and view trends across devices.
+              {t.account.signInDesc}
             </p>
             <div className="flex items-start gap-3 px-4 py-3 bg-slate-700/50 border border-slate-700 rounded-lg">
               <Lock size={14} strokeWidth={1.75} className="text-slate-400 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-slate-400 leading-relaxed">
-                Only anonymous aggregates (domain + duration) are synced. Raw URLs never leave your device.
+                {t.account.privacyNote}
               </p>
             </div>
             <button onClick={() => void handleSignIn()} disabled={isSigningIn}
               className="w-full flex items-center justify-center gap-2 py-2.5 bg-white hover:bg-slate-100 disabled:opacity-50 text-slate-900 text-sm font-semibold rounded-lg transition-colors">
               {isSigningIn ? (
-                <><div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />Signing in…</>
+                <><div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />{t.account.signingIn}</>
               ) : (
-                <><GoogleIcon />Sign in with Google</>
+                <><GoogleIcon />{t.account.signInWithGoogle}</>
               )}
             </button>
           </section>
@@ -453,6 +479,7 @@ function GoogleIcon() {
 // ─── Privacy Tab ──────────────────────────────────────────────────────────
 
 function PrivacyTab() {
+  const { t } = useLocale()
   const [storageInfo, setStorageInfo] = useState<{ usedBytes: number; quotaBytes: number } | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -542,7 +569,7 @@ function PrivacyTab() {
     setIsDeleting(true)
     await sendMessage('DELETE_ALL_DATA')
     setShowDeleteConfirm(false)
-    setStatusMessage({ text: '✓ All tracking data deleted', ok: true })
+    setStatusMessage({ text: t.privacy.deleted, ok: true })
     await refreshStorageInfo()
     setIsDeleting(false)
   }
@@ -550,15 +577,17 @@ function PrivacyTab() {
   const usedMB = storageInfo ? (storageInfo.usedBytes / (1024 * 1024)).toFixed(2) : '…'
   const usedPercent = storageInfo ? Math.min(100, (storageInfo.usedBytes / storageInfo.quotaBytes) * 100) : 0
 
+  const DASHBOARD_URL_LOCAL = import.meta.env.VITE_DASHBOARD_URL ?? 'http://localhost:3000'
+
   return (
     <div className="space-y-5">
       {/* Storage usage */}
       <section className="bg-slate-800 rounded-xl p-5 space-y-3">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Local Storage</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.privacy.localStorage}</h2>
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-400">Used</span>
-            <span className="text-slate-200 tabular-nums">{usedMB} MB / 10 MB</span>
+            <span className="text-slate-400">{t.privacy.used}</span>
+            <span className="text-slate-200 tabular-nums">{usedMB} {t.privacy.storageMB}</span>
           </div>
           <div className="w-full bg-slate-700 rounded-full h-2">
             <div
@@ -566,18 +595,18 @@ function PrivacyTab() {
               style={{ width: `${usedPercent}%` }}
             />
           </div>
-          <p className="text-xs text-slate-500">All data is stored on your device and never uploaded</p>
+          <p className="text-xs text-slate-500">{t.privacy.storageNote}</p>
         </div>
       </section>
 
       {/* Export */}
       <section className="bg-slate-800 rounded-xl p-5 space-y-3">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Export Data</h2>
-        <p className="text-xs text-slate-500">Download your browsing records and aggregate stats</p>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.privacy.exportData}</h2>
+        <p className="text-xs text-slate-500">{t.privacy.exportDesc}</p>
 
         {/* Range selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">Range:</span>
+          <span className="text-xs text-slate-500">{t.privacy.range}</span>
           {(['all', '30d'] as const).map(r => (
             <button
               key={r}
@@ -588,7 +617,7 @@ function PrivacyTab() {
                   : 'text-slate-500 border-slate-700 hover:text-slate-300'
               }`}
             >
-              {r === 'all' ? 'All data' : 'Last 30 days'}
+              {r === 'all' ? t.privacy.allData : t.privacy.last30Days}
             </button>
           ))}
         </div>
@@ -599,24 +628,24 @@ function PrivacyTab() {
             disabled={isExporting}
             className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-600"
           >
-            {isExporting ? 'Exporting…' : 'Export JSON'}
+            {isExporting ? t.privacy.exporting : t.privacy.exportJSON}
           </button>
           <button
             onClick={() => void handleExportCSV()}
             disabled={isExporting}
             className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-600"
           >
-            {isExporting ? 'Exporting…' : 'Export CSV'}
+            {isExporting ? t.privacy.exporting : t.privacy.exportCSV}
           </button>
         </div>
       </section>
 
       {/* Links */}
       <section className="bg-slate-800 rounded-xl p-5 space-y-1">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Documents</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t.privacy.documents}</h2>
         {[
-          { label: 'Privacy Policy', href: `${DASHBOARD_URL}/privacy` },
-          { label: 'Terms of Service', href: `${DASHBOARD_URL}/terms` },
+          { label: t.privacy.privacyPolicy, href: `${DASHBOARD_URL_LOCAL}/privacy` },
+          { label: t.privacy.termsOfService, href: `${DASHBOARD_URL_LOCAL}/terms` },
         ].map(({ label, href }) => (
           <a key={label} href={href} target="_blank" rel="noreferrer"
             className="flex items-center justify-between text-sm text-slate-300 hover:text-white transition-colors py-2 border-b border-slate-700 last:border-0">
@@ -628,36 +657,36 @@ function PrivacyTab() {
 
       {/* Reset zone */}
       <section className="bg-slate-800 rounded-xl p-5 space-y-3 border border-red-900/40">
-        <h2 className="text-xs font-semibold text-red-400 uppercase tracking-wider">Reset</h2>
+        <h2 className="text-xs font-semibold text-red-400 uppercase tracking-wider">{t.privacy.reset}</h2>
         {statusMessage && (
           <p className={`text-xs ${statusMessage.ok ? 'text-green-400' : 'text-red-400'}`}>{statusMessage.text}</p>
         )}
         {!showDeleteConfirm ? (
           <>
-            <p className="text-xs text-slate-500">Delete all tracking records, daily stats, and AI analyses. Settings and account data are kept.</p>
+            <p className="text-xs text-slate-500">{t.privacy.deleteDesc}</p>
             <button
               onClick={() => { setShowDeleteConfirm(true); setStatusMessage(null) }}
               className="w-full py-2 border border-red-800 text-red-400 hover:bg-red-500/10 text-sm font-medium rounded-lg transition-colors"
             >
-              Delete All Tracking Data
+              {t.privacy.deleteAll}
             </button>
           </>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-red-400 font-medium">Start fresh? This removes all tracking data and can't be undone.</p>
+            <p className="text-sm text-red-400 font-medium">{t.privacy.deleteConfirm}</p>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 className="flex-1 py-2 bg-slate-700 text-slate-300 text-sm rounded-lg transition-colors hover:bg-slate-600"
               >
-                Cancel
+                {t.privacy.cancel}
               </button>
               <button
                 onClick={() => void handleDeleteAll()}
                 disabled={isDeleting}
                 className="flex-1 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
               >
-                {isDeleting ? 'Deleting…' : 'Confirm Delete'}
+                {isDeleting ? t.privacy.deleting : t.privacy.confirmDelete}
               </button>
             </div>
           </div>
@@ -670,6 +699,9 @@ function PrivacyTab() {
 // ─── About Tab ─────────────────────────────────────────────────────────────
 
 function AboutTab() {
+  const { t } = useLocale()
+  const DASHBOARD_URL_LOCAL = import.meta.env.VITE_DASHBOARD_URL ?? 'http://localhost:3000'
+
   return (
     <div className="space-y-5">
       <section className="bg-slate-800 rounded-xl p-5 space-y-4">
@@ -677,23 +709,18 @@ function AboutTab() {
           <img src={iconSrc} alt="EchoFocus" width={48} height={48} className="rounded-xl" />
           <div>
             <h2 className="text-base font-bold text-slate-100">EchoFocus</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Version {APP_VERSION}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{t.about.version} {APP_VERSION}</p>
           </div>
         </div>
         <p className="text-sm text-slate-400 leading-relaxed">
-          Privacy-first productivity tracker that automatically records your browsing behavior, analyzes work patterns with Gemini AI, and delivers personalized improvement suggestions.
+          {t.about.appDesc}
         </p>
       </section>
 
       <section className="bg-slate-800 rounded-xl p-5 space-y-2">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">How We Protect Your Privacy</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t.about.privacyProtection}</h2>
         <ul className="space-y-2.5">
-          {[
-            'All browsing data is stored only on your device (chrome.storage.local)',
-            'AI analysis uses only anonymous aggregates (domain + duration — no full URLs)',
-            'Raw URLs and page titles never leave your device',
-            'Account data is securely encrypted via Supabase',
-          ].map((item, i) => (
+          {[t.about.privacyItem0, t.about.privacyItem1, t.about.privacyItem2, t.about.privacyItem3].map((item, i) => (
             <li key={i} className="flex items-start gap-2 text-sm text-slate-400">
               <span className="text-green-400 mt-0.5 flex-shrink-0">✓</span>
               {item}
@@ -703,11 +730,11 @@ function AboutTab() {
       </section>
 
       <section className="bg-slate-800 rounded-xl p-5 space-y-1">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Links</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t.about.links}</h2>
         {[
-          { label: 'Privacy Policy', href: `${DASHBOARD_URL}/privacy` },
-          { label: 'Terms of Service', href: `${DASHBOARD_URL}/terms` },
-          { label: 'Report an Issue / Feedback', href: 'https://github.com/Hank1229/EchoFocus/issues' },
+          { label: t.privacy.privacyPolicy, href: `${DASHBOARD_URL_LOCAL}/privacy` },
+          { label: t.privacy.termsOfService, href: `${DASHBOARD_URL_LOCAL}/terms` },
+          { label: t.about.reportIssue, href: 'https://github.com/Hank1229/EchoFocus/issues' },
         ].map(({ label, href }) => (
           <a key={label} href={href} target="_blank" rel="noreferrer"
             className="flex items-center justify-between text-sm text-slate-300 hover:text-white transition-colors py-2 border-b border-slate-700 last:border-0">
@@ -718,7 +745,7 @@ function AboutTab() {
       </section>
 
       <p className="text-xs text-slate-600 text-center pb-2">
-        © 2025 EchoFocus — Powered by Google Gemini AI
+        {t.about.copyright}
       </p>
     </div>
   )
@@ -727,14 +754,15 @@ function AboutTab() {
 // ─── Main App ─────────────────────────────────────────────────────────────
 
 export default function App() {
+  const { t } = useLocale()
   const [activeTab, setActiveTab] = useState<Tab>('general')
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'general', label: 'General' },
-    { id: 'categories', label: 'Categories' },
-    { id: 'privacy', label: 'Privacy' },
-    { id: 'account', label: 'Account' },
-    { id: 'about', label: 'About' },
+    { id: 'general', label: t.options.tabs.general },
+    { id: 'categories', label: t.options.tabs.categories },
+    { id: 'privacy', label: t.options.tabs.privacy },
+    { id: 'account', label: t.options.tabs.account },
+    { id: 'about', label: t.options.tabs.about },
   ]
 
   return (
@@ -744,8 +772,8 @@ export default function App() {
         <div className="flex items-center gap-3 mb-8">
           <img src={iconSrc} alt="EchoFocus" width={36} height={36} className="rounded-xl" />
           <div>
-            <h1 className="text-xl font-bold text-slate-100">EchoFocus Settings</h1>
-            <p className="text-xs text-slate-500 mt-0.5">All data stays on your device</p>
+            <h1 className="text-xl font-bold text-slate-100">{t.options.title}</h1>
+            <p className="text-xs text-slate-500 mt-0.5">{t.options.subtitle}</p>
           </div>
         </div>
 

@@ -158,7 +158,9 @@ async function handleMessage(
     }
 
     case 'REQUEST_AI_ANALYSIS': {
-      const date = message.payload as string
+      const payload = message.payload as string | { date: string; language?: string }
+      const date = typeof payload === 'string' ? payload : payload.date
+      const language = typeof payload === 'string' ? 'en' : (payload.language ?? 'en')
 
       // Gate 1: must be signed in
       const session = await getSession()
@@ -173,7 +175,7 @@ async function handleMessage(
         return { success: false, error: "Not enough browsing data yet. Use Chrome for a bit and try again!" }
       }
 
-      const result = await requestAiAnalysis(date)
+      const result = await requestAiAnalysis(date, language)
       if (result) {
         await saveAiAnalysis(date, result)
       }

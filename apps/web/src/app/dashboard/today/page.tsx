@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { formatDuration } from '@echofocus/shared'
 import { Zap, Coffee, Minus, FileText } from 'lucide-react'
+import { getLocale } from '@/lib/i18n-server'
 
 interface TopDomain {
   domain: string
@@ -23,13 +24,6 @@ interface SyncedRow {
   synced_at: string
 }
 
-const CATEGORY_LABELS = {
-  productive: 'Productive',
-  distraction: 'Breaks & Browsing',
-  neutral: 'Neutral',
-  uncategorized: 'Uncategorized',
-}
-
 function CategoryIcon({ category }: { category: TopDomain['category'] }) {
   switch (category) {
     case 'productive': return <Zap size={14} strokeWidth={1.75} className="text-emerald-400 flex-shrink-0" />
@@ -47,6 +41,7 @@ interface AiAnalysisRow {
 
 export default async function TodayPage() {
   const supabase = await createClient()
+  const { t, language } = await getLocale()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -71,19 +66,34 @@ export default async function TodayPage() {
   const row = data as SyncedRow | null
   const latestAi = aiData as AiAnalysisRow | null
 
+  const dateLocale = language === 'zh-TW' ? 'zh-TW' : 'en-US'
+
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr + 'T00:00:00')
-    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })
+    return d.toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })
   }
 
   const formatSyncTime = (iso: string) => {
     const d = new Date(iso)
-    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    return d.toLocaleString(dateLocale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  }
+
+  const CATEGORY_LABELS = {
+    productive: t.categoryLabels.productive,
+    distraction: t.categoryLabels.distraction,
+    neutral: t.categoryLabels.neutral,
+    uncategorized: t.categoryLabels.uncategorized,
+  }
+
+  const scoreLabel = (score: number) => {
+    if (score >= 70) return t.today.excellent
+    if (score >= 40) return t.today.average
+    return t.today.roomToGrow
   }
 
   return (
     <>
-      <DashboardHeader title="Today's Overview" userEmail={user?.email ?? undefined} />
+      <DashboardHeader title={t.today.title} userEmail={user?.email ?? undefined} avatarUrl={user?.user_metadata?.avatar_url as string | undefined} />
 
       <main className="flex-1 px-6 py-8">
         {row ? (
@@ -91,7 +101,7 @@ export default async function TodayPage() {
             {/* Date + sync info — full width */}
             <div className="flex items-center justify-between mb-6">
               <p className="text-sm text-slate-400">{formatDate(row.date)}</p>
-              <p className="text-xs text-slate-600">Synced {formatSyncTime(row.synced_at)}</p>
+              <p className="text-xs text-slate-600">{t.today.synced} {formatSyncTime(row.synced_at)}</p>
             </div>
 
             {/* 3-column responsive grid */}
@@ -100,12 +110,12 @@ export default async function TodayPage() {
               {/* ── Left col: Focus Score ─────────────────────────── */}
               <div className="lg:col-span-3">
                 <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5 h-full">
-                  <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-4">Focus Score</p>
+                  <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-4">{t.today.focusScore}</p>
                   <div className="flex flex-col items-center gap-3 py-2">
                     <FocusRing score={row.focus_score} />
                     <div className="text-center">
                       <p className="text-5xl font-bold text-slate-100 tabular-nums">{row.focus_score}</p>
-                      <p className="text-xs text-slate-500 mt-1">pts</p>
+                      <p className="text-xs text-slate-500 mt-1">{t.today.pts}</p>
                       <p className="text-sm text-slate-400 mt-2">{scoreLabel(row.focus_score)}</p>
                     </div>
                   </div>
@@ -117,12 +127,12 @@ export default async function TodayPage() {
 
                 {/* Time Breakdown */}
                 <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5">
-                  <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">Time Breakdown</p>
+                  <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">{t.today.timeBreakdown}</p>
                   <div className="grid grid-cols-3 gap-4">
                     {[
-                      { label: 'Productive', seconds: row.productive_seconds, color: 'text-emerald-400', bg: 'bg-emerald-500/10', Icon: Zap },
-                      { label: 'Breaks & Browsing', seconds: row.distraction_seconds, color: 'text-orange-400', bg: 'bg-orange-500/10', Icon: Coffee },
-                      { label: 'Neutral', seconds: row.neutral_seconds + row.uncategorized_seconds, color: 'text-slate-400', bg: 'bg-slate-800', Icon: Minus },
+                      { label: t.today.productive, seconds: row.productive_seconds, color: 'text-emerald-400', bg: 'bg-emerald-500/10', Icon: Zap },
+                      { label: t.today.breaksAndBrowsing, seconds: row.distraction_seconds, color: 'text-orange-400', bg: 'bg-orange-500/10', Icon: Coffee },
+                      { label: t.today.neutral, seconds: row.neutral_seconds + row.uncategorized_seconds, color: 'text-slate-400', bg: 'bg-slate-800', Icon: Minus },
                     ].map(s => (
                       <div key={s.label} className={`${s.bg} rounded-xl p-4`}>
                         <div className="flex items-center gap-1.5 mb-1">
@@ -144,9 +154,9 @@ export default async function TodayPage() {
 
                 {/* Today's Sites */}
                 <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5">
-                  <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">Today's Sites</p>
+                  <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">{t.today.todaysSites}</p>
                   {row.top_domains.length === 0 ? (
-                    <p className="text-sm text-slate-500">No data</p>
+                    <p className="text-sm text-slate-500">{t.today.noData}</p>
                   ) : (
                     <ul className="space-y-3">
                       {row.top_domains.slice(0, 10).map(d => (
@@ -169,10 +179,10 @@ export default async function TodayPage() {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1.5">
                         <FileText size={18} strokeWidth={1.75} className="text-blue-400" />
-                        <p className="text-sm font-medium text-slate-400 uppercase tracking-wide">Daily Insight</p>
+                        <p className="text-sm font-medium text-slate-400 uppercase tracking-wide">{t.today.dailyInsight}</p>
                       </div>
                       <Link href="/dashboard/ai-insights" className="text-xs text-green-400 hover:text-green-300 transition-colors">
-                        View all →
+                        {t.today.viewAll}
                       </Link>
                     </div>
                     <p className="text-sm text-slate-300 leading-relaxed">{latestAi.analysis_text}</p>
@@ -180,9 +190,9 @@ export default async function TodayPage() {
                   </div>
                 ) : (
                   <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900 shadow-sm p-5 text-center h-full flex flex-col items-center justify-center gap-2">
-                    <p className="text-sm text-slate-500">No daily insights yet</p>
+                    <p className="text-sm text-slate-500">{t.today.noDailyInsights}</p>
                     <Link href="/dashboard/ai-insights" className="text-xs text-green-400 hover:text-green-300 transition-colors">
-                      Go to Daily Snapshots to analyze →
+                      {t.today.goToSnapshots}
                     </Link>
                   </div>
                 )}
@@ -194,22 +204,15 @@ export default async function TodayPage() {
           /* Empty state */
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <p className="text-4xl mb-4">📭</p>
-            <h2 className="text-xl font-bold text-slate-300 mb-2">No Synced Data Yet</h2>
+            <h2 className="text-xl font-bold text-slate-300 mb-2">{t.today.noSyncedData}</h2>
             <p className="text-sm text-slate-500 max-w-sm leading-relaxed">
-              Install the EchoFocus Chrome extension and sign in — data syncs here automatically at 00:05 daily.
-              You can also sync manually from the extension settings under the Account tab.
+              {t.today.noSyncedDesc}
             </p>
           </div>
         )}
       </main>
     </>
   )
-}
-
-function scoreLabel(score: number) {
-  if (score >= 70) return 'Excellent 🎉'
-  if (score >= 40) return 'Average 💪'
-  return 'Room to grow 📈'
 }
 
 function FocusRing({ score }: { score: number }) {

@@ -2,6 +2,7 @@ import React from 'react'
 import type { TopDomain } from '@echofocus/shared'
 import { formatDuration } from '@echofocus/shared'
 import { Zap, Coffee, Minus } from 'lucide-react'
+import { useLocale } from '../../lib/i18n'
 
 interface DomainListProps {
   domains: TopDomain[]
@@ -27,16 +28,16 @@ function categoryIcon(category: TopDomain['category']): React.ReactNode {
   }
 }
 
-function categoryLabel(category: TopDomain['category']): string {
-  switch (category) {
-    case 'productive': return 'Productive'
-    case 'distraction': return 'Breaks & Browsing'
-    case 'neutral': return 'Neutral'
-    default: return 'Uncategorized'
-  }
-}
-
 export default function DomainList({ domains, currentDomain, currentElapsedSeconds }: DomainListProps) {
+  const { t } = useLocale()
+
+  const CATEGORY_LABELS: Record<TopDomain['category'], string> = {
+    productive: t.categories.categoryLabels.productive,
+    distraction: t.categories.categoryLabels.distraction,
+    neutral: t.categories.categoryLabels.neutral,
+    uncategorized: t.categories.categoryLabels.uncategorized,
+  }
+
   // Merge current session into displayed domains
   const displayDomains = [...domains]
   if (currentDomain && currentElapsedSeconds > 0) {
@@ -56,8 +57,8 @@ export default function DomainList({ domains, currentDomain, currentElapsedSecon
   if (topFive.length === 0) {
     return (
       <div className="px-4 py-4 text-center">
-        <p className="text-xs text-slate-500">No browsing activity recorded yet</p>
-        <p className="text-xs text-slate-600 mt-1">Keep browsing — stats will appear here</p>
+        <p className="text-xs text-slate-500">{t.popup.noBrowsingYet}</p>
+        <p className="text-xs text-slate-600 mt-1">{t.popup.keepBrowsing}</p>
       </div>
     )
   }
@@ -71,7 +72,7 @@ export default function DomainList({ domains, currentDomain, currentElapsedSecon
         const isActive = domain.domain === currentDomain
         const dot = categoryDot(domain.category)
         const icon = categoryIcon(domain.category)
-        const label = categoryLabel(domain.category)
+        const label = CATEGORY_LABELS[domain.category]
 
         return (
           <div

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Lightbulb, MessageCircle } from 'lucide-react'
+import { useLocale } from '@/lib/i18n'
 
 const SUPABASE_FUNCTIONS_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1`
@@ -17,6 +18,7 @@ interface AnalysisResult {
 
 export default function AnalyzeButton() {
   const router = useRouter()
+  const { t, language } = useLocale()
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -30,7 +32,7 @@ export default function AnalyzeButton() {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        setError('Please sign in first')
+        setError(t.aiInsights.pleaseSignIn)
         return
       }
 
@@ -44,12 +46,13 @@ export default function AnalyzeButton() {
         .maybeSingle()
 
       if (!agg) {
-        setError('No synced data for today — please sync manually from the extension first')
+        setError(t.aiInsights.noSyncedData)
         return
       }
 
       const payload = {
         date: today,
+        language,
         aggregate: {
           date: today,
           totalMinutes: Math.round(agg.total_seconds / 60),
@@ -77,7 +80,7 @@ export default function AnalyzeButton() {
 
       if (!res.ok) {
         const errText = await res.text()
-        setError(`Analysis failed: ${errText}`)
+        setError(`${t.aiInsights.analysisFailed}${errText}`)
         return
       }
 
@@ -85,7 +88,7 @@ export default function AnalyzeButton() {
       setResult(data)
       router.refresh()  // Reload server data so history list shows new entry
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred')
+      setError(err instanceof Error ? err.message : t.aiInsights.unknownError)
     } finally {
       setLoading(false)
     }
@@ -101,12 +104,12 @@ export default function AnalyzeButton() {
         {loading ? (
           <>
             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            Generating your snapshot…
+            {t.aiInsights.generating}
           </>
         ) : (
           <>
             <Lightbulb size={18} strokeWidth={1.75} />
-            {"Generate Today's Snapshot"}
+            {t.aiInsights.generateToday}
           </>
         )}
       </button>
@@ -122,12 +125,12 @@ export default function AnalyzeButton() {
           <div className="flex items-center gap-3 mb-3">
             <div className="flex items-center gap-1.5">
               <MessageCircle size={18} strokeWidth={1.75} className="text-blue-400" />
-              <span className="text-xs text-slate-500 uppercase tracking-wider">Today's Daily Snapshot</span>
+              <span className="text-xs text-slate-500 uppercase tracking-wider">{t.aiInsights.todaySnapshot}</span>
             </div>
-            <span className="ml-auto text-sm font-bold text-green-400">{result.focus_score} pts</span>
+            <span className="ml-auto text-sm font-bold text-green-400">{result.focus_score} {t.aiInsights.pts}</span>
           </div>
           <p className="text-sm text-slate-300 leading-relaxed">{result.analysis_text}</p>
-          <p className="text-xs text-slate-600 mt-3">Reload the page to see this in the list below</p>
+          <p className="text-xs text-slate-600 mt-3">{t.aiInsights.reloadNote}</p>
         </div>
       )}
     </div>

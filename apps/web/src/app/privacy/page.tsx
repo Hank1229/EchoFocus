@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
+import { getLocale } from '@/lib/i18n-server'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — EchoFocus',
@@ -18,7 +19,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const { t } = await getLocale()
+
   return (
     <div className="min-h-screen bg-slate-900">
       {/* Header */}
@@ -31,7 +34,7 @@ export default function PrivacyPage() {
             </span>
           </Link>
           <Link href="/" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
-            ← Back to Home
+            {t.privacy.backToHome}
           </Link>
         </div>
       </header>
@@ -39,18 +42,18 @@ export default function PrivacyPage() {
       {/* Content */}
       <main className="max-w-3xl mx-auto px-6 py-12 space-y-10">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-slate-100">Privacy Policy</h1>
-          <p className="text-sm text-slate-500">Last updated: {LAST_UPDATED}</p>
+          <h1 className="text-3xl font-bold text-slate-100">{t.common.privacyPolicy}</h1>
+          <p className="text-sm text-slate-500">{t.privacy.lastUpdated} {LAST_UPDATED}</p>
         </div>
 
         <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-5 py-4">
           <p className="text-sm text-green-400 leading-relaxed">
-            <strong className="font-semibold">Core Commitment:</strong>{' '}
-            Your browsing history is your private data. EchoFocus uses a local-first architecture — all raw browsing data (URLs, page titles, time spent) is stored exclusively on your device and is never uploaded to any server.
+            <strong className="font-semibold">{t.privacy.coreCommitmentLabel}</strong>{' '}
+            {t.privacy.coreCommitment}
           </p>
         </div>
 
-        <Section title="1. What Data We Collect">
+        <Section title={t.privacy.section1Title}>
           <p>EchoFocus manages data at two levels:</p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
@@ -81,7 +84,7 @@ export default function PrivacyPage() {
           </div>
         </Section>
 
-        <Section title="2. How We Use Your Data">
+        <Section title={t.privacy.section2Title}>
           <ul className="space-y-2 list-disc list-inside">
             <li><strong className="text-slate-300">Productivity tracking:</strong> Browsing behavior is analyzed locally on your device to generate daily stats and a focus score.</li>
             <li><strong className="text-slate-300">AI analysis:</strong> Anonymous aggregate summaries (domain names + durations, no URLs) are sent to the Google Gemini API for personalized suggestions.</li>
@@ -90,7 +93,7 @@ export default function PrivacyPage() {
           </ul>
         </Section>
 
-        <Section title="3. Third-Party Services">
+        <Section title={t.privacy.section3Title}>
           <p>EchoFocus uses the following third-party services, each with their own privacy policies:</p>
           <ul className="space-y-2 list-disc list-inside">
             <li><strong className="text-slate-300">Supabase:</strong> Used for user authentication, preferences, and AI analysis storage. Data is encrypted and stored on AWS servers.</li>
@@ -100,7 +103,7 @@ export default function PrivacyPage() {
           </ul>
         </Section>
 
-        <Section title="4. Data Retention">
+        <Section title={t.privacy.section4Title}>
           <ul className="space-y-2 list-disc list-inside">
             <li>Raw browsing records: automatically deleted after the retention period you configure (default: 30 days)</li>
             <li>Daily aggregate stats: retained locally for up to 365 days</li>
@@ -109,7 +112,7 @@ export default function PrivacyPage() {
           </ul>
         </Section>
 
-        <Section title="5. Your Rights">
+        <Section title={t.privacy.section5Title}>
           <p>You can at any time:</p>
           <ul className="space-y-2 list-disc list-inside">
             <li>Download or delete all local data from the extension options page (Settings → Privacy)</li>
@@ -119,7 +122,7 @@ export default function PrivacyPage() {
           </ul>
         </Section>
 
-        <Section title="6. Data Security">
+        <Section title={t.privacy.section6Title}>
           <p>
             Local data is protected by Chrome's security model — no other website or app can access it.
             Cloud data (Supabase) is transmitted over HTTPS and stored with encryption at rest.
@@ -127,20 +130,20 @@ export default function PrivacyPage() {
           </p>
         </Section>
 
-        <Section title="7. Children's Privacy">
+        <Section title={t.privacy.section7Title}>
           <p>
             EchoFocus is not designed for children under 13, and we do not intentionally collect personal information from that age group.
           </p>
         </Section>
 
-        <Section title="8. Policy Changes">
+        <Section title={t.privacy.section8Title}>
           <p>
             We may update this privacy policy from time to time. Significant changes will be communicated through the extension.
             Continued use of EchoFocus after notification constitutes acceptance of the updated policy.
           </p>
         </Section>
 
-        <Section title="9. Contact Us">
+        <Section title={t.privacy.section9Title}>
           <p>
             For any privacy-related questions, please reach out via GitHub Issues.
           </p>
@@ -148,8 +151,8 @@ export default function PrivacyPage() {
 
         {/* Footer links */}
         <div className="border-t border-slate-800 pt-8 flex flex-wrap gap-4 text-sm text-slate-500">
-          <Link href="/" className="hover:text-slate-300 transition-colors">Home</Link>
-          <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms of Service</Link>
+          <Link href="/" className="hover:text-slate-300 transition-colors">{t.common.home}</Link>
+          <Link href="/terms" className="hover:text-slate-300 transition-colors">{t.common.termsOfService}</Link>
         </div>
       </main>
     </div>

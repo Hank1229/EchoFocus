@@ -6,7 +6,7 @@ const FUNCTIONS_URL = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL as string
 
 // Build the anonymized payload for the AI Edge Function.
 // Converts seconds → minutes; includes ONLY domain + minutes + category (no URLs/titles).
-function buildPayload(date: string, aggregate: NonNullable<Awaited<ReturnType<typeof getAggregateForDate>>>) {
+function buildPayload(date: string, language: string, aggregate: NonNullable<Awaited<ReturnType<typeof getAggregateForDate>>>) {
   const totalSeconds = aggregate.totalSeconds
   const topDomains = aggregate.topDomains.slice(0, 8).map(d => ({
     domain: d.domain,
@@ -16,6 +16,7 @@ function buildPayload(date: string, aggregate: NonNullable<Awaited<ReturnType<ty
 
   return {
     date,
+    language,
     aggregate: {
       date,
       totalMinutes: Math.round(totalSeconds / 60),
@@ -30,7 +31,7 @@ function buildPayload(date: string, aggregate: NonNullable<Awaited<ReturnType<ty
 
 // Request AI analysis for a given date.
 // Returns null if the user is not signed in, there is no local aggregate, or the Edge Function fails.
-export async function requestAiAnalysis(date: string): Promise<AiAnalysisResult | null> {
+export async function requestAiAnalysis(date: string, language = 'en'): Promise<AiAnalysisResult | null> {
   console.log('[EchoFocus] AI analysis: starting for', date)
   console.log('[EchoFocus] AI analysis: FUNCTIONS_URL =', FUNCTIONS_URL || '(empty!)')
 
@@ -53,7 +54,7 @@ export async function requestAiAnalysis(date: string): Promise<AiAnalysisResult 
     return null
   }
 
-  const payload = buildPayload(date, aggregate)
+  const payload = buildPayload(date, language, aggregate)
   console.log('[EchoFocus] AI analysis: sending fetch to', `${FUNCTIONS_URL}/ai-analyze`)
 
   try {

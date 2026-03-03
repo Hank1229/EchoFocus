@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useLocale, type Language } from '@/lib/i18n'
 
 const SUPABASE_FUNCTIONS_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1`
@@ -28,6 +29,7 @@ const DEFAULT_PREFS: UserPreference = {
 }
 
 export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps) {
+  const { t, language, setLanguage } = useLocale()
   const [prefs, setPrefs] = useState<UserPreference>(initialPrefs ?? DEFAULT_PREFS)
   const [isSaving, setIsSaving] = useState(false)
   const [savedAt, setSavedAt] = useState<number | null>(null)
@@ -76,13 +78,33 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
 
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-6 space-y-5">
-      <p className="text-xs text-slate-500 uppercase tracking-wider">Preferences</p>
+      <p className="text-xs text-slate-500 uppercase tracking-wider">{t.settings.preferences}</p>
+
+      {/* Language */}
+      <div>
+        <p className="text-sm font-medium text-slate-200 mb-2">{t.settings.language}</p>
+        <div className="flex gap-2">
+          {(['en', 'zh-TW'] as Language[]).map(lang => (
+            <button
+              key={lang}
+              onClick={() => setLanguage(lang)}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors border ${
+                language === lang
+                  ? 'bg-green-500/10 border-green-500/40 text-green-400'
+                  : 'border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300'
+              }`}
+            >
+              {lang === 'en' ? t.settings.languageEn : t.settings.languageZhTW}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* email_report_enabled */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-200">Daily Email Report</p>
-          <p className="text-xs text-slate-500 mt-0.5">Receive a daily productivity summary in your inbox</p>
+          <p className="text-sm font-medium text-slate-200">{t.settings.dailyEmailReport}</p>
+          <p className="text-xs text-slate-500 mt-0.5">{t.settings.emailReportDesc}</p>
         </div>
         <button
           onClick={() => update('email_report_enabled', !prefs.email_report_enabled)}
@@ -95,16 +117,16 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
       {/* Send test email */}
       {prefs.email_report_enabled && (
         <div className="flex items-center justify-between pl-0 pt-0">
-          <p className="text-xs text-slate-500">Send a test report to your inbox now</p>
+          <p className="text-xs text-slate-500">{t.settings.sendTestReport}</p>
           <button
             onClick={handleSendTestEmail}
             disabled={testEmailStatus === 'sending'}
             className="px-3 py-1.5 text-xs text-slate-300 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 rounded-lg transition-colors"
           >
-            {testEmailStatus === 'sending' ? 'Sending…'
-              : testEmailStatus === 'sent' ? '✓ Sent'
-              : testEmailStatus === 'error' ? 'Failed'
-              : 'Send Test Email'}
+            {testEmailStatus === 'sending' ? t.settings.sending
+              : testEmailStatus === 'sent' ? t.settings.sent
+              : testEmailStatus === 'error' ? t.settings.failed
+              : t.settings.sendTestEmail}
           </button>
         </div>
       )}
@@ -112,7 +134,7 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
       {/* daily_goal_minutes */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <p className="text-sm font-medium text-slate-200">Daily Focus Goal</p>
+          <p className="text-sm font-medium text-slate-200">{t.settings.dailyFocusGoal}</p>
           <span className="text-sm font-semibold text-green-400 tabular-nums">
             {Math.floor(prefs.daily_goal_minutes / 60)}h{prefs.daily_goal_minutes % 60 > 0 ? ` ${prefs.daily_goal_minutes % 60}m` : ''}
           </span>
@@ -120,14 +142,14 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
         <input type="range" min={60} max={720} step={30} value={prefs.daily_goal_minutes}
           onChange={e => update('daily_goal_minutes', Number(e.target.value))}
           className="w-full accent-green-500" />
-        <div className="flex justify-between text-xs text-slate-600 mt-1"><span>1 hr</span><span>12 hr</span></div>
+        <div className="flex justify-between text-xs text-slate-600 mt-1"><span>{t.settings.range1hr}</span><span>{t.settings.range12hr}</span></div>
       </div>
 
       <div className="flex items-center justify-between pt-1">
-        {savedAt ? <span className="text-xs text-green-400">✓ Saved</span> : <span />}
+        {savedAt ? <span className="text-xs text-green-400">{t.common.saved}</span> : <span />}
         <button onClick={handleSave} disabled={isSaving}
           className="px-5 py-2 bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
-          {isSaving ? 'Saving…' : 'Save Settings'}
+          {isSaving ? t.common.saving : t.common.saveSettings}
         </button>
       </div>
     </section>

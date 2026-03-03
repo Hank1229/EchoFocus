@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+import { useLocale } from '../../lib/i18n'
 
 interface TrackingToggleProps {
   isTracking: boolean
@@ -7,6 +8,7 @@ interface TrackingToggleProps {
 }
 
 export default function TrackingToggle({ isTracking, onToggle }: TrackingToggleProps) {
+  const { t } = useLocale()
   const [pending, setPending] = useState(false)
 
   const handleClick = async () => {
@@ -32,13 +34,13 @@ export default function TrackingToggle({ isTracking, onToggle }: TrackingToggleP
         }
         ${pending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
       `}
-      title={isTracking ? 'Click to pause tracking' : 'Click to resume tracking'}
+      title={isTracking ? t.popup.clickToPause : t.popup.clickToResume}
     >
       {isTracking
         ? <Eye size={18} strokeWidth={1.75} />
         : <EyeOff size={18} strokeWidth={1.75} />
       }
-      {isTracking ? 'Tracking' : 'Paused'}
+      {isTracking ? t.popup.tracking : t.popup.paused}
     </button>
   )
 }
