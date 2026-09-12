@@ -26,18 +26,25 @@ export async function middleware(request: NextRequest) {
   // Refresh session — must be called before checking user
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Redirects must carry over cookies set during getUser() — a bare
+  // NextResponse.redirect would drop a refreshed session and loop the user
+  // back to /login with stale credentials.
+  const redirectWithCookies = (pathname: string) => {
+    const url = request.nextUrl.clone()
+    url.pathname = pathname
+    const response = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach(cookie => response.cookies.set(cookie))
+    return response
+  }
+
   // Protect all dashboard routes
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+    return redirectWithCookies('/login')
   }
 
   // Already logged in → redirect away from login
   if (user && request.nextUrl.pathname === '/login') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard/today'
-    return NextResponse.redirect(url)
+    return redirectWithCookies('/dashboard/today')
   }
 
   return supabaseResponse
