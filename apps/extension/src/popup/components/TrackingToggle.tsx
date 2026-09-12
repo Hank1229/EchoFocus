@@ -11,7 +11,7 @@ export default function TrackingToggle({ isTracking, onToggle }: TrackingToggleP
   const { t } = useLocale()
   const [pending, setPending] = useState(false)
 
-  const handleClick = async () => {
+  const toggle = async () => {
     if (pending) return
     setPending(true)
     try {
@@ -23,23 +23,16 @@ export default function TrackingToggle({ isTracking, onToggle }: TrackingToggleP
 
   return (
     <button
-      onClick={handleClick}
+      onClick={toggle}
       disabled={pending}
-      className={`
-        flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold
-        transition-all duration-200 border
-        ${isTracking
-          ? 'bg-green-500/10 border-green-500/30 text-green-400 hover:bg-green-500/20'
-          : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:bg-slate-700'
-        }
-        ${pending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-      `}
+      className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+        isTracking
+          ? 'border-brand/30 bg-brand/10 text-brand hover:bg-brand/20'
+          : 'border-slate-700 bg-slate-800/70 text-slate-400 hover:bg-slate-800'
+      } ${pending ? 'cursor-not-allowed opacity-50' : ''}`}
       title={isTracking ? t.popup.clickToPause : t.popup.clickToResume}
     >
-      {isTracking
-        ? <Eye size={18} strokeWidth={1.75} />
-        : <EyeOff size={18} strokeWidth={1.75} />
-      }
+      {isTracking ? <Eye size={14} strokeWidth={2} /> : <EyeOff size={14} strokeWidth={2} />}
       {isTracking ? t.popup.tracking : t.popup.paused}
     </button>
   )

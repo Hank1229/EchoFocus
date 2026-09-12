@@ -1,6 +1,6 @@
 import React from 'react'
-import { formatDuration } from '@echofocus/shared'
-import { Zap, Coffee, Minus } from 'lucide-react'
+import { Coffee, Minus, Zap } from 'lucide-react'
+import { categoryColors, formatDuration, palette } from '@echofocus/shared'
 import { useLocale } from '../../lib/i18n'
 
 interface StatsBarProps {
@@ -14,18 +14,18 @@ interface StatsBarProps {
 interface StatRowProps {
   label: string
   seconds: number
-  color: string
+  accent: string
   icon: React.ReactNode
 }
 
-function StatRow({ label, seconds, color, icon }: StatRowProps) {
+function StatRow({ label, seconds, accent, icon }: StatRowProps) {
   return (
-    <div className="flex items-center justify-between py-1">
-      <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between gap-2">
+      <span className="flex min-w-0 items-center gap-1.5">
         {icon}
-        <span className="text-sm text-slate-300">{label}</span>
-      </div>
-      <span className="text-sm font-semibold tabular-nums" style={{ color }}>
+        <span className="truncate text-xs text-slate-400">{label}</span>
+      </span>
+      <span className="text-xs font-semibold tabular-nums" style={{ color: accent }}>
         {formatDuration(seconds)}
       </span>
     </div>
@@ -41,62 +41,52 @@ export default function StatsBar({
 }: StatsBarProps) {
   const { t } = useLocale()
 
-  // Visual bar breakdown
+  const otherSeconds = neutralSeconds + uncategorizedSeconds
   const total = Math.max(totalSeconds, 1)
-  const productivePct = (productiveSeconds / total) * 100
-  const distractionPct = (distractionSeconds / total) * 100
-  const neutralPct = (neutralSeconds / total) * 100
+  const segments = [
+    { key: 'productive', pct: (productiveSeconds / total) * 100, fill: categoryColors.productive },
+    { key: 'breaks', pct: (distractionSeconds / total) * 100, fill: categoryColors.distraction },
+    { key: 'neutral', pct: (otherSeconds / total) * 100, fill: categoryColors.neutral },
+  ].filter(segment => segment.pct > 0)
 
   return (
-    <div className="px-4 py-3 bg-slate-800/50 rounded-xl space-y-1">
-      {/* Visual bar */}
-      <div className="flex rounded-full overflow-hidden h-2 mb-3 bg-slate-700">
-        {productivePct > 0 && (
-          <div
-            className="bg-green-500 transition-all duration-500"
-            style={{ width: `${productivePct}%` }}
-          />
-        )}
-        {distractionPct > 0 && (
-          <div
-            className="bg-orange-500 transition-all duration-500"
-            style={{ width: `${distractionPct}%` }}
-          />
-        )}
-        {neutralPct > 0 && (
-          <div
-            className="bg-slate-500 transition-all duration-500"
-            style={{ width: `${neutralPct}%` }}
-          />
-        )}
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-[10px] uppercase tracking-wider text-slate-500">{t.popup.todaysTotal}</span>
+        <span className="text-lg font-bold leading-none tabular-nums text-slate-100">
+          {formatDuration(totalSeconds)}
+        </span>
       </div>
 
-      <StatRow
-        label={t.categories.categoryLabels.productive}
-        seconds={productiveSeconds}
-        color="#34d399"
-        icon={<Zap size={18} strokeWidth={1.75} className="text-emerald-400" />}
-      />
-      <StatRow
-        label={t.categories.categoryLabels.distraction}
-        seconds={distractionSeconds}
-        color="#fb923c"
-        icon={<Coffee size={18} strokeWidth={1.75} className="text-orange-400" />}
-      />
-      <StatRow
-        label={t.categories.categoryLabels.neutral}
-        seconds={neutralSeconds + uncategorizedSeconds}
-        color="#94a3b8"
-        icon={<Minus size={18} strokeWidth={1.75} className="text-slate-400" />}
-      />
+      <div className="flex h-1.5 overflow-hidden rounded-full bg-slate-800">
+        {segments.map(segment => (
+          <div
+            key={segment.key}
+            className="transition-all duration-500"
+            style={{ width: `${segment.pct}%`, backgroundColor: segment.fill }}
+          />
+        ))}
+      </div>
 
-      <div className="border-t border-slate-700 mt-2 pt-2">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-500">{t.popup.todaysTotal}</span>
-          <span className="text-sm font-bold text-slate-200 tabular-nums">
-            {formatDuration(totalSeconds)}
-          </span>
-        </div>
+      <div className="flex flex-col gap-1.5">
+        <StatRow
+          label={t.categories.categoryLabels.productive}
+          seconds={productiveSeconds}
+          accent={palette.productive.DEFAULT}
+          icon={<Zap size={13} strokeWidth={2} style={{ color: palette.productive.DEFAULT }} className="flex-shrink-0" />}
+        />
+        <StatRow
+          label={t.categories.categoryLabels.distraction}
+          seconds={distractionSeconds}
+          accent={palette.breaks.DEFAULT}
+          icon={<Coffee size={13} strokeWidth={2} style={{ color: palette.breaks.DEFAULT }} className="flex-shrink-0" />}
+        />
+        <StatRow
+          label={t.categories.categoryLabels.neutral}
+          seconds={otherSeconds}
+          accent={palette.neutral.DEFAULT}
+          icon={<Minus size={13} strokeWidth={2} style={{ color: palette.neutral.DEFAULT }} className="flex-shrink-0" />}
+        />
       </div>
     </div>
   )

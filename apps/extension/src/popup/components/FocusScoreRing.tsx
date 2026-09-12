@@ -1,5 +1,5 @@
 import React from 'react'
-import { Flame } from 'lucide-react'
+import { palette } from '@echofocus/shared'
 import { useLocale } from '../../lib/i18n'
 
 interface FocusScoreRingProps {
@@ -7,42 +7,24 @@ interface FocusScoreRingProps {
   size?: number
 }
 
-export default function FocusScoreRing({ score, size = 120 }: FocusScoreRingProps) {
+export default function FocusScoreRing({ score, size = 96 }: FocusScoreRingProps) {
   const { t } = useLocale()
-  const strokeWidth = 10
+  const strokeWidth = 8
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (score / 100) * circumference
 
-  // Color based on score
-  let ringColor: string
-  let scoreColor: string
-  let label: string
-  if (score >= 70) {
-    ringColor = '#22c55e'    // green
-    scoreColor = '#22c55e'
-    label = t.popup.excellent
-  } else if (score >= 40) {
-    ringColor = '#f59e0b'    // amber
-    scoreColor = '#f59e0b'
-    label = t.popup.average
-  } else {
-    ringColor = '#ef4444'    // red
-    scoreColor = '#ef4444'
-    label = t.popup.roomToGrow
-  }
+  // Teal is the only brand color, so the tier is encoded by shade, not by hue.
+  const tier = score >= 70
+    ? { accent: palette.brand.soft, label: t.popup.excellent }
+    : score >= 40
+      ? { accent: palette.brand.DEFAULT, label: t.popup.average }
+      : { accent: palette.brand.deep, label: t.popup.roomToGrow }
 
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-2">
       <div className="relative" style={{ width: size, height: size }}>
-        <svg
-          width={size}
-          height={size}
-          viewBox={`0 0 ${size} ${size}`}
-          className="-rotate-90"
-          style={{ transform: 'rotate(-90deg)' }}
-        >
-          {/* Background track */}
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
           <circle
             cx={size / 2}
             cy={size / 2}
@@ -51,13 +33,12 @@ export default function FocusScoreRing({ score, size = 120 }: FocusScoreRingProp
             stroke="#1e293b"
             strokeWidth={strokeWidth}
           />
-          {/* Progress arc */}
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke={ringColor}
+            stroke={tier.accent}
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeDasharray={circumference}
@@ -66,27 +47,13 @@ export default function FocusScoreRing({ score, size = 120 }: FocusScoreRingProp
           />
         </svg>
 
-        {/* Score text overlay */}
-        <div
-          className="absolute inset-0 flex flex-col items-center justify-center"
-        >
-          <span
-            className="text-3xl font-bold tabular-nums leading-none"
-            style={{ color: scoreColor }}
-          >
-            {score}
-          </span>
-          <span className="text-xs text-slate-400 mt-0.5">{t.popup.pts}</span>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold leading-none tabular-nums text-slate-100">{score}</span>
+          <span className="mt-1 text-[10px] uppercase tracking-wider text-slate-500">{t.popup.pts}</span>
         </div>
       </div>
 
-      <div className="text-center">
-        <div className="flex items-center justify-center gap-1 mb-0.5">
-          <Flame size={18} strokeWidth={1.75} className="text-emerald-400" />
-          <p className="text-xs font-medium text-slate-400">{t.popup.focusScore}</p>
-        </div>
-        <p className="text-xs font-semibold" style={{ color: scoreColor }}>{label}</p>
-      </div>
+      <p className="text-xs font-semibold" style={{ color: tier.accent }}>{tier.label}</p>
     </div>
   )
 }

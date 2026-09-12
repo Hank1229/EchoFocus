@@ -34,6 +34,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  useEffect(() => {
+    document.documentElement.lang = language
+  }, [language])
+
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang)
     chrome.storage.local.set({ language: lang })

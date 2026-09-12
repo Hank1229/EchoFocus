@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Lightbulb, Settings as SettingsIcon, User } from 'lucide-react'
+import { Moon, Settings as SettingsIcon, User } from 'lucide-react'
 import iconSrc from '../assets/icon-32.png'
 import { useTodayStats } from './hooks/useTodayStats'
 import FocusScoreRing from './components/FocusScoreRing'
@@ -12,6 +12,9 @@ import { getTodayDateString } from '@echofocus/shared'
 import { useLocale, type Language } from '../lib/i18n'
 
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL as string || 'https://echo-focus-web.vercel.app'
+
+// Gemini needs a meaningful sample before an insight is worth generating.
+const MIN_ANALYZE_SECONDS = 1800
 
 interface MessageResponse<T> {
   success: boolean
@@ -46,19 +49,18 @@ export default function App() {
   const [aiError, setAiError] = useState<string | null>(null)
   const today = getTodayDateString()
 
-  // Load cached AI analysis on mount
   useEffect(() => {
     sendMessage<AiAnalysisResult | null>('GET_AI_ANALYSIS', today).then(result => {
       if (result) setAiAnalysis(result)
     })
   }, [today])
 
-  const handleToggleTracking = useCallback(async () => {
+  const toggleTracking = useCallback(async () => {
     await sendMessage('TOGGLE_TRACKING')
     await Promise.all([refreshAggregate(), refreshTrackingState()])
   }, [refreshAggregate, refreshTrackingState])
 
-  const handleAnalyze = useCallback(async () => {
+  const analyze = useCallback(async () => {
     if (isAnalyzing) return
     setIsAnalyzing(true)
     setAiError(null)
@@ -69,7 +71,7 @@ export default function App() {
       setAiError(res.error ?? t.popup.aiError)
     }
     setIsAnalyzing(false)
-  }, [isAnalyzing, today, t.popup.aiError])
+  }, [isAnalyzing, today, language, t.popup.aiError])
 
   const toggleLanguage = () => {
     setLanguage(language === 'en' ? 'zh-TW' : 'en' as Language)
@@ -77,9 +79,9 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-48 bg-slate-900">
+      <div className="flex h-48 w-popup items-center justify-center bg-slate-900">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
           <p className="text-xs text-slate-500">{t.popup.loading}</p>
         </div>
       </div>
@@ -87,160 +89,127 @@ export default function App() {
   }
 
   const isTracking = trackingState?.isTracking ?? false
-  const focusScore = aggregate?.focusScore ?? 0
-  const productiveSeconds = aggregate?.productiveSeconds ?? 0
-  const distractionSeconds = aggregate?.distractionSeconds ?? 0
   const neutralSeconds = aggregate?.neutralSeconds ?? 0
   const uncategorizedSeconds = aggregate?.uncategorizedSeconds ?? 0
-  const totalSeconds = aggregate?.totalSeconds ?? 0
   const topDomains = aggregate?.topDomains ?? []
 
-  // Add current session time to appropriate category
+  // The current session is not yet in the stored aggregate — fold it in so the popup reads live.
   const currentCategory = currentSession?.category ?? null
   const currentElapsed = currentSession?.elapsedSeconds ?? 0
 
-  let displayProductiveSeconds = productiveSeconds
-  let displayDistractionSeconds = distractionSeconds
-  let displayTotalSeconds = totalSeconds
+  let productiveSeconds = aggregate?.productiveSeconds ?? 0
+  let distractionSeconds = aggregate?.distractionSeconds ?? 0
+  let totalSeconds = aggregate?.totalSeconds ?? 0
 
   if (currentCategory && currentElapsed > 0) {
-    displayTotalSeconds += currentElapsed
-    if (currentCategory === 'productive') displayProductiveSeconds += currentElapsed
-    else if (currentCategory === 'distraction') displayDistractionSeconds += currentElapsed
+    totalSeconds += currentElapsed
+    if (currentCategory === 'productive') productiveSeconds += currentElapsed
+    else if (currentCategory === 'distraction') distractionSeconds += currentElapsed
   }
 
-  // Recompute focus score with live session included
-  const liveTotal = displayProductiveSeconds + displayDistractionSeconds
-  const liveFocusScore = liveTotal === 0
-    ? focusScore
-    : Math.min(100, Math.round((displayProductiveSeconds / liveTotal) * 100))
+  const scoredSeconds = productiveSeconds + distractionSeconds
+  const focusScore = scoredSeconds === 0
+    ? aggregate?.focusScore ?? 0
+    : Math.min(100, Math.round((productiveSeconds / scoredSeconds) * 100))
 
   const dateLocale = language === 'zh-TW' ? 'zh-TW' : 'en-US'
 
   return (
-    <div className="flex flex-col bg-slate-900 min-h-full" style={{ width: 360 }}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+    <div className="flex min-h-full w-popup flex-col bg-slate-900">
+      <header className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
         <div className="flex items-center gap-2">
-          <img src={iconSrc} alt="EchoFocus" width={24} height={24} className="rounded-md" />
+          <img src={iconSrc} alt="" width={24} height={24} className="rounded-md" />
           <span className="text-sm font-bold tracking-wide">
-            <span style={{ color: '#E2E8F0' }}>Echo</span><span style={{ color: '#2DD4BF' }}>Focus</span>
+            <span className="text-slate-200">Echo</span><span className="text-brand">Focus</span>
           </span>
         </div>
-        <TrackingToggle
-          isTracking={isTracking}
-          onToggle={handleToggleTracking}
-        />
-      </div>
+        <TrackingToggle isTracking={isTracking} onToggle={toggleTracking} />
+      </header>
 
-      {/* Focus score ring */}
-      <div className="flex justify-center pt-5 pb-4">
-        <FocusScoreRing score={liveFocusScore} size={120} />
-      </div>
+      <div className="flex flex-col gap-3 px-4 py-4">
+        {currentSession?.domain && (
+          <div className="flex items-center gap-2 rounded-lg bg-slate-800/60 px-3 py-2">
+            <span className="h-1.5 w-1.5 flex-shrink-0 animate-pulse rounded-full bg-brand" />
+            <span className="truncate text-xs text-slate-400">
+              {t.popup.now} <span className="font-medium text-slate-200">{currentSession.domain}</span>
+            </span>
+            <span className="ml-auto flex-shrink-0 text-xs tabular-nums text-slate-500">
+              {Math.floor(currentElapsed / 60)}:{String(currentElapsed % 60).padStart(2, '0')}
+            </span>
+          </div>
+        )}
 
-      {/* Current site indicator */}
-      {currentSession?.domain && (
-        <div className="mx-4 mb-3 px-3 py-2 bg-slate-800 rounded-lg flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
-          <span className="text-xs text-slate-400 truncate">
-            {t.popup.now} <span className="text-slate-200 font-medium">{currentSession.domain}</span>
-          </span>
-          <span className="ml-auto text-xs text-slate-500 tabular-nums flex-shrink-0">
-            {Math.floor(currentElapsed / 60)}:{String(currentElapsed % 60).padStart(2, '0')}
-          </span>
-        </div>
-      )}
-
-      {/* Stats breakdown */}
-      <div className="px-4 mb-3">
-        <StatsBar
-          productiveSeconds={displayProductiveSeconds}
-          distractionSeconds={displayDistractionSeconds}
-          neutralSeconds={neutralSeconds}
-          uncategorizedSeconds={uncategorizedSeconds}
-          totalSeconds={displayTotalSeconds}
-        />
-      </div>
-
-      {/* Top domains */}
-      <div className="px-4 mb-3">
-        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-          {t.popup.todaysSites}
-        </h2>
-        <DomainList
-          domains={topDomains}
-          currentDomain={currentSession?.domain ?? null}
-          currentElapsedSeconds={currentElapsed}
-        />
-      </div>
-
-      {/* AI insight card / error */}
-      {(aiAnalysis || isAnalyzing || aiError) && (
-        <div className="px-4 mb-3">
-          {aiError && !isAnalyzing ? (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">
-              <p className="text-xs text-red-400">{aiError}</p>
-            </div>
-          ) : (
-            <AiInsightCard
-              analysisText={aiAnalysis?.analysisText ?? ''}
-              analyzedAt={aiAnalysis?.analyzedAt ?? 0}
-              isLoading={isAnalyzing}
+        <section className="flex items-center gap-4 rounded-2xl border border-slate-800 bg-slate-800/30 p-4">
+          <div className="flex flex-shrink-0 flex-col items-center gap-1">
+            <FocusScoreRing score={focusScore} />
+            <p className="text-[10px] uppercase tracking-wider text-slate-500">{t.popup.focusScore}</p>
+          </div>
+          <div className="min-w-0 flex-1">
+            <StatsBar
+              productiveSeconds={productiveSeconds}
+              distractionSeconds={distractionSeconds}
+              neutralSeconds={neutralSeconds}
+              uncategorizedSeconds={uncategorizedSeconds}
+              totalSeconds={totalSeconds}
             />
-          )}
-        </div>
-      )}
+          </div>
+        </section>
 
-      {/* Insufficient data hint */}
-      {displayTotalSeconds > 0 && displayTotalSeconds < 1800 && (
-        <p className="px-4 pb-1 text-right text-xs text-slate-600">
-          {t.popup.need30MinHint}
-        </p>
-      )}
+        <AiInsightCard
+          analysis={aiAnalysis}
+          isAnalyzing={isAnalyzing}
+          error={aiError}
+          canAnalyze={totalSeconds >= MIN_ANALYZE_SECONDS}
+          onAnalyze={analyze}
+        />
 
-      {/* Footer */}
-      <div className="mt-auto border-t border-slate-800 px-4 py-3 flex items-center justify-between">
+        <section>
+          <h2 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+            {t.popup.todaysSites}
+          </h2>
+          <DomainList
+            domains={topDomains}
+            currentDomain={currentSession?.domain ?? null}
+            currentElapsedSeconds={currentElapsed}
+          />
+        </section>
+      </div>
+
+      <footer className="mt-auto flex items-center justify-between border-t border-slate-800 px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-600">
             {new Date().toLocaleDateString(dateLocale, { month: 'long', day: 'numeric' })}
           </span>
-          {/* Language toggle */}
           <button
             onClick={toggleLanguage}
-            className="text-xs text-slate-600 hover:text-slate-400 transition-colors font-medium"
+            className="text-xs font-medium text-slate-500 transition-colors hover:text-brand"
             title={language === 'en' ? '切換至繁體中文' : 'Switch to English'}
           >
             {language === 'en' ? 'EN' : '繁'}
           </button>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-600">
-            {trackingState?.isIdle ? `🌙 ${t.popup.idle}` : ''}
-          </span>
-          <button
-            onClick={handleAnalyze}
-            disabled={isAnalyzing || displayTotalSeconds < 1800}
-            className="text-slate-500 hover:text-blue-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            title={displayTotalSeconds > 0 && displayTotalSeconds < 1800 ? t.popup.needAtLeast30Min : t.popup.generateSnapshot}
-          >
-            <Lightbulb size={18} strokeWidth={1.75} />
-          </button>
+          {trackingState?.isIdle && (
+            <span className="flex items-center gap-1 text-xs text-slate-600">
+              <Moon size={12} strokeWidth={1.75} /> {t.popup.idle}
+            </span>
+          )}
           <button
             onClick={() => chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/settings` })}
-            className="text-slate-500 hover:text-slate-300 transition-colors"
+            className="text-slate-500 transition-colors hover:text-brand"
             title={t.popup.openProfile}
           >
-            <User size={18} strokeWidth={1.75} />
+            <User size={17} strokeWidth={1.75} />
           </button>
           <button
             onClick={() => chrome.runtime.openOptionsPage?.()}
-            className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+            className="text-slate-500 transition-colors hover:text-brand"
             title={t.popup.openSettings}
           >
-            <SettingsIcon size={18} strokeWidth={1.75} />
+            <SettingsIcon size={17} strokeWidth={1.75} />
           </button>
         </div>
-      </div>
+      </footer>
     </div>
   )
 }
