@@ -11,6 +11,12 @@ export const palette = {
   danger: { DEFAULT: '#fb7185', deep: '#f43f5e' },
 } as const
 
+// Display face carries the brand personality (headlines, wordmark, big
+// numerals); body text stays on the native stack.
+export const fonts = {
+  display: ['Bricolage Grotesque Variable', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+}
+
 // Chart fills use the deeper shades; text on dark surfaces uses the defaults.
 export const categoryColors: Record<Category, string> = {
   productive: palette.productive.deep,

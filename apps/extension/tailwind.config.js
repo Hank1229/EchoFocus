@@ -1,4 +1,4 @@
-import { palette } from '../../packages/shared/src/constants/design-tokens.ts'
+import { palette, fonts } from '../../packages/shared/src/constants/design-tokens.ts'
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -8,6 +8,7 @@ export default {
   theme: {
     extend: {
       colors: palette,
+      fontFamily: { display: fonts.display },
       width: {
         popup: '360px',
       },

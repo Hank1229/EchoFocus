@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
+import '@fontsource-variable/bricolage-grotesque'
 import './globals.css'
 import { LanguageProvider, type Language } from '@/lib/i18n'
 

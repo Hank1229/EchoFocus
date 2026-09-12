@@ -1,4 +1,4 @@
-const { palette } = require('../../packages/shared/src/constants/design-tokens.ts')
+const { palette, fonts } = require('../../packages/shared/src/constants/design-tokens.ts')
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -7,6 +7,7 @@ module.exports = {
   theme: {
     extend: {
       colors: palette,
+      fontFamily: { display: fonts.display },
     },
   },
   plugins: [],
