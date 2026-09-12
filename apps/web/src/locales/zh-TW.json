@@ -14,23 +14,86 @@
     "home": "首頁"
   },
   "landing": {
-    "signIn": "登入",
-    "installExtension": "安裝擴充功能 →",
-    "tagline": "隱私優先 — 瀏覽資料始終保留在您的裝置上",
-    "headline1": "讓 AI 告訴您",
-    "headline2": "時間花在哪裡",
-    "desc": "EchoFocus 自動追蹤您的瀏覽行為，分析工作模式，並提供個人化生產力洞察 — 幫助您每天保持更專注。",
-    "installFree": "安裝 Chrome 擴充功能 — 免費",
-    "openDashboard": "開啟儀表板",
-    "feature1Title": "每日生產力洞察",
-    "feature1Desc": "Google Gemini AI 分析您的工作模式，提供具體可行的改善建議 — 就像隨時待命的個人教練。",
-    "feature2Title": "視覺化資料洞察",
-    "feature2Desc": "清晰的圖表揭示每日和每週趨勢，顯示您最專注的時段和最常分心的網站。",
-    "feature3Title": "您的資料，您做主",
-    "feature3Desc": "所有瀏覽歷史完全儲存在您的裝置上 — 從不上傳至任何伺服器。即使 AI 分析也只使用匿名的統計資料。",
-    "privacyTitle": "隱私保護深植於架構中 — 不是事後的補丁",
-    "privacyDesc": "不像 RescueTime 和 Toggl Track 將瀏覽資料傳送至伺服器，EchoFocus 採用本地優先架構。律師、醫生、工程師及任何處理敏感資訊的人都可以放心使用。",
-    "copyright": "© 2026 EchoFocus"
+    "nav": {
+      "signIn": "登入",
+      "download": "下載"
+    },
+    "hero": {
+      "badge": "隱私優先 — 瀏覽紀錄永遠不離開你的裝置",
+      "headline1": "看清時間花在哪裡。",
+      "headline2": "但資料不必交出去。",
+      "sub": "EchoFocus 在本機記錄你正在使用的分頁、計算專注分數，傳給 Gemini 的只有一份匿名的每日摘要：網域名稱與分鐘數。沒有網址、沒有網頁標題，也不會上傳瀏覽紀錄。",
+      "download": "從 GitHub 下載",
+      "dashboard": "開啟儀表板",
+      "note": "Chrome · Manifest V3 · 免費。尚未上架 Chrome 線上應用程式商店 — 請到 GitHub 取得最新的 release 版本。"
+    },
+    "preview": {
+      "day": "今天",
+      "scoreLabel": "專注分數",
+      "scoreDelta": "比 7 天平均高 6 分",
+      "deepWork": "生產力時間",
+      "breaks": "休息與瀏覽",
+      "neutral": "中性",
+      "topSites": "主要網站",
+      "aiLabel": "AI 洞察",
+      "aiText": "午餐前你在 github.com 上維持了 96 分鐘不中斷的專注，是這週最強的一段；休息與瀏覽則集中在緊接著的那一小時。"
+    },
+    "how": {
+      "eyebrow": "運作方式",
+      "title": "三個步驟，其中只有一步會碰到伺服器",
+      "step1Title": "在裝置上追蹤",
+      "step1Desc": "擴充功能透過 Chrome 的 tabs API 讀取目前使用的分頁，把「網域 + 時長」直接寫進 chrome.storage.local，電腦閒置或鎖定時自動暫停。不讀取網頁內容，也不發送任何請求。",
+      "step2Title": "先彙總，再分析",
+      "step2Desc": "每天的紀錄會收斂成一份摘要：各類別的分鐘數、專注分數，以及主要造訪的網域。AI 收到的就只有這份摘要，不會有別的東西。",
+      "step3Title": "讀你的洞察",
+      "step3Desc": "分析結果會回到擴充功能的彈出視窗；登入後也會出現在這個儀表板，累積成每日與 7／30 天的趨勢。"
+    },
+    "privacy": {
+      "eyebrow": "隱私",
+      "title": "隱私是這裡的架構，不是一頁政策",
+      "desc": "其他追蹤工具把你的瀏覽紀錄上傳，再承諾會好好保管。EchoFocus 在結構上做不到這件事：原始紀錄寫在你電腦上的 chrome.storage.local，程式裡沒有任何一條路徑會把它送出去。",
+      "staysTitle": "留在你的裝置上",
+      "stays1": "你造訪的每一個網址",
+      "stays2": "網頁標題與網頁內容",
+      "stays3": "每一次造訪的紀錄與時間戳記",
+      "stays4": "你自訂的分類規則",
+      "leavesTitle": "只有 AI 分析時才送出",
+      "leaves1": "日期與各類別的總分鐘數",
+      "leaves2": "你的專注分數",
+      "leaves3": "最多 8 個網域名稱與對應分鐘數",
+      "leaves4": "依這份摘要寫出的洞察文字",
+      "payloadCaption": "一次分析請求實際送出的內容 — 這裡沒有任何省略",
+      "permsTitle": "四個權限，沒有網站存取權",
+      "permsDesc": "manifest 只要求 tabs、storage、alarms、idle，再加上 identity（僅用於選擇性登入）。沒有 host_permissions，所以擴充功能永遠讀不到任何一個網頁。",
+      "link": "閱讀完整隱私政策"
+    },
+    "features": {
+      "eyebrow": "功能",
+      "title": "足以改變你工作方式的訊號",
+      "f1Title": "自動追蹤",
+      "f1Desc": "不必手動開始或停止計時。使用中分頁的時間會歸到對應網域，你一離開就暫停。",
+      "f2Title": "每日 AI 洞察",
+      "f2Desc": "Gemini 讀完你的匿名摘要後，寫回一段簡短而具體的解讀 — 針對你真正的模式，而不是罐頭建議。",
+      "f3Title": "專注分數",
+      "f3Desc": "用 0–100 的單一數字衡量生產力時間與休息瀏覽的比重，讓今天跟你自己的基準比較，而不是跟別人比。",
+      "f4Title": "規則由你決定",
+      "f4Desc": "不同意 youtube.com 被分到哪一類？在 100 多個預設分類之上，用網域、包含字串或正規表達式重新分類任何網站。",
+      "f5Title": "儀表板趨勢",
+      "f5Desc": "登入後即可跨裝置保留每日摘要，看著 7 天與 30 天的趨勢慢慢成形。",
+      "f6Title": "帶得走，也刪得掉",
+      "f6Desc": "隨時可以把所有資料匯出成 JSON，或一鍵清除本機與雲端的資料。"
+    },
+    "cta": {
+      "title": "從一天的資料開始",
+      "desc": "裝上它，照平常的方式上網，今晚就能讀到第一份洞察。",
+      "download": "從 GitHub 下載",
+      "dashboard": "登入儀表板"
+    },
+    "footer": {
+      "tagline": "本機優先的生產力追蹤。",
+      "copyright": "© 2026 EchoFocus",
+      "github": "GitHub"
+    }
   },
   "login": {
     "welcomeBack": "歡迎回來",
@@ -59,7 +122,7 @@
     "roomToGrow": "有待提升 📈",
     "timeBreakdown": "時間分佈",
     "productive": "生產力",
-    "breaksAndBrowsing": "休閒瀏覽",
+    "breaksAndBrowsing": "休息與瀏覽",
     "neutral": "中性",
     "todaysSites": "今日網站",
     "noData": "無資料",
@@ -93,7 +156,7 @@
     "noTrendDesc": "安裝擴充功能並使用幾天後 — 趨勢圖表將顯示在此。",
     "avgFocusScore": "天平均專注分數",
     "productiveTime": "生產力時間",
-    "breaksAndBrowsing": "休閒瀏覽",
+    "breaksAndBrowsing": "休息與瀏覽",
     "dailyTimeBreakdown": "每日時間分佈",
     "focusScoreTrend": "專注分數趨勢",
     "dashedLineNote": "虛線 = 70 分目標線"
@@ -156,7 +219,7 @@
   },
   "categoryLabels": {
     "productive": "生產力",
-    "distraction": "休閒瀏覽",
+    "distraction": "休息與瀏覽",
     "neutral": "中性",
     "uncategorized": "未分類"
   },

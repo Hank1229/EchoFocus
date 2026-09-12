@@ -14,23 +14,86 @@
     "home": "Home"
   },
   "landing": {
-    "signIn": "Sign In",
-    "installExtension": "Install Extension →",
-    "tagline": "Privacy-First — browsing data always stays on your device",
-    "headline1": "Let AI Show You",
-    "headline2": "Where Your Time Goes",
-    "desc": "EchoFocus automatically tracks your browsing, analyzes your work patterns, and delivers personalized productivity insights — helping you stay more focused every day.",
-    "installFree": "Install Chrome Extension — Free",
-    "openDashboard": "Open Dashboard",
-    "feature1Title": "Daily Productivity Insights",
-    "feature1Desc": "Google Gemini AI analyzes your work patterns and gives specific, actionable improvement tips — like having a personal coach on standby.",
-    "feature2Title": "Visual Data Insights",
-    "feature2Desc": "Clear charts reveal daily and weekly trends, showing your most focused periods and the sites that distract you most.",
-    "feature3Title": "Your Data, Your Rules",
-    "feature3Desc": "All browsing history is stored entirely on your device — never uploaded to any server. Even AI analysis uses only anonymized aggregate data.",
-    "privacyTitle": "Privacy Protection Built Into the Architecture — Not Added as an Afterthought",
-    "privacyDesc": "Unlike RescueTime and Toggl Track, which send browsing data to their servers, EchoFocus uses a local-first architecture. Lawyers, doctors, engineers, and anyone handling sensitive information can use it with confidence.",
-    "copyright": "© 2026 EchoFocus"
+    "nav": {
+      "signIn": "Sign in",
+      "download": "Download"
+    },
+    "hero": {
+      "badge": "Privacy-first — your browsing history never leaves your device",
+      "headline1": "See where your time goes.",
+      "headline2": "Without handing it over.",
+      "sub": "EchoFocus tracks your active tab on-device, scores your focus, and sends Gemini nothing but an anonymized daily summary — domain names and minutes. No URLs, no page titles, no history upload.",
+      "download": "Download from GitHub",
+      "dashboard": "Open dashboard",
+      "note": "Chrome · Manifest V3 · free. Not on the Chrome Web Store yet — grab the latest release build from GitHub."
+    },
+    "preview": {
+      "day": "Today",
+      "scoreLabel": "Focus score",
+      "scoreDelta": "+6 vs. your 7-day average",
+      "deepWork": "Productive time",
+      "breaks": "Breaks & Browsing",
+      "neutral": "Neutral",
+      "topSites": "Top sites",
+      "aiLabel": "AI insight",
+      "aiText": "Your longest unbroken stretch was 96 minutes on github.com before lunch — the strongest block this week. Breaks clustered in the hour right after it."
+    },
+    "how": {
+      "eyebrow": "How it works",
+      "title": "Three steps, and only one of them touches a server",
+      "step1Title": "Track on-device",
+      "step1Desc": "The extension reads the active tab through Chrome's tabs API and writes domain-and-duration entries straight into chrome.storage.local. It pauses when your machine goes idle or locks. No page content, no network request.",
+      "step2Title": "Aggregate, then analyze",
+      "step2Desc": "Each day your entries collapse into one summary: minutes per category, a focus score, and your top domains. That summary — and nothing else — is what the AI receives.",
+      "step3Title": "Read the insight",
+      "step3Desc": "The analysis comes back to the extension popup, and to this dashboard if you sign in, where daily and 7- or 30-day trends accumulate."
+    },
+    "privacy": {
+      "eyebrow": "Privacy",
+      "title": "Privacy is the architecture here, not a policy page",
+      "desc": "Other trackers upload your history and promise to behave. EchoFocus structurally cannot: raw entries are written to chrome.storage.local on your machine, and no code path ships them anywhere.",
+      "staysTitle": "Stays on your device",
+      "stays1": "Every URL you visit",
+      "stays2": "Page titles and page content",
+      "stays3": "Per-visit entries and their timestamps",
+      "stays4": "Your custom classification rules",
+      "leavesTitle": "Leaves only for AI analysis",
+      "leaves1": "The date and total minutes per category",
+      "leaves2": "Your focus score",
+      "leaves3": "Up to 8 domain names with minutes",
+      "leaves4": "The insight text written from that summary",
+      "payloadCaption": "The exact payload an analysis request sends — nothing is elided here",
+      "permsTitle": "Four permissions, no host access",
+      "permsDesc": "The manifest asks for tabs, storage, alarms and idle — plus identity, only for optional sign-in. There is no host_permissions entry, so the extension can never read a single page.",
+      "link": "Read the full privacy policy"
+    },
+    "features": {
+      "eyebrow": "Features",
+      "title": "Enough signal to change how you work",
+      "f1Title": "Automatic tracking",
+      "f1Desc": "No timers to start or stop. Active-tab time is attributed per domain and pauses the moment you step away.",
+      "f2Title": "Daily AI insight",
+      "f2Desc": "Gemini reads your anonymized summary and writes back a short, specific read on the day — your actual patterns, not generic advice.",
+      "f3Title": "Focus score",
+      "f3Desc": "One 0–100 number weighing productive time against breaks & browsing, so today compares against your own baseline rather than someone else's.",
+      "f4Title": "Rules you control",
+      "f4Desc": "Disagree with where youtube.com landed? Reclassify any site with domain, contains or regex rules on top of 100+ sensible defaults.",
+      "f5Title": "Dashboard trends",
+      "f5Desc": "Sign in to keep daily summaries across devices and watch 7- and 30-day trends build up.",
+      "f6Title": "Yours to take or erase",
+      "f6Desc": "Export everything as JSON, or wipe local and cloud data in one click, whenever you want."
+    },
+    "cta": {
+      "title": "Start with one day of data",
+      "desc": "Install it, browse the way you normally do, and read your first insight tonight.",
+      "download": "Download from GitHub",
+      "dashboard": "Sign in to the dashboard"
+    },
+    "footer": {
+      "tagline": "Local-first productivity tracking.",
+      "copyright": "© 2026 EchoFocus",
+      "github": "GitHub"
+    }
   },
   "login": {
     "welcomeBack": "Welcome Back",
