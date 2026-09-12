@@ -29,6 +29,9 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      zod:
+        specifier: ^4.6.2
+        version: 4.6.2
     devDependencies:
       '@crxjs/vite-plugin':
         specifier: 2.0.0-beta.23
@@ -1629,6 +1632,9 @@ packages:
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
 
+  zod@4.6.2:
+    resolution: {integrity: sha512-lh5RCAGFa1Cm2hjtNwLQhSs/AsqdWnTQaBER9fEwN/88pSh7KOtJavtBx/0VlkN/uFd61SwYmljLMDAsHlvzBQ==}
+
 snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
@@ -3043,3 +3049,5 @@ snapshots:
   ws@8.19.0: {}
 
   yallist@3.1.1: {}
+
+  zod@4.6.2: {}

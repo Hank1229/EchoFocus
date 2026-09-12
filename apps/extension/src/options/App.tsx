@@ -6,7 +6,7 @@ import { DEFAULT_SETTINGS } from '@echofocus/shared'
 import type { Session } from '@supabase/supabase-js'
 import { signInWithGoogle, signOut, getSession } from '../lib/auth'
 import { syncAggregateForDate, getLastSyncTime } from '../lib/sync'
-import { getTodayDateString } from '@echofocus/shared'
+import { getTodayDateString, getDateNDaysAgo } from '@echofocus/shared'
 import { useLocale, type Language } from '../lib/i18n'
 
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL ?? 'http://localhost:3000'
@@ -489,9 +489,8 @@ function PrivacyTab() {
 
   function getExportCutoff(): string | null {
     if (exportRange === 'all') return null
-    const d = new Date()
-    d.setDate(d.getDate() - 30)
-    return d.toISOString().slice(0, 10)
+    // Storage keys are local dates — compare against a local date, not UTC.
+    return getDateNDaysAgo(30)
   }
 
   useEffect(() => {

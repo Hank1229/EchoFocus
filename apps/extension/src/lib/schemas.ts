@@ -1,0 +1,105 @@
+import { z } from 'zod'
+import type {
+  TrackingEntry,
+  DailyAggregate,
+  TrackingState,
+  Settings,
+  ClassificationRule,
+  AiAnalysisResult,
+} from '@echofocus/shared'
+
+// Runtime validation schemas for everything that crosses a trust boundary:
+// chrome.storage reads, message payloads from popup/options, and API responses.
+// On failure the callers log a warning and fall back to safe defaults — a
+// corrupt storage key must never break tracking.
+
+export const categorySchema = z.enum(['productive', 'distraction', 'neutral', 'uncategorized'])
+
+export const trackingEntrySchema: z.ZodType<TrackingEntry> = z.object({
+  id: z.string(),
+  domain: z.string(),
+  url: z.string(),
+  title: z.string(),
+  category: categorySchema,
+  startTime: z.number(),
+  duration: z.number(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+})
+
+export const trackingEntryArraySchema = z.array(trackingEntrySchema)
+
+const topDomainSchema = z.object({
+  domain: z.string(),
+  seconds: z.number(),
+  category: categorySchema,
+})
+
+export const dailyAggregateSchema: z.ZodType<DailyAggregate> = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  totalSeconds: z.number(),
+  productiveSeconds: z.number(),
+  distractionSeconds: z.number(),
+  neutralSeconds: z.number(),
+  uncategorizedSeconds: z.number(),
+  topDomains: z.array(topDomainSchema),
+  focusScore: z.number(),
+})
+
+export const trackingStateSchema: z.ZodType<TrackingState> = z.object({
+  isTracking: z.boolean(),
+  isIdle: z.boolean(),
+  activeTabId: z.number().nullable(),
+  activeDomain: z.string().nullable(),
+  activeUrl: z.string().nullable(),
+  activeTitle: z.string().nullable(),
+  activeCategory: categorySchema.nullable(),
+  sessionStartTime: z.number().nullable(),
+})
+
+export const settingsSchema: z.ZodType<Settings> = z.object({
+  trackingEnabled: z.boolean(),
+  idleTimeoutMinutes: z.number().positive(),
+  dataRetentionDays: z.number().positive(),
+  dailyGoalMinutes: z.number().positive(),
+})
+
+// Partial settings — used for SAVE_SETTINGS payloads (options page sends
+// only the fields it changed).
+export const partialSettingsSchema = z
+  .object({
+    trackingEnabled: z.boolean(),
+    idleTimeoutMinutes: z.number().positive(),
+    dataRetentionDays: z.number().positive(),
+    dailyGoalMinutes: z.number().positive(),
+  })
+  .partial()
+
+export const classificationRuleSchema: z.ZodType<ClassificationRule> = z.object({
+  id: z.string(),
+  pattern: z.string().min(1),
+  matchType: z.enum(['exact', 'wildcard', 'path']),
+  category: categorySchema,
+  isDefault: z.boolean(),
+  createdAt: z.number(),
+})
+
+export const classificationRuleArraySchema = z.array(classificationRuleSchema)
+
+export const aiAnalysisResultSchema: z.ZodType<AiAnalysisResult> = z.object({
+  analysisText: z.string(),
+  focusScore: z.number(),
+  analyzedAt: z.number(),
+})
+
+// Validate an ai-analyze Edge Function response.
+// NOTE (follow-up): lib/ai.ts should call this on the fetched JSON before
+// returning it. Kept as a standalone helper for now to avoid conflicting
+// with concurrent edits to lib/ai.ts.
+export function validateAiAnalysisResult(data: unknown): AiAnalysisResult | null {
+  const parsed = aiAnalysisResultSchema.safeParse(data)
+  if (!parsed.success) {
+    console.warn('[EchoFocus] Invalid AI analysis response:', parsed.error.message)
+    return null
+  }
+  return parsed.data
+}

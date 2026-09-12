@@ -20,7 +20,10 @@ export function extractDomain(input: string): string {
 }
 
 // Check if a domain matches a classification rule.
+// Defensive against malformed rules from storage — a bad rule must never
+// throw and break tracking; it simply doesn't match.
 function matchesRule(domain: string, rule: ClassificationRule): boolean {
+  if (typeof rule?.pattern !== 'string') return false
   const pattern = rule.pattern.toLowerCase()
   const lowerDomain = domain.toLowerCase()
 

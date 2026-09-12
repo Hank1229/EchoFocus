@@ -2,14 +2,20 @@ import { cleanupOldData, recomputeAndSaveAggregate, getStorageInfo, saveAiAnalys
 import { getTodayDateString } from '@echofocus/shared'
 import { syncYesterdayAggregate } from '../lib/sync'
 import { requestAiAnalysis } from '../lib/ai'
+import { recordHeartbeat } from './tracker'
 
 const CLEANUP_ALARM = 'echofocus-cleanup'
 const AGGREGATE_ALARM = 'echofocus-aggregate'
 const SYNC_ALARM = 'echofocus-sync'
 const AI_ALARM = 'echofocus-ai-daily'
+const HEARTBEAT_ALARM = 'echofocus-heartbeat'
 
 // Set up all recurring alarms. Called on extension install and startup.
 export async function setupAlarms(): Promise<void> {
+  // 1-minute heartbeat — persists lastSeenAt so a dangling session found on
+  // SW restore is never credited with sleep/shutdown time
+  await ensureHeartbeatAlarm()
+
   // Daily cleanup — runs every 24 hours
   await chrome.alarms.create(CLEANUP_ALARM, {
     delayInMinutes: 1,          // First run 1 min after install
@@ -35,6 +41,16 @@ export async function setupAlarms(): Promise<void> {
   })
 
   console.log('[EchoFocus] Alarms set up')
+}
+
+// Make sure the heartbeat alarm exists. Called from setupAlarms and from the
+// module-level init on every SW wake (alarms persist, but this covers users
+// who installed before the heartbeat existed).
+export async function ensureHeartbeatAlarm(): Promise<void> {
+  const existing = await chrome.alarms.get(HEARTBEAT_ALARM)
+  if (!existing) {
+    await chrome.alarms.create(HEARTBEAT_ALARM, { periodInMinutes: 1 })
+  }
 }
 
 // Returns the timestamp (ms) for the next 00:05 local time.
@@ -77,6 +93,10 @@ export async function handleAlarm(alarm: chrome.alarms.Alarm): Promise<void> {
     case AI_ALARM:
       await runAiAnalysis()
       break
+
+    case HEARTBEAT_ALARM:
+      await recordHeartbeat()
+      break
   }
 }
 
@@ -85,7 +105,8 @@ async function runCleanup(): Promise<void> {
   await cleanupOldData()
   const info = await getStorageInfo()
   const usedMB = (info.usedBytes / 1024 / 1024).toFixed(2)
-  console.log(`[EchoFocus] Storage usage: ${usedMB} MB / 10 MB`)
+  const quotaMB = (info.quotaBytes / 1024 / 1024).toFixed(0)
+  console.log(`[EchoFocus] Storage usage: ${usedMB} MB / ${quotaMB} MB`)
 }
 
 async function runAggregate(): Promise<void> {
@@ -95,6 +116,8 @@ async function runAggregate(): Promise<void> {
 
 async function runSync(): Promise<void> {
   console.log('[EchoFocus] Running nightly sync...')
+  // Enqueues yesterday and drains the whole pending queue — days that
+  // failed on previous nights are retried until confirmed synced.
   await syncYesterdayAggregate()
 }
 

@@ -1,6 +1,14 @@
 import type { TrackingEntry, DailyAggregate, TrackingState, Settings, AiAnalysisResult } from '@echofocus/shared'
 import type { ClassificationRule } from '@echofocus/shared'
 import { DEFAULT_SETTINGS, aggregateEntries, getTodayDateString, getDateNDaysAgo } from '@echofocus/shared'
+import {
+  trackingEntryArraySchema,
+  dailyAggregateSchema,
+  trackingStateSchema,
+  settingsSchema,
+  classificationRuleArraySchema,
+  aiAnalysisResultSchema,
+} from '../lib/schemas'
 
 // ─── Storage Key Helpers ───────────────────────────────────────────────────
 
@@ -16,19 +24,42 @@ const TRACKING_STATE_KEY = 'tracking_state'
 const SETTINGS_KEY = 'settings'
 const CUSTOM_RULES_KEY = 'custom_rules'
 const AI_ANALYSIS_KEY_PREFIX = 'ai_analysis:'
+const LAST_SEEN_AT_KEY = 'last_seen_at'
+
+// ─── Write Serialization ───────────────────────────────────────────────────
+
+// Simple promise-chain mutex. All read-modify-write operations on
+// chrome.storage.local go through this so concurrent event handlers can't
+// interleave a get/set pair and lose writes.
+let storageQueue: Promise<unknown> = Promise.resolve()
+
+export function withStorageLock<T>(fn: () => Promise<T>): Promise<T> {
+  const next = storageQueue.then(fn, fn)
+  // Keep the chain alive even if fn rejects
+  storageQueue = next.catch(() => undefined)
+  return next
+}
 
 // ─── TrackingEntry Operations ──────────────────────────────────────────────
 
 export async function getEntriesForDate(date: string): Promise<TrackingEntry[]> {
   const key = entriesKey(date)
   const result = await chrome.storage.local.get(key)
-  return (result[key] as TrackingEntry[] | undefined) ?? []
+  if (result[key] === undefined) return []
+  const parsed = trackingEntryArraySchema.safeParse(result[key])
+  if (!parsed.success) {
+    console.warn(`[EchoFocus] Invalid entries for ${date}, ignoring:`, parsed.error.message)
+    return []
+  }
+  return parsed.data
 }
 
 export async function saveEntry(entry: TrackingEntry): Promise<void> {
-  const key = entriesKey(entry.date)
-  const existing = await getEntriesForDate(entry.date)
-  await chrome.storage.local.set({ [key]: [...existing, entry] })
+  await withStorageLock(async () => {
+    const key = entriesKey(entry.date)
+    const existing = await getEntriesForDate(entry.date)
+    await chrome.storage.local.set({ [key]: [...existing, entry] })
+  })
 }
 
 // ─── DailyAggregate Operations ────────────────────────────────────────────
@@ -36,57 +67,118 @@ export async function saveEntry(entry: TrackingEntry): Promise<void> {
 export async function getAggregateForDate(date: string): Promise<DailyAggregate | null> {
   const key = aggregateKey(date)
   const result = await chrome.storage.local.get(key)
-  return (result[key] as DailyAggregate | undefined) ?? null
+  if (result[key] === undefined) return null
+  const parsed = dailyAggregateSchema.safeParse(result[key])
+  if (!parsed.success) {
+    console.warn(`[EchoFocus] Invalid aggregate for ${date}, ignoring:`, parsed.error.message)
+    return null
+  }
+  return parsed.data
 }
 
 export async function recomputeAndSaveAggregate(date: string): Promise<DailyAggregate> {
-  const entries = await getEntriesForDate(date)
-  const aggregate = aggregateEntries(entries, date)
-  await chrome.storage.local.set({ [aggregateKey(date)]: aggregate })
-  return aggregate
+  return withStorageLock(async () => {
+    const entries = await getEntriesForDate(date)
+    const aggregate = aggregateEntries(entries, date)
+    await chrome.storage.local.set({ [aggregateKey(date)]: aggregate })
+    return aggregate
+  })
 }
 
 // ─── TrackingState Operations ──────────────────────────────────────────────
 
-export async function getTrackingState(): Promise<TrackingState> {
-  const result = await chrome.storage.local.get(TRACKING_STATE_KEY)
-  const saved = result[TRACKING_STATE_KEY] as TrackingState | undefined
-  if (saved) return saved
-
-  return {
-    isTracking: true,
-    isIdle: false,
-    activeTabId: null,
-    activeDomain: null,
-    activeUrl: null,
-    activeTitle: null,
-    activeCategory: null,
-    sessionStartTime: null,
-  }
+const DEFAULT_TRACKING_STATE: TrackingState = {
+  isTracking: true,
+  isIdle: false,
+  activeTabId: null,
+  activeDomain: null,
+  activeUrl: null,
+  activeTitle: null,
+  activeCategory: null,
+  sessionStartTime: null,
 }
 
+export async function getTrackingState(): Promise<TrackingState> {
+  const result = await chrome.storage.local.get(TRACKING_STATE_KEY)
+  if (result[TRACKING_STATE_KEY] === undefined) return { ...DEFAULT_TRACKING_STATE }
+  const parsed = trackingStateSchema.safeParse(result[TRACKING_STATE_KEY])
+  if (!parsed.success) {
+    console.warn('[EchoFocus] Invalid tracking state, using defaults:', parsed.error.message)
+    return { ...DEFAULT_TRACKING_STATE }
+  }
+  return parsed.data
+}
+
+// Persists the state AND refreshes the heartbeat timestamp in one write —
+// every state change proves the service worker was alive at this moment.
 export async function saveTrackingState(state: TrackingState): Promise<void> {
-  await chrome.storage.local.set({ [TRACKING_STATE_KEY]: state })
+  await withStorageLock(async () => {
+    await chrome.storage.local.set({
+      [TRACKING_STATE_KEY]: state,
+      [LAST_SEEN_AT_KEY]: Date.now(),
+    })
+  })
+}
+
+// ─── Heartbeat (lastSeenAt) ────────────────────────────────────────────────
+
+// The heartbeat alarm updates this every minute. On service-worker restore,
+// a dangling session is finalized at min(now, lastSeenAt + grace) so that
+// hours of sleep/shutdown are never credited as browsing time.
+export async function getLastSeenAt(): Promise<number | null> {
+  const result = await chrome.storage.local.get(LAST_SEEN_AT_KEY)
+  const value = result[LAST_SEEN_AT_KEY]
+  return typeof value === 'number' ? value : null
+}
+
+export async function saveLastSeenAt(timestamp: number): Promise<void> {
+  await chrome.storage.local.set({ [LAST_SEEN_AT_KEY]: timestamp })
 }
 
 // ─── Settings Operations ───────────────────────────────────────────────────
 
 export async function getSettings(): Promise<Settings> {
   const result = await chrome.storage.local.get(SETTINGS_KEY)
-  const saved = result[SETTINGS_KEY] as Partial<Settings> | undefined
-  return { ...DEFAULT_SETTINGS, ...saved }
+  if (result[SETTINGS_KEY] === undefined) return { ...DEFAULT_SETTINGS }
+  // Merge before validating — stored settings may legitimately be partial
+  // (older versions saved fewer fields).
+  const merged = { ...DEFAULT_SETTINGS, ...(result[SETTINGS_KEY] as Record<string, unknown>) }
+  const parsed = settingsSchema.safeParse(merged)
+  if (!parsed.success) {
+    console.warn('[EchoFocus] Invalid settings, using defaults:', parsed.error.message)
+    return { ...DEFAULT_SETTINGS }
+  }
+  return parsed.data
 }
 
 export async function saveSettings(settings: Partial<Settings>): Promise<void> {
-  const current = await getSettings()
-  await chrome.storage.local.set({ [SETTINGS_KEY]: { ...current, ...settings } })
+  await withStorageLock(async () => {
+    const current = await getSettings()
+    await chrome.storage.local.set({ [SETTINGS_KEY]: { ...current, ...settings } })
+  })
 }
 
 // ─── Custom Rules Operations ───────────────────────────────────────────────
 
 export async function getCustomRules(): Promise<ClassificationRule[]> {
   const result = await chrome.storage.local.get(CUSTOM_RULES_KEY)
-  return (result[CUSTOM_RULES_KEY] as ClassificationRule[] | undefined) ?? []
+  if (result[CUSTOM_RULES_KEY] === undefined) return []
+  const parsed = classificationRuleArraySchema.safeParse(result[CUSTOM_RULES_KEY])
+  if (parsed.success) return parsed.data
+
+  // Salvage the valid rules instead of dropping the whole list
+  if (Array.isArray(result[CUSTOM_RULES_KEY])) {
+    const salvaged: ClassificationRule[] = []
+    for (const item of result[CUSTOM_RULES_KEY] as unknown[]) {
+      const rule = classificationRuleArraySchema.element.safeParse(item)
+      if (rule.success) salvaged.push(rule.data)
+    }
+    console.warn(`[EchoFocus] Dropped ${(result[CUSTOM_RULES_KEY] as unknown[]).length - salvaged.length} invalid custom rules`)
+    return salvaged
+  }
+
+  console.warn('[EchoFocus] Invalid custom rules, ignoring:', parsed.error.message)
+  return []
 }
 
 export async function saveCustomRules(rules: ClassificationRule[]): Promise<void> {
@@ -98,7 +190,13 @@ export async function saveCustomRules(rules: ClassificationRule[]): Promise<void
 export async function getAiAnalysis(date: string): Promise<AiAnalysisResult | null> {
   const key = `${AI_ANALYSIS_KEY_PREFIX}${date}`
   const result = await chrome.storage.local.get(key)
-  return (result[key] as AiAnalysisResult | undefined) ?? null
+  if (result[key] === undefined) return null
+  const parsed = aiAnalysisResultSchema.safeParse(result[key])
+  if (!parsed.success) {
+    console.warn(`[EchoFocus] Invalid AI analysis for ${date}, ignoring:`, parsed.error.message)
+    return null
+  }
+  return parsed.data
 }
 
 export async function saveAiAnalysis(date: string, result: AiAnalysisResult): Promise<void> {
@@ -152,7 +250,7 @@ export async function cleanupOldData(): Promise<void> {
 export async function getStorageInfo(): Promise<{ usedBytes: number; quotaBytes: number }> {
   return new Promise((resolve) => {
     chrome.storage.local.getBytesInUse(null, (usedBytes) => {
-      resolve({ usedBytes, quotaBytes: 10 * 1024 * 1024 }) // 10MB quota
+      resolve({ usedBytes, quotaBytes: chrome.storage.local.QUOTA_BYTES })
     })
   })
 }
@@ -193,16 +291,20 @@ export async function getAllDataForExport(): Promise<{
   return { entries, aggregates, settings, customRules, exportedAt: new Date().toISOString() }
 }
 
-// Delete all tracking data (entries, aggregates, AI analyses), keeping settings and auth
+// Delete all tracking data (entries, aggregates, AI analyses), keeping settings and auth.
+// The caller (background/index.ts) also resets the live tracking session so the
+// in-flight session can't materialize a fresh entry seconds after deletion.
 export async function deleteAllTrackingData(): Promise<void> {
-  const allData = await chrome.storage.local.get(null)
-  const keysToRemove = Object.keys(allData).filter(key =>
-    key.startsWith('entries:') ||
-    key.startsWith('aggregates:') ||
-    key.startsWith('ai_analysis:')
-  )
-  if (keysToRemove.length > 0) {
-    await chrome.storage.local.remove(keysToRemove)
-    console.log(`[EchoFocus] Deleted ${keysToRemove.length} tracking data keys`)
-  }
+  await withStorageLock(async () => {
+    const allData = await chrome.storage.local.get(null)
+    const keysToRemove = Object.keys(allData).filter(key =>
+      key.startsWith('entries:') ||
+      key.startsWith('aggregates:') ||
+      key.startsWith('ai_analysis:')
+    )
+    if (keysToRemove.length > 0) {
+      await chrome.storage.local.remove(keysToRemove)
+      console.log(`[EchoFocus] Deleted ${keysToRemove.length} tracking data keys`)
+    }
+  })
 }

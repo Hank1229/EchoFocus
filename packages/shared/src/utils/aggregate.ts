@@ -79,14 +79,24 @@ export function formatDuration(seconds: number): string {
   return `${hours}h ${remainingMinutes}m`
 }
 
-// Get today's date string in YYYY-MM-DD format
-export function getTodayDateString(): string {
-  return new Date().toISOString().slice(0, 10)
+// Format a Date as YYYY-MM-DD in the user's LOCAL timezone.
+// Never use toISOString() for day bucketing — it converts to UTC and
+// shifts entries into the wrong day for anyone not in UTC.
+export function formatLocalDate(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
-// Get YYYY-MM-DD string for N days ago
-export function getDateNDaysAgo(n: number): string {
-  const d = new Date()
+// Get today's date string in YYYY-MM-DD format (local timezone)
+export function getTodayDateString(now: Date = new Date()): string {
+  return formatLocalDate(now)
+}
+
+// Get YYYY-MM-DD string for N days ago (local timezone)
+export function getDateNDaysAgo(n: number, now: Date = new Date()): string {
+  const d = new Date(now)
   d.setDate(d.getDate() - n)
-  return d.toISOString().slice(0, 10)
+  return formatLocalDate(d)
 }

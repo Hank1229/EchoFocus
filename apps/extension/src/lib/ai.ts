@@ -1,5 +1,6 @@
 import type { AiAnalysisResult } from '@echofocus/shared'
 import { getSession } from './auth'
+import { validateAiAnalysisResult } from './schemas'
 import { getAggregateForDate } from '../background/storage'
 
 const FUNCTIONS_URL = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL as string
@@ -29,6 +30,26 @@ function buildPayload(date: string, language: string, aggregate: NonNullable<Awa
   }
 }
 
+function parseJsonObject(body: string): Record<string, unknown> | null {
+  try {
+    const parsed: unknown = JSON.parse(body)
+    return typeof parsed === 'object' && parsed !== null ? parsed as Record<string, unknown> : null
+  } catch {
+    return null
+  }
+}
+
+function parseErrorMessage(body: string): string {
+  const error = parseJsonObject(body)?.error
+  return typeof error === 'string' ? error : '(no error message)'
+}
+
+// Extract the already-stored analysis returned alongside a 429 response.
+function parseCachedAnalysis(body: string): string | null {
+  const text = parseJsonObject(body)?.analysis_text
+  return typeof text === 'string' && text.length > 0 ? text : null
+}
+
 // Request AI analysis for a given date.
 // Returns null if the user is not signed in, there is no local aggregate, or the Edge Function fails.
 export async function requestAiAnalysis(date: string, language = 'en'): Promise<AiAnalysisResult | null> {
@@ -38,10 +59,9 @@ export async function requestAiAnalysis(date: string, language = 'en'): Promise<
   // Gate 1: auth
   const session = await getSession()
   if (!session?.access_token) {
-    console.warn('[EchoFocus] AI analysis: BLOCKED — no session. Sign in via Options → 帳戶.')
+    console.warn('[EchoFocus] AI analysis: BLOCKED — no session. Sign in via Options → Account.')
     return null
   }
-  console.log('[EchoFocus] AI analysis: session OK, user =', session.user?.email)
 
   // Gate 2: local aggregate data
   const aggregate = await getAggregateForDate(date)
@@ -71,21 +91,34 @@ export async function requestAiAnalysis(date: string, language = 'en'): Promise<
     const responseBody = await res.text()
 
     if (!res.ok) {
-      console.error('[EchoFocus] ai-analyze error:', res.status, responseBody)
+      // SECURITY: log only the error message — an error body can carry the
+      // stored analysis text, which is user data.
+      console.error('[EchoFocus] ai-analyze error:', res.status, parseErrorMessage(responseBody))
+      // 429 = daily generation cap reached. The Edge Function still returns
+      // the analysis already stored for today — surface it as the result.
+      if (res.status === 429) {
+        const cached = parseCachedAnalysis(responseBody)
+        if (cached !== null) {
+          return validateAiAnalysisResult({
+            analysisText: cached,
+            focusScore: payload.aggregate.focusScore,
+            analyzedAt: Date.now(),
+          })
+        }
+      }
       return null
     }
 
-    const data = JSON.parse(responseBody) as { analysis_text: string; focus_score: number }
-    console.log(
-      '[EchoFocus] AI analysis: status=', res.status,
-      '| analysis_text length=', data.analysis_text?.length ?? 0,
-      '| preview=', data.analysis_text?.slice(0, 60),
-    )
-    return {
-      analysisText: data.analysis_text,
-      focusScore: data.focus_score,
+    const data: unknown = JSON.parse(responseBody)
+    const raw = data as { analysis_text?: unknown; focus_score?: unknown }
+    // SECURITY: do not log the analysis text — treat AI output as user data.
+    console.log('[EchoFocus] AI analysis: status=', res.status,
+      '| analysis_text length=', typeof raw.analysis_text === 'string' ? raw.analysis_text.length : 0)
+    return validateAiAnalysisResult({
+      analysisText: raw.analysis_text,
+      focusScore: raw.focus_score,
       analyzedAt: Date.now(),
-    }
+    })
   } catch (err) {
     console.error('[EchoFocus] AI analysis fetch error:', err)
     return null

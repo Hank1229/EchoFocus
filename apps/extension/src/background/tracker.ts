@@ -1,9 +1,45 @@
 import type { TrackingEntry, TrackingState, Category } from '@echofocus/shared'
-import { extractDomain, categorizeDomain, getTodayDateString } from '@echofocus/shared'
-import { getTrackingState, saveTrackingState, saveEntry, recomputeAndSaveAggregate, getSettings, getCustomRules } from './storage'
+import { extractDomain, categorizeDomain, splitEntryAtMidnight, formatLocalDate } from '@echofocus/shared'
+import {
+  getTrackingState,
+  saveTrackingState,
+  saveEntry,
+  recomputeAndSaveAggregate,
+  getSettings,
+  saveSettings,
+  getCustomRules,
+  getLastSeenAt,
+  saveLastSeenAt,
+} from './storage'
 
 // Minimum time to consider a visit worth recording (seconds)
 const MIN_DURATION_SECONDS = 5
+
+// A dangling session found on service-worker restore is credited at most
+// up to lastSeenAt + this grace window (the heartbeat runs every minute,
+// so 90s covers one missed beat). Anything beyond it is sleep/shutdown time.
+const LAST_SEEN_GRACE_MS = 90 * 1000
+
+// Residual sanity cap for a dangling session when no heartbeat exists
+// (e.g. first run after update) — never credit more than 4 hours.
+const MAX_DANGLING_SESSION_SECONDS = 4 * 60 * 60
+
+// URL prefixes that must never be tracked. Landing on one of these ends and
+// clears any live session so it can't linger unclosed.
+const UNTRACKED_URL_PREFIXES = [
+  'chrome://',
+  'chrome-extension://',
+  'edge://',
+  'about:',
+  'devtools://',
+  'file://',
+  'view-source:',
+]
+
+function isTrackableUrl(url: string): boolean {
+  if (!url) return false
+  return !UNTRACKED_URL_PREFIXES.some((prefix) => url.startsWith(prefix))
+}
 
 // ─── Session Management ────────────────────────────────────────────────────
 
@@ -18,70 +54,33 @@ let _state: TrackingState = {
   sessionStartTime: null,
 }
 
+// The Chrome window that currently has focus. Tab events from any other
+// window are ignored so background windows can't hijack the session.
+// chrome.windows.WINDOW_ID_NONE means "no window focused" (blocks all tab
+// events); null means "unknown" (lenient, so tracking can't silently break
+// if the windows API fails at wake-up).
+let _focusedWindowId: number | null = null
+
+// Guard so restoreState runs its side effects exactly once per SW lifetime,
+// even if both the module-level init and onStartup reach it.
+let _restored = false
+
 export function getInMemoryState(): TrackingState {
   return { ..._state }
 }
 
-// Restore state from chrome.storage on service worker startup.
-export async function restoreState(): Promise<void> {
-  const saved = await getTrackingState()
-  _state = saved
-
-  // If there was an active session when SW was killed, finalize it now.
-  if (_state.sessionStartTime !== null && _state.activeDomain) {
-    const elapsedMs = Date.now() - _state.sessionStartTime
-    const elapsedSec = Math.floor(elapsedMs / 1000)
-
-    // If elapsed time is unreasonably large (> 4 hours), the session is stale.
-    // Treat it as max 4 hours.
-    const cappedSec = Math.min(elapsedSec, 4 * 60 * 60)
-
-    if (cappedSec >= MIN_DURATION_SECONDS) {
-      await saveEntry(buildEntry(_state, cappedSec))
-      await recomputeAndSaveAggregate(getTodayDateString())
-    }
-
-    // Clear the dangling session
-    _state.sessionStartTime = null
-    _state.activeTabId = null
-    _state.activeDomain = null
-    _state.activeUrl = null
-    _state.activeTitle = null
-    _state.activeCategory = null
-    await persistState()
-  }
+// True unless we positively know every Chrome window lost focus. Unknown
+// (null) stays lenient so tracking can't silently break if the windows API
+// failed at wake-up — matching how tab events treat _focusedWindowId.
+function isChromeFocused(): boolean {
+  return _focusedWindowId !== chrome.windows.WINDOW_ID_NONE
 }
 
-function buildEntry(state: TrackingState, durationSeconds: number): TrackingEntry {
-  return {
-    id: crypto.randomUUID(),
-    domain: state.activeDomain ?? '',
-    url: state.activeUrl ?? '',
-    title: state.activeTitle ?? '',
-    category: state.activeCategory ?? 'uncategorized',
-    startTime: state.sessionStartTime ?? Date.now(),
-    duration: durationSeconds,
-    date: getTodayDateString(),
-  }
+function hasLiveSession(): boolean {
+  return _state.sessionStartTime !== null && _state.activeDomain !== null
 }
 
-async function persistState(): Promise<void> {
-  await saveTrackingState(_state)
-}
-
-// End the current active session and save the entry if long enough.
-async function endCurrentSession(): Promise<void> {
-  if (!_state.sessionStartTime || !_state.activeDomain) return
-
-  const durationMs = Date.now() - _state.sessionStartTime
-  const durationSec = Math.floor(durationMs / 1000)
-
-  if (durationSec >= MIN_DURATION_SECONDS) {
-    const entry = buildEntry(_state, durationSec)
-    await saveEntry(entry)
-    await recomputeAndSaveAggregate(entry.date)
-  }
-
+function clearSessionFields(): void {
   _state.sessionStartTime = null
   _state.activeTabId = null
   _state.activeDomain = null
@@ -90,24 +89,139 @@ async function endCurrentSession(): Promise<void> {
   _state.activeCategory = null
 }
 
+// Restore state from chrome.storage on service worker startup.
+// Idempotent: awaited via the single `ready` promise in index.ts.
+export async function restoreState(): Promise<void> {
+  if (_restored) return
+  _restored = true
+
+  const saved = await getTrackingState()
+  const settings = await getSettings()
+  // settings.trackingEnabled is the single source of truth for the master
+  // switch — the persisted isTracking flag is only a mirror for the popup.
+  _state = { ...saved, isTracking: settings.trackingEnabled }
+
+  // Initialize focused-window tracking for this SW lifetime.
+  try {
+    const win = await chrome.windows.getLastFocused()
+    _focusedWindowId = win.focused ? (win.id ?? null) : chrome.windows.WINDOW_ID_NONE
+  } catch {
+    _focusedWindowId = null
+  }
+
+  // Read the heartbeat BEFORE anything persists state: saveTrackingState()
+  // refreshes last_seen_at on every write, so a persist here would erase the
+  // proof of when the service worker actually died.
+  const lastSeenAt = await getLastSeenAt()
+  const now = Date.now()
+
+  // If there was an active session when the SW was killed, finalize it now.
+  if (_state.sessionStartTime !== null && _state.activeDomain) {
+    const dangling = { ..._state }
+    // Credit time only up to the last proof the SW was alive — never
+    // wall-clock time that elapsed while the machine slept or was off.
+    const endTime = lastSeenAt !== null ? Math.min(now, lastSeenAt + LAST_SEEN_GRACE_MS) : now
+
+    // Consume the persisted session FIRST so a crash mid-restore (or any
+    // second restore) can never finalize the same session twice.
+    clearSessionFields()
+    await persistState()
+
+    const sessionStart = dangling.sessionStartTime as number
+    const elapsedSec = Math.floor((endTime - sessionStart) / 1000)
+    const cappedSec = Math.min(elapsedSec, MAX_DANGLING_SESSION_SECONDS)
+
+    if (cappedSec >= MIN_DURATION_SECONDS) {
+      await saveFinalizedEntry(dangling, sessionStart + cappedSec * 1000)
+    }
+  }
+
+  await saveLastSeenAt(Date.now())
+}
+
+// Build the entry for a finished session, split it at local midnight if it
+// crosses one, save all parts, and refresh each affected day's aggregate.
+async function saveFinalizedEntry(state: TrackingState, endTime: number): Promise<void> {
+  if (state.sessionStartTime === null || !state.activeDomain) return
+  const durationSec = Math.floor((endTime - state.sessionStartTime) / 1000)
+  if (durationSec < MIN_DURATION_SECONDS) return
+
+  const entry: TrackingEntry = {
+    id: crypto.randomUUID(),
+    domain: state.activeDomain,
+    url: state.activeUrl ?? '',
+    title: state.activeTitle ?? '',
+    category: state.activeCategory ?? 'uncategorized',
+    startTime: state.sessionStartTime,
+    duration: durationSec,
+    date: formatLocalDate(new Date(state.sessionStartTime)),
+  }
+
+  const parts = splitEntryAtMidnight(entry)
+  for (const part of parts) {
+    await saveEntry(part)
+  }
+  // Refresh the aggregate of every day the session touched
+  const dirtyDates = [...new Set(parts.map((p) => p.date))]
+  for (const date of dirtyDates) {
+    await recomputeAndSaveAggregate(date)
+  }
+}
+
+async function persistState(): Promise<void> {
+  await saveTrackingState(_state)
+}
+
+// Heartbeat — called by the 1-minute alarm to prove the SW is alive.
+export async function recordHeartbeat(): Promise<void> {
+  await saveLastSeenAt(Date.now())
+}
+
+// End the current active session, save the entry if long enough, and ALWAYS
+// persist the cleared state so a SW restart can't resurrect a stale session.
+async function endCurrentSession(): Promise<void> {
+  const hadSession = _state.sessionStartTime !== null && _state.activeDomain !== null
+  if (hadSession) {
+    const snapshot = { ..._state }
+    const sessionStart = snapshot.sessionStartTime as number
+    // Audible tabs survive the idle check, so a session can run all night on
+    // an autoplaying video. Cap it with the same 4-hour sanity limit used for
+    // dangling sessions instead of writing a 9-hour entry.
+    const endTime = Math.min(Date.now(), sessionStart + MAX_DANGLING_SESSION_SECONDS * 1000)
+    clearSessionFields()
+    await persistState()
+    await saveFinalizedEntry(snapshot, endTime)
+  } else {
+    clearSessionFields()
+    await persistState()
+  }
+}
+
 // Start tracking a new tab/URL.
 async function startSession(tabId: number, url: string, title: string): Promise<void> {
-  // Skip chrome:// and extension pages
-  if (!url || url.startsWith('chrome://') || url.startsWith('chrome-extension://') || url === 'about:blank') {
-    _state.sessionStartTime = null
-    _state.activeTabId = null
-    _state.activeDomain = null
-    _state.activeUrl = null
-    _state.activeTitle = null
-    _state.activeCategory = null
+  // Skip browser-internal and local pages — clear any lingering session
+  if (!isTrackableUrl(url) || url === 'about:blank') {
+    clearSessionFields()
     await persistState()
     return
   }
 
+  // Master switch: settings.trackingEnabled. No session may ever start
+  // while tracking is off or the user is idle.
   const settings = await getSettings()
-  if (!settings.trackingEnabled || _state.isIdle) return
+  _state.isTracking = settings.trackingEnabled
+  if (!settings.trackingEnabled || _state.isIdle) {
+    await persistState()
+    return
+  }
 
   const domain = extractDomain(url)
+  if (!domain) {
+    clearSessionFields()
+    await persistState()
+    return
+  }
+
   const customRules = await getCustomRules()
   const category = categorizeDomain(domain, customRules)
 
@@ -124,6 +238,9 @@ async function startSession(tabId: number, url: string, title: string): Promise<
 
 // Called when the user switches to a different tab.
 export async function handleTabActivated(activeInfo: chrome.tabs.TabActiveInfo): Promise<void> {
+  // Ignore tab switches in unfocused windows
+  if (_focusedWindowId !== null && activeInfo.windowId !== _focusedWindowId) return
+
   await endCurrentSession()
 
   try {
@@ -132,8 +249,6 @@ export async function handleTabActivated(activeInfo: chrome.tabs.TabActiveInfo):
   } catch {
     // Tab may no longer exist
   }
-
-  await persistState()
 }
 
 // Called when a tab's URL or title changes.
@@ -142,8 +257,9 @@ export async function handleTabUpdated(
   changeInfo: chrome.tabs.TabChangeInfo,
   tab: chrome.tabs.Tab,
 ): Promise<void> {
-  // Only react to URL or title changes on the active tab
+  // Only react to URL or title changes on the active tab of the focused window
   if (!tab.active) return
+  if (_focusedWindowId !== null && tab.windowId !== _focusedWindowId) return
   if (!changeInfo.url && !changeInfo.title) return
 
   // If the URL changed, end the previous session and start a new one.
@@ -160,16 +276,17 @@ export async function handleTabUpdated(
 // Called when browser window focus changes.
 export async function handleWindowFocusChanged(windowId: number): Promise<void> {
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
-    // All Chrome windows lost focus — pause tracking
+    // All Chrome windows lost focus — pause tracking and block tab events
+    _focusedWindowId = chrome.windows.WINDOW_ID_NONE
     await endCurrentSession()
-    _state.sessionStartTime = null
-    await persistState()
   } else {
+    _focusedWindowId = windowId
     // Regained focus — find the active tab and start tracking
     if (_state.isTracking && !_state.isIdle) {
       try {
-        const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true })
+        const [activeTab] = await chrome.tabs.query({ active: true, windowId })
         if (activeTab?.id && activeTab.url) {
+          await endCurrentSession()
           await startSession(activeTab.id, activeTab.url, activeTab.title ?? '')
         }
       } catch {
@@ -183,16 +300,33 @@ export async function handleWindowFocusChanged(windowId: number): Promise<void> 
 export async function handleIdleStateChanged(
   newState: chrome.idle.IdleState,
 ): Promise<void> {
-  if (newState === 'idle' || newState === 'locked') {
+  if (newState === 'idle') {
+    // Watching a video counts: if the active tab is playing audio, the user
+    // is likely consuming media — keep the session alive.
+    try {
+      const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
+      if (activeTab?.audible && activeTab.id === _state.activeTabId) {
+        return
+      }
+    } catch {
+      // Fall through and treat as idle
+    }
     _state.isIdle = true
     await endCurrentSession()
-    await persistState()
+  } else if (newState === 'locked') {
+    // Locked always ends the session, audio or not
+    _state.isIdle = true
+    await endCurrentSession()
   } else if (newState === 'active') {
     _state.isIdle = false
-    // Resume tracking the current active tab
-    if (_state.isTracking) {
+    // Resume tracking the current active tab, but only when there is nothing
+    // to resume: an audible tab keeps its session alive across idle, and
+    // restarting it would reset sessionStartTime and discard the watched time.
+    // Chrome must also still be the focused app — otherwise the new session
+    // would accrue time no tab event can ever end (they bail when unfocused).
+    if (_state.isTracking && !hasLiveSession() && isChromeFocused()) {
       try {
-        const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true })
+        const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
         if (activeTab?.id && activeTab.url) {
           await startSession(activeTab.id, activeTab.url, activeTab.title ?? '')
         }
@@ -204,27 +338,53 @@ export async function handleIdleStateChanged(
   }
 }
 
-// Toggle tracking on/off.
+// Toggle tracking on/off. settings.trackingEnabled is the persistent master
+// switch; _state.isTracking mirrors it for the popup display.
 export async function toggleTracking(): Promise<boolean> {
-  if (_state.isTracking) {
-    // Turn off: end current session
+  const settings = await getSettings()
+  const enabled = !settings.trackingEnabled
+  await applyTrackingEnabled(enabled)
+  return enabled
+}
+
+// Apply a new value of the master switch (from the toggle or the options
+// page). Ends the live session when turning off; starts one when turning on.
+export async function applyTrackingEnabled(enabled: boolean): Promise<void> {
+  const settings = await getSettings()
+  if (settings.trackingEnabled !== enabled) {
+    await saveSettings({ trackingEnabled: enabled })
+  }
+  _state.isTracking = enabled
+
+  if (!enabled) {
     await endCurrentSession()
-    _state.isTracking = false
+  } else if (_state.sessionStartTime !== null) {
+    // Already tracking a session — don't restart it (that would reset the
+    // elapsed time when the options page re-saves unchanged settings)
+    await persistState()
+  } else if (!isChromeFocused()) {
+    // Chrome is in the background — starting a session now would accrue time
+    // that no tab event can end. Wait for the window-focus event instead.
     await persistState()
   } else {
-    // Turn on: start tracking active tab
-    _state.isTracking = true
     try {
-      const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true })
+      const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
       if (activeTab?.id && activeTab.url) {
         await startSession(activeTab.id, activeTab.url, activeTab.title ?? '')
+      } else {
+        await persistState()
       }
     } catch {
-      // Ignore
+      await persistState()
     }
-    await persistState()
   }
-  return _state.isTracking
+}
+
+// Discard the in-flight session WITHOUT saving an entry. Used by
+// DELETE_ALL_DATA so no new entry materializes right after a wipe.
+export async function discardCurrentSession(): Promise<void> {
+  clearSessionFields()
+  await persistState()
 }
 
 // Get live current session info (for popup display).
