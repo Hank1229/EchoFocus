@@ -31,23 +31,36 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
   const { t, language, setLanguage } = useLocale()
   const [prefs, setPrefs] = useState<UserPreference>(initialPrefs ?? DEFAULT_PREFS)
   const [isSaving, setIsSaving] = useState(false)
-  const [savedAt, setSavedAt] = useState<number | null>(null)
+  const [saveState, setSaveState] = useState<'idle' | 'saved' | 'error'>('idle')
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const update = <K extends keyof UserPreference>(key: K, value: UserPreference[K]) => {
     setPrefs(prev => ({ ...prev, [key]: value }))
-    setSavedAt(null)
+    setSaveState('idle')
   }
 
   const handleSave = async () => {
     setIsSaving(true)
-    const supabase = createClient()
-    await supabase.from('user_preferences').upsert({
-      user_id: userId,
-      ...prefs,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' })
-    setIsSaving(false)
-    setSavedAt(Date.now())
+    setSaveState('idle')
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.from('user_preferences').upsert({
+        user_id: userId,
+        ...prefs,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' })
+      if (error) {
+        setSaveError(error.message)
+        setSaveState('error')
+      } else {
+        setSaveState('saved')
+      }
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : null)
+      setSaveState('error')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -92,7 +105,13 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
       </div>
 
       <div className="flex items-center justify-between pt-1">
-        {savedAt ? <span className="text-xs text-green-400">{t.common.saved}</span> : <span />}
+        {saveState === 'saved' ? (
+          <span className="text-xs text-green-400">{t.common.saved}</span>
+        ) : saveState === 'error' ? (
+          <span className="text-xs text-red-400">{t.common.saveFailed}{saveError ?? ''}</span>
+        ) : (
+          <span />
+        )}
         <button onClick={handleSave} disabled={isSaving}
           className="px-5 py-2 bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
           {isSaving ? t.common.saving : t.common.saveSettings}

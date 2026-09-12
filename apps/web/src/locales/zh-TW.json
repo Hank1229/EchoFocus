@@ -6,6 +6,7 @@
     "signingIn": "登入中…",
     "loading": "載入中…",
     "saved": "✓ 已儲存",
+    "saveFailed": "儲存失敗：",
     "saving": "儲存中…",
     "saveSettings": "儲存設定",
     "privacyPolicy": "隱私政策",

@@ -6,6 +6,7 @@
     "signingIn": "Signing in…",
     "loading": "Loading…",
     "saved": "✓ Saved",
+    "saveFailed": "Save failed: ",
     "saving": "Saving…",
     "saveSettings": "Save Settings",
     "privacyPolicy": "Privacy Policy",
