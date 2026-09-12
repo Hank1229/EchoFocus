@@ -52,11 +52,11 @@ export default function AiInsightInteractiveCard({ analysisText, todayDate, lang
         <button
           onClick={handleRegenerate}
           disabled={isRegenerating}
-          className="text-xs text-emerald-400 hover:text-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+          className="text-xs text-brand hover:text-brand-soft disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
         >
           {isRegenerating ? (
             <>
-              <span className="w-3 h-3 border border-emerald-400 border-t-transparent rounded-full animate-spin" />
+              <span className="w-3 h-3 border border-brand border-t-transparent rounded-full animate-spin" />
               {t.today.regenerating}
             </>
           ) : (
@@ -85,7 +85,7 @@ export default function AiInsightInteractiveCard({ analysisText, todayDate, lang
             <p className="text-sm text-slate-500">{t.today.noInsightYet}</p>
             <button
               onClick={handleRegenerate}
-              className="text-xs px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors"
+              className="text-xs px-3 py-1.5 bg-brand/10 text-brand hover:bg-brand/20 rounded-lg transition-colors"
             >
               {t.today.generateInsight}
             </button>
@@ -94,8 +94,8 @@ export default function AiInsightInteractiveCard({ analysisText, todayDate, lang
       </div>
 
       {error && (
-        <div className="mt-3 bg-red-500/10 border border-red-500/30 rounded-xl p-3">
-          <p className="text-xs text-red-400">{error}</p>
+        <div className="mt-3 bg-danger/10 border border-danger/30 rounded-xl p-3">
+          <p className="text-xs text-danger">{error}</p>
         </div>
       )}
     </div>

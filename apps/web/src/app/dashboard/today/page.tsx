@@ -28,8 +28,8 @@ interface SyncedRow {
 
 function CategoryIcon({ category }: { category: TopDomain['category'] }) {
   switch (category) {
-    case 'productive': return <Zap size={14} strokeWidth={1.75} className="text-emerald-400 flex-shrink-0" />
-    case 'distraction': return <Coffee size={14} strokeWidth={1.75} className="text-orange-400 flex-shrink-0" />
+    case 'productive': return <Zap size={14} strokeWidth={1.75} className="text-productive flex-shrink-0" />
+    case 'distraction': return <Coffee size={14} strokeWidth={1.75} className="text-breaks flex-shrink-0" />
     default: return <Minus size={14} strokeWidth={1.75} className="text-slate-400 flex-shrink-0" />
   }
 }

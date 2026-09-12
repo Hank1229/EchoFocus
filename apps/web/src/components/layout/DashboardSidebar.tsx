@@ -11,10 +11,10 @@ export default function DashboardSidebar() {
   const { t, language, setLanguage } = useLocale()
 
   const NAV_ITEMS = [
-    { href: '/dashboard/today', label: t.sidebar.todaysOverview, Icon: Sun, inactiveColor: 'text-amber-500/60' },
-    { href: '/dashboard/trends', label: t.sidebar.trends, Icon: TrendingUp, inactiveColor: 'text-blue-400/60' },
-    { href: '/dashboard/ai-insights', label: t.sidebar.dailySnapshots, Icon: BookOpen, inactiveColor: 'text-violet-400/60' },
-    { href: '/dashboard/settings', label: t.sidebar.profile, Icon: User, inactiveColor: 'text-slate-400' },
+    { href: '/dashboard/today', label: t.sidebar.todaysOverview, Icon: Sun },
+    { href: '/dashboard/trends', label: t.sidebar.trends, Icon: TrendingUp },
+    { href: '/dashboard/ai-insights', label: t.sidebar.dailySnapshots, Icon: BookOpen },
+    { href: '/dashboard/settings', label: t.sidebar.profile, Icon: User },
   ]
 
   const toggleLanguage = () => {
@@ -28,7 +28,7 @@ export default function DashboardSidebar() {
         <Link href="/dashboard/today" className="flex items-center gap-2">
           <Image src="/images/logo-icon.png" alt="EchoFocus logo" width={32} height={32} className="rounded-lg" />
           <span className="font-bold text-sm tracking-wide">
-            <span style={{ color: '#E2E8F0' }}>Echo</span><span style={{ color: '#2DD4BF' }}>Focus</span>
+            <span className="text-slate-200">Echo</span><span className="text-brand">Focus</span>
           </span>
         </Link>
       </div>
@@ -43,14 +43,14 @@ export default function DashboardSidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-green-500/10 text-green-400'
+                  ? 'bg-brand/10 text-brand'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
               }`}
             >
               <item.Icon
                 size={18}
                 strokeWidth={1.75}
-                className={isActive ? 'text-green-400' : item.inactiveColor}
+                className={isActive ? 'text-brand' : 'text-neutral/60'}
               />
               {item.label}
             </Link>

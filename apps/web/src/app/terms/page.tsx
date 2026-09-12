@@ -30,7 +30,7 @@ export default async function TermsPage() {
           <Link href="/" className="flex items-center gap-2 text-slate-100 hover:text-white transition-colors">
             <Image src="/images/logo-icon.png" alt="EchoFocus logo" width={28} height={28} className="rounded-lg" />
             <span className="font-bold">
-              <span style={{ color: '#E2E8F0' }}>Echo</span><span style={{ color: '#2DD4BF' }}>Focus</span>
+              <span className="text-slate-200">Echo</span><span className="text-brand">Focus</span>
             </span>
           </Link>
           <Link href="/" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
@@ -90,7 +90,7 @@ export default async function TermsPage() {
           <p>
             Your browsing data belongs to you. EchoFocus uses a local-first design —
             raw browsing records are always stored only on your device.
-            See our <Link href="/privacy" className="text-green-400 hover:text-green-300 underline underline-offset-2">{t.common.privacyPolicy}</Link> for full details.
+            See our <Link href="/privacy" className="text-brand hover:text-brand-soft underline underline-offset-2">{t.common.privacyPolicy}</Link> for full details.
           </p>
         </Section>
 

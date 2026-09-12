@@ -35,7 +35,7 @@ export default function LoginPage() {
       <Link href="/" className="flex items-center gap-2 mb-12">
         <Image src="/images/logo-icon.png" alt="EchoFocus logo" width={32} height={32} className="rounded-lg" />
         <span className="text-lg font-bold tracking-wide">
-          <span style={{ color: '#E2E8F0' }}>Echo</span><span style={{ color: '#2DD4BF' }}>Focus</span>
+          <span className="text-slate-200">Echo</span><span className="text-brand">Focus</span>
         </span>
       </Link>
 
@@ -44,7 +44,7 @@ export default function LoginPage() {
         <p className="text-sm text-slate-400 text-center mb-8">{t.login.signInDesc}</p>
 
         {error && (
-          <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400">
+          <div className="mb-4 px-4 py-3 bg-danger/10 border border-danger/30 rounded-lg text-sm text-danger">
             {error}
           </div>
         )}

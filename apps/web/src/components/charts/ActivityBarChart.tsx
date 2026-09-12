@@ -10,6 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
+import { categoryColors, palette } from '@echofocus/shared'
 
 interface DataPoint {
   date: string
@@ -20,6 +21,7 @@ interface DataPoint {
 
 interface ActivityBarChartProps {
   data: DataPoint[]
+  labels: { productive: string; distraction: string; neutral: string }
 }
 
 const formatHours = (seconds: number) => `${(seconds / 3600).toFixed(1)}h`
@@ -42,21 +44,21 @@ const CustomTooltip = ({ active, payload, label }: {
   )
 }
 
-export default function ActivityBarChart({ data }: ActivityBarChartProps) {
+export default function ActivityBarChart({ data, labels }: ActivityBarChartProps) {
   return (
     <ResponsiveContainer width="100%" height={280}>
       <BarChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 4 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-        <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-        <YAxis tickFormatter={formatHours} tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+        <XAxis dataKey="date" tick={{ fill: palette.neutral.deep, fontSize: 11 }} axisLine={false} tickLine={false} />
+        <YAxis tickFormatter={formatHours} tick={{ fill: palette.neutral.deep, fontSize: 11 }} axisLine={false} tickLine={false} />
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
         <Legend
           formatter={(value) => <span className="text-xs text-slate-400">{value}</span>}
           iconType="circle" iconSize={8}
         />
-        <Bar dataKey="productive" name="Productive" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} />
-        <Bar dataKey="distraction" name="Distraction" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
-        <Bar dataKey="neutral" name="Neutral" stackId="a" fill="#475569" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="productive" name={labels.productive} stackId="a" fill={categoryColors.productive} radius={[0, 0, 0, 0]} />
+        <Bar dataKey="distraction" name={labels.distraction} stackId="a" fill={categoryColors.distraction} radius={[0, 0, 0, 0]} />
+        <Bar dataKey="neutral" name={labels.neutral} stackId="a" fill={categoryColors.neutral} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   )

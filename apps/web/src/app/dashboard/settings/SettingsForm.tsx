@@ -77,7 +77,7 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
               onClick={() => setLanguage(lang)}
               className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors border ${
                 language === lang
-                  ? 'bg-green-500/10 border-green-500/40 text-green-400'
+                  ? 'bg-brand/10 border-brand/40 text-brand'
                   : 'border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300'
               }`}
             >
@@ -94,26 +94,26 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <p className="text-sm font-medium text-slate-200">{t.settings.dailyFocusGoal}</p>
-          <span className="text-sm font-semibold text-green-400 tabular-nums">
+          <span className="text-sm font-semibold text-brand tabular-nums">
             {Math.floor(prefs.daily_goal_minutes / 60)}h{prefs.daily_goal_minutes % 60 > 0 ? ` ${prefs.daily_goal_minutes % 60}m` : ''}
           </span>
         </div>
         <input type="range" min={60} max={720} step={30} value={prefs.daily_goal_minutes}
           onChange={e => update('daily_goal_minutes', Number(e.target.value))}
-          className="w-full accent-green-500" />
+          className="w-full accent-brand" />
         <div className="flex justify-between text-xs text-slate-600 mt-1"><span>{t.settings.range1hr}</span><span>{t.settings.range12hr}</span></div>
       </div>
 
       <div className="flex items-center justify-between pt-1">
         {saveState === 'saved' ? (
-          <span className="text-xs text-green-400">{t.common.saved}</span>
+          <span className="text-xs text-brand">{t.common.saved}</span>
         ) : saveState === 'error' ? (
-          <span className="text-xs text-red-400">{t.common.saveFailed}{saveError ?? ''}</span>
+          <span className="text-xs text-danger">{t.common.saveFailed}{saveError ?? ''}</span>
         ) : (
           <span />
         )}
         <button onClick={handleSave} disabled={isSaving}
-          className="px-5 py-2 bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
+          className="px-5 py-2 bg-brand hover:bg-brand-soft disabled:opacity-50 text-slate-950 text-sm font-semibold rounded-lg transition-colors">
           {isSaving ? t.common.saving : t.common.saveSettings}
         </button>
       </div>

@@ -53,8 +53,8 @@ export default async function SettingsPage() {
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <div className="w-14 h-14 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center flex-shrink-0">
-                  <span className="text-xl font-bold text-green-400">{initial}</span>
+                <div className="w-14 h-14 rounded-full bg-brand/20 border border-brand/30 flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl font-bold text-brand">{initial}</span>
                 </div>
               )}
               <div>
@@ -62,7 +62,7 @@ export default async function SettingsPage() {
                   <p className="text-sm font-semibold text-slate-100">{fullName}</p>
                 )}
                 <p className="text-sm text-slate-300">{user?.email}</p>
-                <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-xs text-blue-400">
+                <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-brand/10 border border-brand/20 rounded-full text-xs text-brand">
                   {t.settings.connectedViaGoogle}
                 </span>
               </div>

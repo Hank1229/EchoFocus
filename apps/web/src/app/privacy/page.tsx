@@ -30,7 +30,7 @@ export default async function PrivacyPage() {
           <Link href="/" className="flex items-center gap-2 text-slate-100 hover:text-white transition-colors">
             <Image src="/images/logo-icon.png" alt="EchoFocus logo" width={28} height={28} className="rounded-lg" />
             <span className="font-bold">
-              <span style={{ color: '#E2E8F0' }}>Echo</span><span style={{ color: '#2DD4BF' }}>Focus</span>
+              <span className="text-slate-200">Echo</span><span className="text-brand">Focus</span>
             </span>
           </Link>
           <Link href="/" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
@@ -46,8 +46,8 @@ export default async function PrivacyPage() {
           <p className="text-sm text-slate-500">{t.privacy.lastUpdated} {LAST_UPDATED}</p>
         </div>
 
-        <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-5 py-4">
-          <p className="text-sm text-green-400 leading-relaxed">
+        <div className="bg-brand/10 border border-brand/20 rounded-xl px-5 py-4">
+          <p className="text-sm text-brand leading-relaxed">
             <strong className="font-semibold">{t.privacy.coreCommitmentLabel}</strong>{' '}
             {t.privacy.coreCommitment}
           </p>

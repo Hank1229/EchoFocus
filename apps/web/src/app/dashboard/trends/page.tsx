@@ -83,11 +83,11 @@ export default async function TrendsPage({
         <div className="flex items-center gap-2">
           <span className="text-sm text-slate-500">{t.trends.show}</span>
           <a href="/dashboard/trends?period=7"
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${days === 7 ? 'bg-green-500/10 text-green-400' : 'text-slate-500 hover:text-slate-300'}`}>
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${days === 7 ? 'bg-brand/10 text-brand' : 'text-slate-500 hover:text-slate-300'}`}>
             {t.trends.last7days}
           </a>
           <a href="/dashboard/trends?period=30"
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${days === 30 ? 'bg-green-500/10 text-green-400' : 'text-slate-500 hover:text-slate-300'}`}>
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${days === 30 ? 'bg-brand/10 text-brand' : 'text-slate-500 hover:text-slate-300'}`}>
             {t.trends.last30days}
           </a>
         </div>
@@ -105,9 +105,9 @@ export default async function TrendsPage({
             {/* Summary stats — responsive horizontal row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
-                { label: `${days}${t.trends.avgFocusScore}`, value: `${avgScore}`, color: 'text-green-400' },
-                { label: t.trends.productiveTime, value: formatDuration(totalProductive), color: 'text-emerald-400' },
-                { label: t.trends.breaksAndBrowsing, value: formatDuration(totalDistraction), color: 'text-orange-400' },
+                { label: `${days}${t.trends.avgFocusScore}`, value: `${avgScore}`, color: 'text-brand' },
+                { label: t.trends.productiveTime, value: formatDuration(totalProductive), color: 'text-productive' },
+                { label: t.trends.breaksAndBrowsing, value: formatDuration(totalDistraction), color: 'text-breaks' },
               ].map(s => (
                 <div key={s.label} className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5">
                   <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
@@ -119,7 +119,14 @@ export default async function TrendsPage({
             {/* Activity bar chart */}
             <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-6">
               <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-5">{t.trends.dailyTimeBreakdown}</p>
-              <ActivityBarChart data={barData} />
+              <ActivityBarChart
+                data={barData}
+                labels={{
+                  productive: t.trends.productiveTime,
+                  distraction: t.trends.breaksAndBrowsing,
+                  neutral: t.today.neutral,
+                }}
+              />
             </div>
 
             {/* Focus score line chart */}

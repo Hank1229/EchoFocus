@@ -55,9 +55,9 @@ export default function FocusTimeline({
     seconds: number
     dotColor: string
   }> = [
-    { key: 'productive', pct: prodPct, bg: 'bg-emerald-500', label: t.today.productive, seconds: productiveSeconds, dotColor: 'bg-emerald-500' },
-    { key: 'distraction', pct: distPct, bg: 'bg-orange-500', label: t.today.breaksAndBrowsing, seconds: distractionSeconds, dotColor: 'bg-orange-500' },
-    { key: 'neutral', pct: neutPct, bg: 'bg-slate-600', label: t.today.neutral, seconds: neutralSeconds + uncategorizedSeconds, dotColor: 'bg-slate-600' },
+    { key: 'productive', pct: prodPct, bg: 'bg-productive', label: t.today.productive, seconds: productiveSeconds, dotColor: 'bg-productive' },
+    { key: 'distraction', pct: distPct, bg: 'bg-breaks', label: t.today.breaksAndBrowsing, seconds: distractionSeconds, dotColor: 'bg-breaks' },
+    { key: 'neutral', pct: neutPct, bg: 'bg-neutral-deep', label: t.today.neutral, seconds: neutralSeconds + uncategorizedSeconds, dotColor: 'bg-neutral-deep' },
   ]
 
   return (

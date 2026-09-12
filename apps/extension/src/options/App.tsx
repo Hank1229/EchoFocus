@@ -27,10 +27,10 @@ async function sendMessage<T>(type: string, payload?: unknown): Promise<T | null
 type Tab = 'general' | 'categories' | 'privacy' | 'account' | 'about'
 
 const CATEGORY_COLORS: Record<Category, string> = {
-  productive: 'text-green-400',
-  distraction: 'text-red-400',
-  neutral: 'text-slate-400',
-  uncategorized: 'text-slate-500',
+  productive: 'text-productive',
+  distraction: 'text-breaks',
+  neutral: 'text-neutral',
+  uncategorized: 'text-neutral-deep',
 }
 
 // ─── General Tab ──────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ function GeneralTab() {
   }
 
   if (isLoading) {
-    return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" /></div>
+    return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" /></div>
   }
 
   return (
@@ -80,7 +80,7 @@ function GeneralTab() {
           </div>
           <button
             onClick={() => update('trackingEnabled', !settings.trackingEnabled)}
-            className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${settings.trackingEnabled ? 'bg-green-500' : 'bg-slate-600'}`}
+            className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${settings.trackingEnabled ? 'bg-brand' : 'bg-slate-600'}`}
           >
             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${settings.trackingEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
           </button>
@@ -93,11 +93,11 @@ function GeneralTab() {
               <p className="text-sm font-medium text-slate-200">{t.general.idleTimeout}</p>
               <p className="text-xs text-slate-500 mt-0.5">{t.general.idleTimeoutDesc}</p>
             </div>
-            <span className="text-sm font-semibold text-green-400 tabular-nums">{settings.idleTimeoutMinutes} {t.general.min}</span>
+            <span className="text-sm font-semibold text-brand tabular-nums">{settings.idleTimeoutMinutes} {t.general.min}</span>
           </div>
           <input type="range" min={1} max={30} value={settings.idleTimeoutMinutes}
             onChange={e => update('idleTimeoutMinutes', Number(e.target.value))}
-            className="w-full accent-green-500" />
+            className="w-full accent-brand" />
           <div className="flex justify-between text-xs text-slate-600 mt-1"><span>{t.general.range1Min}</span><span>{t.general.range30Min}</span></div>
         </div>
       </section>
@@ -112,13 +112,13 @@ function GeneralTab() {
               <p className="text-sm font-medium text-slate-200">{t.general.dailyFocusGoal}</p>
               <p className="text-xs text-slate-500 mt-0.5">{t.general.dailyFocusGoalDesc}</p>
             </div>
-            <span className="text-sm font-semibold text-green-400 tabular-nums">
+            <span className="text-sm font-semibold text-brand tabular-nums">
               {Math.floor(settings.dailyGoalMinutes / 60)}h{settings.dailyGoalMinutes % 60 > 0 ? ` ${settings.dailyGoalMinutes % 60}m` : ''}
             </span>
           </div>
           <input type="range" min={60} max={720} step={30} value={settings.dailyGoalMinutes}
             onChange={e => update('dailyGoalMinutes', Number(e.target.value))}
-            className="w-full accent-green-500" />
+            className="w-full accent-brand" />
           <div className="flex justify-between text-xs text-slate-600 mt-1"><span>{t.general.range1hr}</span><span>{t.general.range12hr}</span></div>
         </div>
 
@@ -129,11 +129,11 @@ function GeneralTab() {
               <p className="text-sm font-medium text-slate-200">{t.general.dataRetention}</p>
               <p className="text-xs text-slate-500 mt-0.5">{t.general.dataRetentionDesc}</p>
             </div>
-            <span className="text-sm font-semibold text-green-400 tabular-nums">{settings.dataRetentionDays} {t.general.day}</span>
+            <span className="text-sm font-semibold text-brand tabular-nums">{settings.dataRetentionDays} {t.general.day}</span>
           </div>
           <input type="range" min={7} max={365} step={7} value={settings.dataRetentionDays}
             onChange={e => update('dataRetentionDays', Number(e.target.value))}
-            className="w-full accent-green-500" />
+            className="w-full accent-brand" />
           <div className="flex justify-between text-xs text-slate-600 mt-1"><span>{t.general.range7d}</span><span>{t.general.range365d}</span></div>
         </div>
       </section>
@@ -149,7 +149,7 @@ function GeneralTab() {
               onClick={() => setLanguage(lang)}
               className={`flex-1 py-2 text-sm font-medium rounded-lg border transition-colors ${
                 language === lang
-                  ? 'bg-green-500/10 text-green-400 border-green-500/30'
+                  ? 'bg-brand/10 text-brand border-brand/30'
                   : 'text-slate-400 border-slate-700 hover:text-slate-200 hover:border-slate-600'
               }`}
             >
@@ -160,9 +160,9 @@ function GeneralTab() {
       </section>
 
       <div className="flex items-center justify-between pt-1">
-        {savedAt ? <span className="text-xs text-green-400">{t.general.saved}</span> : <span />}
+        {savedAt ? <span className="text-xs text-brand">{t.general.saved}</span> : <span />}
         <button onClick={handleSave} disabled={isSaving}
-          className="px-5 py-2 bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
+          className="px-5 py-2 bg-brand hover:bg-brand-soft disabled:opacity-50 text-slate-950 text-sm font-semibold rounded-lg transition-colors">
           {isSaving ? t.general.saving : t.general.saveSettings}
         </button>
       </div>
@@ -237,7 +237,7 @@ function CategoriesTab() {
   }
 
   if (isLoading) {
-    return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" /></div>
+    return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" /></div>
   }
 
   return (
@@ -252,24 +252,24 @@ function CategoriesTab() {
             onChange={e => setNewPattern(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') void addRule() }}
             placeholder={t.categories.patternPlaceholder}
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-green-500"
+            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand"
           />
           <div className="flex gap-2">
             <select value={newMatchType} onChange={e => setNewMatchType(e.target.value as MatchType)}
-              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-green-500">
+              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-brand">
               {(Object.entries(MATCH_TYPE_LABELS) as [MatchType, string][]).map(([v, label]) => (
                 <option key={v} value={v}>{label}</option>
               ))}
             </select>
             <select value={newCategory} onChange={e => setNewCategory(e.target.value as Category)}
-              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-green-500">
+              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-brand">
               {(Object.entries(CATEGORY_LABELS) as [Category, string][]).map(([v, label]) => (
                 <option key={v} value={v}>{label}</option>
               ))}
             </select>
           </div>
           <button onClick={() => void addRule()} disabled={!newPattern.trim() || isSaving}
-            className="w-full py-2 bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
+            className="w-full py-2 bg-brand hover:bg-brand-soft disabled:opacity-50 text-slate-950 text-sm font-semibold rounded-lg transition-colors">
             {t.categories.addRule}
           </button>
         </div>
@@ -281,7 +281,7 @@ function CategoriesTab() {
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
             {t.categories.customRules} ({rules.length})
           </h2>
-          {savedAt && <span className="text-xs text-green-400">{t.categories.saved}</span>}
+          {savedAt && <span className="text-xs text-brand">{t.categories.saved}</span>}
         </div>
 
         {rules.length === 0 ? (
@@ -300,7 +300,7 @@ function CategoriesTab() {
                   {CATEGORY_LABELS[rule.category]}
                 </span>
                 <button onClick={() => void deleteRule(rule.id)}
-                  className="text-slate-600 hover:text-red-400 transition-colors text-lg leading-none flex-shrink-0"
+                  className="text-slate-600 hover:text-danger transition-colors text-lg leading-none flex-shrink-0"
                   title={t.categories.deleteRule}>
                   ×
                 </button>
@@ -372,7 +372,7 @@ function AccountTab() {
   }
 
   if (isLoading) {
-    return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" /></div>
+    return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" /></div>
   }
 
   return (
@@ -383,14 +383,14 @@ function AccountTab() {
           <section className="bg-slate-800 rounded-xl p-5 space-y-4">
             <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.account.account}</h2>
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center">
-                <span className="text-green-400 text-sm font-bold">
+              <div className="w-9 h-9 rounded-full bg-brand/20 border border-brand/30 flex items-center justify-center">
+                <span className="text-brand text-sm font-bold">
                   {session.user.email?.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-slate-200 truncate">{session.user.email}</p>
-                <p className="text-xs text-green-400 mt-0.5">{t.account.connected}</p>
+                <p className="text-xs text-brand mt-0.5">{t.account.connected}</p>
               </div>
             </div>
           </section>
@@ -407,7 +407,7 @@ function AccountTab() {
               </p>
             )}
             {syncMessage && (
-              <p className={`text-xs ${syncMessage.ok ? 'text-green-400' : 'text-red-400'}`}>
+              <p className={`text-xs ${syncMessage.ok ? 'text-brand' : 'text-danger'}`}>
                 {syncMessage.text}
               </p>
             )}
@@ -432,7 +432,7 @@ function AccountTab() {
 
           {/* Sign out */}
           <button onClick={() => void handleSignOut()}
-            className="w-full py-2 text-red-400 hover:text-red-300 text-sm transition-colors">
+            className="w-full py-2 text-danger hover:text-danger/80 text-sm transition-colors">
             {t.account.signOut}
           </button>
         </>
@@ -590,7 +590,7 @@ function PrivacyTab() {
           </div>
           <div className="w-full bg-slate-700 rounded-full h-2">
             <div
-              className="bg-green-500 h-2 rounded-full transition-all"
+              className="bg-brand h-2 rounded-full transition-all"
               style={{ width: `${usedPercent}%` }}
             />
           </div>
@@ -612,7 +612,7 @@ function PrivacyTab() {
               onClick={() => setExportRange(r)}
               className={`px-3 py-1 text-xs rounded-lg border transition-colors ${
                 exportRange === r
-                  ? 'bg-green-500/10 text-green-400 border-green-500/30'
+                  ? 'bg-brand/10 text-brand border-brand/30'
                   : 'text-slate-500 border-slate-700 hover:text-slate-300'
               }`}
             >
@@ -655,24 +655,24 @@ function PrivacyTab() {
       </section>
 
       {/* Reset zone */}
-      <section className="bg-slate-800 rounded-xl p-5 space-y-3 border border-red-900/40">
-        <h2 className="text-xs font-semibold text-red-400 uppercase tracking-wider">{t.privacy.reset}</h2>
+      <section className="bg-slate-800 rounded-xl p-5 space-y-3 border border-danger/30">
+        <h2 className="text-xs font-semibold text-danger uppercase tracking-wider">{t.privacy.reset}</h2>
         {statusMessage && (
-          <p className={`text-xs ${statusMessage.ok ? 'text-green-400' : 'text-red-400'}`}>{statusMessage.text}</p>
+          <p className={`text-xs ${statusMessage.ok ? 'text-brand' : 'text-danger'}`}>{statusMessage.text}</p>
         )}
         {!showDeleteConfirm ? (
           <>
             <p className="text-xs text-slate-500">{t.privacy.deleteDesc}</p>
             <button
               onClick={() => { setShowDeleteConfirm(true); setStatusMessage(null) }}
-              className="w-full py-2 border border-red-800 text-red-400 hover:bg-red-500/10 text-sm font-medium rounded-lg transition-colors"
+              className="w-full py-2 border border-danger/30 text-danger hover:bg-danger/10 text-sm font-medium rounded-lg transition-colors"
             >
               {t.privacy.deleteAll}
             </button>
           </>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-red-400 font-medium">{t.privacy.deleteConfirm}</p>
+            <p className="text-sm text-danger font-medium">{t.privacy.deleteConfirm}</p>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
@@ -683,7 +683,7 @@ function PrivacyTab() {
               <button
                 onClick={() => void handleDeleteAll()}
                 disabled={isDeleting}
-                className="flex-1 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
+                className="flex-1 py-2 bg-danger-deep hover:bg-danger disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
               >
                 {isDeleting ? t.privacy.deleting : t.privacy.confirmDelete}
               </button>
@@ -721,7 +721,7 @@ function AboutTab() {
         <ul className="space-y-2.5">
           {[t.about.privacyItem0, t.about.privacyItem1, t.about.privacyItem2, t.about.privacyItem3].map((item, i) => (
             <li key={i} className="flex items-start gap-2 text-sm text-slate-400">
-              <span className="text-green-400 mt-0.5 flex-shrink-0">✓</span>
+              <span className="text-brand mt-0.5 flex-shrink-0">✓</span>
               {item}
             </li>
           ))}
@@ -784,7 +784,7 @@ export default function App() {
               onClick={() => setActiveTab(tab.id)}
               className={`px-5 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
                 activeTab === tab.id
-                  ? 'border-green-500 text-green-400'
+                  ? 'border-brand text-brand'
                   : 'border-transparent text-slate-500 hover:text-slate-300'
               }`}
             >

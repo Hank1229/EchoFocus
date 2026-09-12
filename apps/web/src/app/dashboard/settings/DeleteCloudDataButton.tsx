@@ -23,14 +23,14 @@ export default function DeleteCloudDataButton({ userId }: { userId: string }) {
   }
 
   if (done) {
-    return <p className="text-xs text-green-400">{t.settings.deleted}</p>
+    return <p className="text-xs text-brand">{t.settings.deleted}</p>
   }
 
   if (!showConfirm) {
     return (
       <button
         onClick={() => setShowConfirm(true)}
-        className="px-4 py-2 text-sm text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors"
+        className="px-4 py-2 text-sm text-danger border border-danger/30 rounded-lg hover:bg-danger/10 transition-colors"
       >
         {t.settings.deleteAllCloud}
       </button>
@@ -39,7 +39,7 @@ export default function DeleteCloudDataButton({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-red-400">
+      <p className="text-sm text-danger">
         {t.settings.deleteCloudConfirm}
       </p>
       <div className="flex gap-2">
@@ -52,7 +52,7 @@ export default function DeleteCloudDataButton({ userId }: { userId: string }) {
         <button
           onClick={handleDelete}
           disabled={isDeleting}
-          className="flex-1 py-2 text-sm text-white bg-red-600 hover:bg-red-500 disabled:opacity-50 rounded-lg transition-colors font-semibold"
+          className="flex-1 py-2 text-sm text-white bg-danger-deep hover:bg-danger disabled:opacity-50 rounded-lg transition-colors font-semibold"
         >
           {isDeleting ? t.settings.deleting : t.settings.confirmDelete}
         </button>

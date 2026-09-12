@@ -55,7 +55,7 @@ export default function AnalyzeButton() {
       <button
         onClick={handleAnalyze}
         disabled={loading}
-        className="flex items-center gap-2 px-5 py-2.5 bg-green-500 hover:bg-green-400 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors"
+        className="flex items-center gap-2 px-5 py-2.5 bg-brand hover:bg-brand-soft disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 text-sm font-semibold rounded-xl transition-colors"
       >
         {loading ? (
           <>
@@ -71,19 +71,19 @@ export default function AnalyzeButton() {
       </button>
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="bg-danger/10 border border-danger/30 rounded-xl p-4">
+          <p className="text-sm text-danger">{error}</p>
         </div>
       )}
 
       {result && (
-        <div className="bg-slate-800 border-l-4 border-green-500 rounded-r-xl p-5">
+        <div className="bg-slate-800 border-l-4 border-brand rounded-r-xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex items-center gap-1.5">
-              <MessageCircle size={18} strokeWidth={1.75} className="text-blue-400" />
+              <MessageCircle size={18} strokeWidth={1.75} className="text-brand" />
               <span className="text-xs text-slate-500 uppercase tracking-wider">{t.aiInsights.todaySnapshot}</span>
             </div>
-            <span className="ml-auto text-sm font-bold text-green-400">{result.focusScore} {t.aiInsights.pts}</span>
+            <span className="ml-auto text-sm font-bold text-brand">{result.focusScore} {t.aiInsights.pts}</span>
           </div>
           <p className="text-sm text-slate-300 leading-relaxed">{result.analysisText}</p>
           <p className="text-xs text-slate-600 mt-3">{t.aiInsights.reloadNote}</p>

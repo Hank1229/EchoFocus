@@ -17,15 +17,15 @@ function getGreeting(hour: number, t: { goodMorning: string; goodAfternoon: stri
 }
 
 function scoreColor(score: number) {
-  if (score >= 70) return 'text-emerald-400'
-  if (score >= 40) return 'text-yellow-400'
-  return 'text-red-400'
+  if (score >= 70) return 'text-brand-soft'
+  if (score >= 40) return 'text-brand'
+  return 'text-brand-deep'
 }
 
 function scoreBg(score: number) {
-  if (score >= 70) return 'bg-emerald-500/10'
-  if (score >= 40) return 'bg-yellow-500/10'
-  return 'bg-red-500/10'
+  if (score >= 70) return 'bg-brand-soft/10'
+  if (score >= 40) return 'bg-brand/10'
+  return 'bg-brand-deep/10'
 }
 
 export default function GreetingHero({ userName, productiveSeconds, focusScore }: Props) {
@@ -41,7 +41,7 @@ export default function GreetingHero({ userName, productiveSeconds, focusScore }
         </h1>
         <p className="text-sm text-slate-400 mt-1">
           {t.today.focusedFor}{' '}
-          <span className="text-emerald-400 font-semibold">{formatDuration(productiveSeconds)}</span>{' '}
+          <span className="text-productive font-semibold">{formatDuration(productiveSeconds)}</span>{' '}
           {t.today.todayTotalSuffix}
         </p>
       </div>
