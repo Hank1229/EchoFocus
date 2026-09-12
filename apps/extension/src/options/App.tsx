@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { Lock } from 'lucide-react'
+import { ArrowUpRight, Check, Lock, X } from 'lucide-react'
 import iconSrc from '../assets/icon-32.png'
 import type { Settings, ClassificationRule, Category, MatchType, DailyAggregate } from '@echofocus/shared'
 import { DEFAULT_SETTINGS } from '@echofocus/shared'
@@ -70,7 +70,7 @@ function GeneralTab() {
   return (
     <div className="space-y-6">
       <section className="bg-slate-800 rounded-xl p-5 space-y-5">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.general.tracking}</h2>
+        <h2 className="text-xs font-medium text-slate-400">{t.general.tracking}</h2>
 
         {/* trackingEnabled */}
         <div className="flex items-center justify-between">
@@ -103,7 +103,7 @@ function GeneralTab() {
       </section>
 
       <section className="bg-slate-800 rounded-xl p-5 space-y-5">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.general.goalsAndData}</h2>
+        <h2 className="text-xs font-medium text-slate-400">{t.general.goalsAndData}</h2>
 
         {/* dailyGoalMinutes */}
         <div>
@@ -139,8 +139,8 @@ function GeneralTab() {
       </section>
 
       {/* Language setting */}
-      <section className="bg-slate-800 rounded-xl p-5 space-y-3">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.general.language}</h2>
+      <section className="px-5 space-y-3">
+        <h2 className="text-xs font-medium text-slate-400">{t.general.language}</h2>
         <p className="text-xs text-slate-500">{t.general.languageDesc}</p>
         <div className="flex gap-2">
           {(['en', 'zh-TW'] as Language[]).map(lang => (
@@ -160,7 +160,11 @@ function GeneralTab() {
       </section>
 
       <div className="flex items-center justify-between pt-1">
-        {savedAt ? <span className="text-xs text-brand">{t.general.saved}</span> : <span />}
+        {savedAt ? (
+          <span className="flex items-center gap-1.5 text-xs text-brand">
+            <Check size={13} strokeWidth={2.5} />{t.general.saved}
+          </span>
+        ) : <span />}
         <button onClick={handleSave} disabled={isSaving}
           className="px-5 py-2 bg-brand hover:bg-brand-soft disabled:opacity-50 text-slate-950 text-sm font-semibold rounded-lg transition-colors">
           {isSaving ? t.general.saving : t.general.saveSettings}
@@ -244,7 +248,7 @@ function CategoriesTab() {
     <div className="space-y-5">
       {/* Add rule form */}
       <section className="bg-slate-800 rounded-xl p-5">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">{t.categories.addCustomRule}</h2>
+        <h2 className="text-xs font-medium text-slate-400 mb-4">{t.categories.addCustomRule}</h2>
         <div className="space-y-3">
           <input
             type="text"
@@ -276,12 +280,16 @@ function CategoriesTab() {
       </section>
 
       {/* Rule list */}
-      <section className="bg-slate-800 rounded-xl overflow-hidden">
+      <section className="border border-slate-700 rounded-xl overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-700 flex items-center justify-between">
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <h2 className="text-xs font-medium text-slate-400">
             {t.categories.customRules} ({rules.length})
           </h2>
-          {savedAt && <span className="text-xs text-brand">{t.categories.saved}</span>}
+          {savedAt && (
+            <span className="flex items-center gap-1.5 text-xs text-brand">
+              <Check size={13} strokeWidth={2.5} />{t.categories.saved}
+            </span>
+          )}
         </div>
 
         {rules.length === 0 ? (
@@ -300,9 +308,9 @@ function CategoriesTab() {
                   {CATEGORY_LABELS[rule.category]}
                 </span>
                 <button onClick={() => void deleteRule(rule.id)}
-                  className="text-slate-600 hover:text-danger transition-colors text-lg leading-none flex-shrink-0"
+                  className="text-slate-600 hover:text-danger transition-colors flex-shrink-0"
                   title={t.categories.deleteRule}>
-                  ×
+                  <X size={15} strokeWidth={2} />
                 </button>
               </li>
             ))}
@@ -381,7 +389,7 @@ function AccountTab() {
         <>
           {/* Logged in state */}
           <section className="bg-slate-800 rounded-xl p-5 space-y-4">
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.account.account}</h2>
+            <h2 className="text-xs font-medium text-slate-400">{t.account.account}</h2>
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-brand/20 border border-brand/30 flex items-center justify-center">
                 <span className="text-brand text-sm font-bold">
@@ -397,7 +405,7 @@ function AccountTab() {
 
           {/* Sync */}
           <section className="bg-slate-800 rounded-xl p-5 space-y-3">
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.account.dataSync}</h2>
+            <h2 className="text-xs font-medium text-slate-400">{t.account.dataSync}</h2>
             <p className="text-xs text-slate-500">
               {t.account.autoSyncNote}
             </p>
@@ -418,15 +426,16 @@ function AccountTab() {
           </section>
 
           {/* Dashboard link */}
-          <section className="bg-slate-800 rounded-xl p-5">
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t.account.webDashboard}</h2>
+          <section className="px-5">
+            <h2 className="text-xs font-medium text-slate-400 mb-1">{t.account.webDashboard}</h2>
             <a
               href={`${DASHBOARD_URL}/dashboard`}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-2 border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 text-sm font-medium rounded-lg transition-colors"
+              className="flex items-center justify-between gap-2 py-2 text-sm text-slate-300 hover:text-slate-100 transition-colors"
             >
-              {t.account.openDashboard}
+              <span>{t.account.openDashboard}</span>
+              <ArrowUpRight size={15} strokeWidth={2} className="text-slate-500" />
             </a>
           </section>
 
@@ -440,7 +449,7 @@ function AccountTab() {
         <>
           {/* Logged out state */}
           <section className="bg-slate-800 rounded-xl p-5 space-y-4">
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.account.connectAccount}</h2>
+            <h2 className="text-xs font-medium text-slate-400">{t.account.connectAccount}</h2>
             <p className="text-sm text-slate-400 leading-relaxed">
               {t.account.signInDesc}
             </p>
@@ -582,17 +591,14 @@ function PrivacyTab() {
     <div className="space-y-5">
       {/* Storage usage */}
       <section className="bg-slate-800 rounded-xl p-5 space-y-3">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.privacy.localStorage}</h2>
+        <h2 className="text-xs font-medium text-slate-400">{t.privacy.localStorage}</h2>
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-400">{t.privacy.used}</span>
             <span className="text-slate-200 tabular-nums">{usedMB} {t.privacy.storageMB}</span>
           </div>
           <div className="w-full bg-slate-700 rounded-full h-2">
-            <div
-              className="bg-brand h-2 rounded-full transition-all"
-              style={{ width: `${usedPercent}%` }}
-            />
+            <div className="bg-brand h-2 rounded-full" style={{ width: `${usedPercent}%` }} />
           </div>
           <p className="text-xs text-slate-500">{t.privacy.storageNote}</p>
         </div>
@@ -600,7 +606,7 @@ function PrivacyTab() {
 
       {/* Export */}
       <section className="bg-slate-800 rounded-xl p-5 space-y-3">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.privacy.exportData}</h2>
+        <h2 className="text-xs font-medium text-slate-400">{t.privacy.exportData}</h2>
         <p className="text-xs text-slate-500">{t.privacy.exportDesc}</p>
 
         {/* Range selector */}
@@ -640,23 +646,23 @@ function PrivacyTab() {
       </section>
 
       {/* Links */}
-      <section className="bg-slate-800 rounded-xl p-5 space-y-1">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t.privacy.documents}</h2>
+      <section className="px-5">
+        <h2 className="text-xs font-medium text-slate-400 mb-1">{t.privacy.documents}</h2>
         {[
           { label: t.privacy.privacyPolicy, href: `${DASHBOARD_URL_LOCAL}/privacy` },
           { label: t.privacy.termsOfService, href: `${DASHBOARD_URL_LOCAL}/terms` },
         ].map(({ label, href }) => (
           <a key={label} href={href} target="_blank" rel="noreferrer"
-            className="flex items-center justify-between text-sm text-slate-300 hover:text-white transition-colors py-2 border-b border-slate-700 last:border-0">
+            className="flex items-center justify-between text-sm text-slate-300 hover:text-slate-100 transition-colors py-2 border-b border-slate-800 last:border-0">
             <span>{label}</span>
-            <span className="text-slate-500">↗</span>
+            <ArrowUpRight size={15} strokeWidth={2} className="text-slate-500" />
           </a>
         ))}
       </section>
 
       {/* Reset zone */}
-      <section className="bg-slate-800 rounded-xl p-5 space-y-3 border border-danger/30">
-        <h2 className="text-xs font-semibold text-danger uppercase tracking-wider">{t.privacy.reset}</h2>
+      <section className="rounded-xl p-5 space-y-3 border border-danger/30">
+        <h2 className="text-xs font-medium text-danger">{t.privacy.reset}</h2>
         {statusMessage && (
           <p className={`text-xs ${statusMessage.ok ? 'text-brand' : 'text-danger'}`}>{statusMessage.text}</p>
         )}
@@ -707,7 +713,7 @@ function AboutTab() {
         <div className="flex items-center gap-4">
           <img src={iconSrc} alt="EchoFocus" width={48} height={48} className="rounded-xl" />
           <div>
-            <h2 className="text-base font-bold text-slate-100">EchoFocus</h2>
+            <h2 className="font-display text-base font-bold tracking-tight text-slate-100">EchoFocus</h2>
             <p className="text-xs text-slate-500 mt-0.5">{t.about.version} {APP_VERSION}</p>
           </div>
         </div>
@@ -716,29 +722,29 @@ function AboutTab() {
         </p>
       </section>
 
-      <section className="bg-slate-800 rounded-xl p-5 space-y-2">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t.about.privacyProtection}</h2>
-        <ul className="space-y-2.5">
+      <section className="px-5">
+        <h2 className="text-xs font-medium text-slate-400 mb-3">{t.about.privacyProtection}</h2>
+        <ul className="space-y-3 border-t border-slate-800 pt-4">
           {[t.about.privacyItem0, t.about.privacyItem1, t.about.privacyItem2, t.about.privacyItem3].map((item, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm text-slate-400">
-              <span className="text-brand mt-0.5 flex-shrink-0">✓</span>
+            <li key={i} className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-400">
+              <Check size={15} strokeWidth={2.25} className="text-brand mt-0.5 flex-shrink-0" />
               {item}
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="bg-slate-800 rounded-xl p-5 space-y-1">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t.about.links}</h2>
+      <section className="px-5">
+        <h2 className="text-xs font-medium text-slate-400 mb-1">{t.about.links}</h2>
         {[
           { label: t.privacy.privacyPolicy, href: `${DASHBOARD_URL_LOCAL}/privacy` },
           { label: t.privacy.termsOfService, href: `${DASHBOARD_URL_LOCAL}/terms` },
           { label: t.about.reportIssue, href: 'https://github.com/Hank1229/EchoFocus/issues' },
         ].map(({ label, href }) => (
           <a key={label} href={href} target="_blank" rel="noreferrer"
-            className="flex items-center justify-between text-sm text-slate-300 hover:text-white transition-colors py-2 border-b border-slate-700 last:border-0">
+            className="flex items-center justify-between text-sm text-slate-300 hover:text-slate-100 transition-colors py-2 border-b border-slate-800 last:border-0">
             <span>{label}</span>
-            <span className="text-slate-500">↗</span>
+            <ArrowUpRight size={15} strokeWidth={2} className="text-slate-500" />
           </a>
         ))}
       </section>

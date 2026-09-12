@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import iconSrc from '../assets/icon-48.png'
 import { useLocale } from '../lib/i18n'
 import WelcomeStep from './components/WelcomeStep'
@@ -43,14 +43,12 @@ export default function App() {
   const isLast = step === LAST_STEP
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-200">
-      <div className="pointer-events-none absolute -top-48 left-1/2 h-96 w-[46rem] -translate-x-1/2 rounded-full bg-brand/10 blur-3xl" />
-
-      <div className="relative mx-auto flex min-h-screen w-full max-w-3xl flex-col px-8 py-10">
+    <div className="min-h-screen bg-slate-950 text-slate-200">
+      <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-8 py-10">
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img src={iconSrc} alt="" width={28} height={28} className="rounded-lg" />
-            <span className="text-sm font-bold tracking-wide">
+            <span className="font-display text-base font-bold leading-none tracking-tight">
               <span className="text-slate-100">Echo</span><span className="text-brand">Focus</span>
             </span>
           </div>
@@ -85,7 +83,7 @@ export default function App() {
                 }`}
               />
               <span
-                className={`text-[11px] font-medium uppercase tracking-[0.14em] transition-colors duration-300 ${
+                className={`text-xs font-medium transition-colors duration-500 ${
                   i === step ? 'text-brand' : i < step ? 'text-slate-400' : 'text-slate-600'
                 }`}
               >
@@ -130,10 +128,9 @@ export default function App() {
             )}
             <button
               onClick={isLast ? openSettings : () => setStep(step + 1)}
-              className="flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-slate-900 transition-colors hover:bg-brand-soft"
+              className="rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-slate-900 transition-colors hover:bg-brand-soft"
             >
               {isLast ? t.onboarding.step3SignIn : ctas[step]}
-              <ArrowRight size={15} strokeWidth={2.25} />
             </button>
           </div>
         </footer>

@@ -29,12 +29,10 @@ export default function AiInsightCard({ analysis, isAnalyzing, error, canAnalyze
     : null
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-brand/25 bg-gradient-to-br from-brand/10 via-slate-900 to-slate-900 p-4">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand/60 to-transparent" />
-
+    <section className="rounded-2xl border border-brand/30 p-4">
       <header className="flex items-center gap-2">
         <Sparkles size={15} strokeWidth={2} className="text-brand" />
-        <h2 className="text-[11px] font-semibold uppercase tracking-wider text-brand-soft">
+        <h2 className="text-xs font-medium text-brand-soft">
           {t.aiInsight.dailyInsight}
         </h2>
         {analyzedAt && !isAnalyzing && (

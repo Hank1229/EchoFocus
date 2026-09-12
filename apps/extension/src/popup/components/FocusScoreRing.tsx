@@ -7,10 +7,18 @@ interface FocusScoreRingProps {
   size?: number
 }
 
-export default function FocusScoreRing({ score, size = 96 }: FocusScoreRingProps) {
+// The score arc repeated outward, shorter and fainter each time — the echo the
+// product is named for. Offsets are added to the progress radius.
+const ECHOES = [
+  { gap: 7, sweep: 0.78, opacity: 0.3, width: 1.5 },
+  { gap: 12.5, sweep: 0.52, opacity: 0.14, width: 1 },
+]
+
+export default function FocusScoreRing({ score, size = 104 }: FocusScoreRingProps) {
   const { t } = useLocale()
-  const strokeWidth = 8
-  const radius = (size - strokeWidth) / 2
+  const strokeWidth = 7
+  const center = size / 2
+  const radius = center - 14
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (score / 100) * circumference
 
@@ -23,19 +31,50 @@ export default function FocusScoreRing({ score, size = 96 }: FocusScoreRingProps
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
+      <div
+        className="relative"
+        style={{ width: size, height: size }}
+        role="img"
+        aria-label={`${t.popup.focusScore}: ${score}`}
+      >
+        <svg
+          width={size}
+          height={size}
+          viewBox={`0 0 ${size} ${size}`}
+          style={{ transform: 'rotate(-90deg)' }}
+          aria-hidden="true"
+        >
+          {ECHOES.map(echo => {
+            const r = radius + echo.gap
+            const c = 2 * Math.PI * r
+            return (
+              <circle
+                key={echo.gap}
+                cx={center}
+                cy={center}
+                r={r}
+                fill="none"
+                stroke={tier.accent}
+                strokeWidth={echo.width}
+                strokeLinecap="round"
+                strokeOpacity={echo.opacity}
+                strokeDasharray={c}
+                strokeDashoffset={c - (score / 100) * echo.sweep * c}
+              />
+            )
+          })}
+
           <circle
-            cx={size / 2}
-            cy={size / 2}
+            cx={center}
+            cy={center}
             r={radius}
             fill="none"
             stroke="#1e293b"
             strokeWidth={strokeWidth}
           />
           <circle
-            cx={size / 2}
-            cy={size / 2}
+            cx={center}
+            cy={center}
             r={radius}
             fill="none"
             stroke={tier.accent}
@@ -43,17 +82,17 @@ export default function FocusScoreRing({ score, size = 96 }: FocusScoreRingProps
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
-            style={{ transition: 'stroke-dashoffset 0.6s ease' }}
           />
         </svg>
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold leading-none tabular-nums text-slate-100">{score}</span>
-          <span className="mt-1 text-[10px] uppercase tracking-wider text-slate-500">{t.popup.pts}</span>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="font-display text-[32px] font-semibold leading-none tabular-nums text-slate-100">
+            {score}
+          </span>
         </div>
       </div>
 
-      <p className="text-xs font-semibold" style={{ color: tier.accent }}>{tier.label}</p>
+      <p className="text-xs font-medium" style={{ color: tier.accent }}>{tier.label}</p>
     </div>
   )
 }

@@ -71,7 +71,7 @@ export default function DomainList({ domains, currentDomain, currentElapsedSecon
             }`}
           >
             <div
-              className="absolute inset-y-0 left-0 opacity-20 transition-all duration-500"
+              className="absolute inset-y-0 left-0 opacity-20"
               style={{ width: `${(domain.seconds / maxSeconds) * 100}%`, backgroundColor: categoryColors[domain.category] }}
             />
 

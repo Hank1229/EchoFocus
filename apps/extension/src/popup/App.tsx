@@ -3,7 +3,7 @@ import { Moon, Settings as SettingsIcon, User } from 'lucide-react'
 import iconSrc from '../assets/icon-32.png'
 import { useTodayStats } from './hooks/useTodayStats'
 import FocusScoreRing from './components/FocusScoreRing'
-import StatsBar from './components/StatsBar'
+import { CategoryRows, StatsSummary } from './components/StatsBar'
 import DomainList from './components/DomainList'
 import TrackingToggle from './components/TrackingToggle'
 import AiInsightCard from './components/AiInsightCard'
@@ -119,7 +119,7 @@ export default function App() {
       <header className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
         <div className="flex items-center gap-2">
           <img src={iconSrc} alt="" width={24} height={24} className="rounded-md" />
-          <span className="text-sm font-bold tracking-wide">
+          <span className="font-display text-[15px] font-bold leading-none tracking-tight">
             <span className="text-slate-200">Echo</span><span className="text-brand">Focus</span>
           </span>
         </div>
@@ -139,18 +139,28 @@ export default function App() {
           </div>
         )}
 
-        <section className="flex items-center gap-4 rounded-2xl border border-slate-800 bg-slate-800/30 p-4">
-          <div className="flex flex-shrink-0 flex-col items-center gap-1">
-            <FocusScoreRing score={focusScore} />
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">{t.popup.focusScore}</p>
+        <section className="rounded-2xl border border-slate-800 bg-slate-800/30 p-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0">
+              <FocusScoreRing score={focusScore} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <StatsSummary
+                productiveSeconds={productiveSeconds}
+                distractionSeconds={distractionSeconds}
+                neutralSeconds={neutralSeconds}
+                uncategorizedSeconds={uncategorizedSeconds}
+                totalSeconds={totalSeconds}
+              />
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <StatsBar
+
+          <div className="mt-4 border-t border-slate-800 pt-3">
+            <CategoryRows
               productiveSeconds={productiveSeconds}
               distractionSeconds={distractionSeconds}
               neutralSeconds={neutralSeconds}
               uncategorizedSeconds={uncategorizedSeconds}
-              totalSeconds={totalSeconds}
             />
           </div>
         </section>
@@ -164,9 +174,7 @@ export default function App() {
         />
 
         <section>
-          <h2 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-            {t.popup.todaysSites}
-          </h2>
+          <h2 className="mb-2 text-xs font-medium text-slate-400">{t.popup.todaysSites}</h2>
           <DomainList
             domains={topDomains}
             currentDomain={currentSession?.domain ?? null}

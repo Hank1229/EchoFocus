@@ -38,28 +38,22 @@ export default function TrackingStep() {
 
   return (
     <div>
-      <StepHeading
-        eyebrow={t.onboarding.step1Eyebrow}
-        title={t.onboarding.step1Title}
-        desc={t.onboarding.step1Desc}
-      />
+      <StepHeading title={t.onboarding.step1Title} desc={t.onboarding.step1Desc} />
 
       <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-            {t.onboarding.step1ScoreExample}
-          </span>
-          <span className="flex items-baseline gap-1.5">
-            <span className="text-[10px] uppercase tracking-wider text-slate-500">
-              {t.onboarding.step1ScoreLabel}
+          <span className="text-xs text-slate-500">{t.onboarding.step1ScoreExample}</span>
+          <span className="flex items-baseline gap-2">
+            <span className="text-xs text-slate-500">{t.onboarding.step1ScoreLabel}</span>
+            <span className="font-display text-xl font-semibold leading-none tabular-nums text-brand-soft">
+              {EXAMPLE_SCORE}
             </span>
-            <span className="text-xl font-bold leading-none tabular-nums text-brand-soft">{EXAMPLE_SCORE}</span>
           </span>
         </div>
 
         <div className="mt-3 flex h-1.5 overflow-hidden rounded-full bg-slate-800">
           {buckets.map(({ title, share, fill }) => (
-            <div key={title} className={`${fill} transition-all duration-700`} style={{ width: `${share}%` }} />
+            <div key={title} className={fill} style={{ width: `${share}%` }} />
           ))}
         </div>
 

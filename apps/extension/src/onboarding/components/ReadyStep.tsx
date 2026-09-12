@@ -14,23 +14,21 @@ export default function ReadyStep() {
 
   return (
     <div>
-      <StepHeading
-        eyebrow={t.onboarding.step3Eyebrow}
-        title={t.onboarding.step3Title}
-        desc={t.onboarding.step3Desc}
-      />
+      <StepHeading title={t.onboarding.step3Title} desc={t.onboarding.step3Desc} />
 
       <div className="mt-8 inline-flex items-center gap-2.5 rounded-full border border-brand/30 bg-brand/[0.08] px-3.5 py-1.5">
         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
         <span className="text-xs font-medium text-brand-soft">{t.onboarding.step3LiveStatus}</span>
       </div>
 
-      <ul className="mt-6 grid gap-3 sm:grid-cols-3">
+      <ul className="mt-6 divide-y divide-slate-800 overflow-hidden rounded-2xl border border-slate-800">
         {unlocks.map(({ Icon, title, desc }) => (
-          <li key={title} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-            <Icon size={18} strokeWidth={1.75} className="text-brand" />
-            <p className="mt-3 text-sm font-semibold text-slate-100">{title}</p>
-            <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{desc}</p>
+          <li key={title} className="flex items-center gap-4 px-5 py-3.5">
+            <Icon size={17} strokeWidth={1.75} className="flex-shrink-0 text-brand" />
+            <span className="min-w-0 flex-1 text-sm font-medium text-slate-100">{title}</span>
+            <span className="hidden min-w-0 max-w-[18rem] flex-1 text-right text-xs leading-relaxed text-slate-500 sm:block">
+              {desc}
+            </span>
           </li>
         ))}
       </ul>

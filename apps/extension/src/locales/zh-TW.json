@@ -62,7 +62,7 @@
     "range365d": "365 天",
     "range1hr": "1 小時",
     "range12hr": "12 小時",
-    "saved": "✓ 已儲存",
+    "saved": "已儲存",
     "saveSettings": "儲存設定",
     "saving": "儲存中…",
     "language": "語言",
@@ -78,7 +78,7 @@
     "noRules": "尚無自訂規則。新增規則可覆蓋預設類別。",
     "deleteRule": "刪除規則",
     "rulesNote": "自訂規則優先於預設值，變更立即生效。",
-    "saved": "✓ 已儲存",
+    "saved": "已儲存",
     "matchTypes": {
       "exact": "完全比對",
       "wildcard": "萬用字元",
@@ -105,7 +105,7 @@
     "syncToday": "同步今日資料",
     "syncing": "同步中…",
     "webDashboard": "網頁儀表板",
-    "openDashboard": "開啟儀表板 ↗",
+    "openDashboard": "開啟儀表板",
     "signOut": "登出"
   },
   "privacy": {
@@ -131,7 +131,7 @@
     "cancel": "取消",
     "confirmDelete": "確認刪除",
     "deleting": "刪除中…",
-    "deleted": "✓ 所有追蹤資料已刪除"
+    "deleted": "所有追蹤資料已刪除"
   },
   "about": {
     "version": "版本",
@@ -152,7 +152,6 @@
     "step1Label": "運作方式",
     "step2Label": "隱私",
     "step3Label": "完成",
-    "step0Eyebrow": "歡迎使用 EchoFocus",
     "step0Title": "看見你的時間真正去了哪裡",
     "step0Desc": "EchoFocus 為你眼前的分頁計時，換算成專注分數，再為你寫下一段簡短的每日觀察。不必按開始，也不用手動記錄。",
     "step0Card0Title": "自動運作",
@@ -162,7 +161,6 @@
     "step0Card2Title": "每天一分鐘",
     "step0Card2Desc": "一個專注分數、你的主要網站，以及當天的 AI 快照。",
     "step0Cta": "開始導覽",
-    "step1Eyebrow": "毫不費力的洞察",
     "step1Title": "不需要你動手的追蹤",
     "step1Desc": "照你平常的方式瀏覽就好。EchoFocus 只計算使用中的分頁，閒置或鎖定螢幕時暫停，並把每個網站歸入三種類別之一。",
     "step1CategoryProductiveTitle": "生產力時間",
@@ -175,7 +173,6 @@
     "step1ScoreLabel": "專注分數",
     "step1ScoreNote": "分數是專注時間佔「專注 + 休息」時間的比例 — 中性時間永遠不會扣分。任何網站都可以在設定中重新分類。",
     "step1Cta": "下一步：你的隱私",
-    "step2Eyebrow": "以隱私為前提的設計",
     "step2Title": "你的瀏覽紀錄永遠不會離開這台裝置",
     "step2Desc": "這是多數追蹤工具做錯的地方，所以我們把資料的流向完整說明清楚。",
     "step2Stay0Title": "保存在本機的 chrome.storage.local",
@@ -187,9 +184,8 @@
     "step2Never1": "頁面標題",
     "step2Never2": "搜尋關鍵字",
     "step2Never3": "原始瀏覽紀錄",
-    "step2Footnote": "AI 分析可自由選擇是否使用，你也能在「設定 → 隱私」匯出全部 JSON 或徹底清除每一位元組。",
+    "step2Footnote": "AI 分析可自由選擇是否使用，你也能在設定的「隱私」分頁匯出全部 JSON 或徹底清除每一位元組。",
     "step2Cta": "下一步：完成設定",
-    "step3Eyebrow": "設定完成",
     "step3Title": "EchoFocus 已經開始追蹤",
     "step3Desc": "把 EchoFocus 圖示釘在工具列，今天的分數就只差一次點擊。以下功能都是選用的。",
     "step3LiveStatus": "追蹤中",

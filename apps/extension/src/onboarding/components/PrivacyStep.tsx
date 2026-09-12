@@ -20,11 +20,7 @@ export default function PrivacyStep() {
 
   return (
     <div>
-      <StepHeading
-        eyebrow={t.onboarding.step2Eyebrow}
-        title={t.onboarding.step2Title}
-        desc={t.onboarding.step2Desc}
-      />
+      <StepHeading title={t.onboarding.step2Title} desc={t.onboarding.step2Desc} />
 
       <ol className="mt-8 flex flex-col gap-3">
         {stays.map(({ Icon, title, desc }, i) => (
