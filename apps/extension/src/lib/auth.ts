@@ -25,7 +25,7 @@ export async function signInWithGoogle(): Promise<Session | null> {
 
   console.log('[EchoFocus] OAuth: opening auth URL via launchWebAuthFlow')
 
-  let responseUrl: string
+  let responseUrl: string | undefined
   try {
     responseUrl = await chrome.identity.launchWebAuthFlow({
       url: data.url,
@@ -41,8 +41,6 @@ export async function signInWithGoogle(): Promise<Session | null> {
     return null
   }
 
-  console.log('[EchoFocus] OAuth: responseUrl =', responseUrl)
-
   const url = new URL(responseUrl)
 
   // Implicit flow: tokens are in the hash fragment (#access_token=...&refresh_token=...)
@@ -50,14 +48,10 @@ export async function signInWithGoogle(): Promise<Session | null> {
   const accessToken = hashParams.get('access_token')
   const refreshToken = hashParams.get('refresh_token')
 
-  console.log('[EchoFocus] OAuth: hash keys =', [...hashParams.keys()])
-  console.log('[EchoFocus] OAuth: query keys =', [...url.searchParams.keys()])
-
   if (!accessToken || !refreshToken) {
-    // Log the full fragment/query to help diagnose what Supabase actually returned
-    console.error('[EchoFocus] OAuth: missing tokens. hash =', url.hash, 'search =', url.search)
-    console.error('[EchoFocus] OAuth: This usually means flowType is not "implicit".',
-      'Check supabase.ts — flowType must be set to "implicit".')
+    // SECURITY: never log the redirect URL, hash, or query — they carry tokens.
+    console.error('[EchoFocus] OAuth: redirect completed but tokens were missing.',
+      'This usually means flowType is not "implicit" — check supabase.ts.')
     return null
   }
 
@@ -73,7 +67,7 @@ export async function signInWithGoogle(): Promise<Session | null> {
     return null
   }
 
-  console.log('[EchoFocus] OAuth: signed in as', sessionData.session?.user?.email)
+  console.log('[EchoFocus] OAuth: sign-in successful')
   return sessionData.session
 }
 

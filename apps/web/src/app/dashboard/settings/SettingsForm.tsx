@@ -4,10 +4,9 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useLocale, type Language } from '@/lib/i18n'
 
-const SUPABASE_FUNCTIONS_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-  ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1`
-  : ''
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
+// NOTE (Phase 0): the email-report toggle and "send test email" UI are hidden
+// until a verified sending domain + scheduler exist. The user_preferences
+// columns (email_report_enabled etc.) remain in the DB untouched.
 
 interface UserPreference {
   email_report_enabled: boolean
@@ -33,7 +32,6 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
   const [prefs, setPrefs] = useState<UserPreference>(initialPrefs ?? DEFAULT_PREFS)
   const [isSaving, setIsSaving] = useState(false)
   const [savedAt, setSavedAt] = useState<number | null>(null)
-  const [testEmailStatus, setTestEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
 
   const update = <K extends keyof UserPreference>(key: K, value: UserPreference[K]) => {
     setPrefs(prev => ({ ...prev, [key]: value }))
@@ -50,30 +48,6 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
     }, { onConflict: 'user_id' })
     setIsSaving(false)
     setSavedAt(Date.now())
-  }
-
-  const handleSendTestEmail = async () => {
-    setTestEmailStatus('sending')
-    try {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { setTestEmailStatus('error'); setTimeout(() => setTestEmailStatus('idle'), 3000); return }
-
-      const res = await fetch(`${SUPABASE_FUNCTIONS_URL}/send-email-report`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ userId }),
-      })
-      setTestEmailStatus(res.ok ? 'sent' : 'error')
-      setTimeout(() => setTestEmailStatus('idle'), 3000)
-    } catch {
-      setTestEmailStatus('error')
-      setTimeout(() => setTestEmailStatus('idle'), 3000)
-    }
   }
 
   return (
@@ -100,36 +74,8 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
         </div>
       </div>
 
-      {/* email_report_enabled */}
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-slate-200">{t.settings.dailyEmailReport}</p>
-          <p className="text-xs text-slate-500 mt-0.5">{t.settings.emailReportDesc}</p>
-        </div>
-        <button
-          onClick={() => update('email_report_enabled', !prefs.email_report_enabled)}
-          className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${prefs.email_report_enabled ? 'bg-green-500' : 'bg-slate-600'}`}
-        >
-          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${prefs.email_report_enabled ? 'translate-x-5' : 'translate-x-0'}`} />
-        </button>
-      </div>
-
-      {/* Send test email */}
-      {prefs.email_report_enabled && (
-        <div className="flex items-center justify-between pl-0 pt-0">
-          <p className="text-xs text-slate-500">{t.settings.sendTestReport}</p>
-          <button
-            onClick={handleSendTestEmail}
-            disabled={testEmailStatus === 'sending'}
-            className="px-3 py-1.5 text-xs text-slate-300 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 rounded-lg transition-colors"
-          >
-            {testEmailStatus === 'sending' ? t.settings.sending
-              : testEmailStatus === 'sent' ? t.settings.sent
-              : testEmailStatus === 'error' ? t.settings.failed
-              : t.settings.sendTestEmail}
-          </button>
-        </div>
-      )}
+      {/* Email-report toggle + test-email button removed here (Phase 0):
+          hidden until a verified sending domain + scheduler exist. */}
 
       {/* daily_goal_minutes */}
       <div>

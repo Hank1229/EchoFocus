@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Lightbulb, MessageCircle } from 'lucide-react'
+import { getTodayDateString } from '@echofocus/shared'
 import { useLocale } from '@/lib/i18n'
 
 const SUPABASE_FUNCTIONS_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -36,8 +37,9 @@ export default function AnalyzeButton() {
         return
       }
 
-      // Fetch today's synced aggregate
-      const today = new Date().toISOString().slice(0, 10)
+      // Fetch today's synced aggregate (local date — the extension syncs by
+      // local day, so a UTC date would miss the row for most of the evening)
+      const today = getTodayDateString()
       const { data: agg } = await supabase
         .from('synced_aggregates')
         .select('*')
@@ -79,8 +81,17 @@ export default function AnalyzeButton() {
       })
 
       if (!res.ok) {
-        const errText = await res.text()
-        setError(`${t.aiInsights.analysisFailed}${errText}`)
+        const body = await res.json().catch(() => null) as
+          { error?: string; analysis_text?: string | null } | null
+
+        // 429 = daily generation cap reached. The response still carries the
+        // analysis already stored for today — show that instead of an error.
+        if (res.status === 429 && typeof body?.analysis_text === 'string') {
+          setResult({ analysis_text: body.analysis_text, focus_score: payload.aggregate.focusScore })
+          return
+        }
+
+        setError(`${t.aiInsights.analysisFailed}${body?.error ?? res.statusText}`)
         return
       }
 

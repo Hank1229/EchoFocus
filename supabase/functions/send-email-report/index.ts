@@ -1,6 +1,16 @@
 // EchoFocus — send-email-report Edge Function
-// Sends daily HTML productivity report emails via Resend.
-// Called by Supabase scheduler (daily) or manually with { userId } for a single user.
+// Sends the authenticated user their own daily HTML productivity report via Resend.
+//
+// SECURITY (Phase 0 hotfix):
+// - Requires a valid user JWT (Authorization: Bearer <token>); verified server-side.
+// - Sends ONLY to the verified email on the JWT (user.email) — never to any
+//   user-writable column such as profiles.email.
+// - Respects user_preferences.email_report_enabled unconditionally.
+// - Every user-derived string interpolated into the email HTML is escaped.
+//
+// NOTE: A future scheduled/cron mode should authenticate with a dedicated
+// CRON_SECRET header (compared in constant time) instead of a user JWT, and
+// iterate opted-in users server-side. Deliberately NOT implemented yet.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -17,6 +27,22 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
+const JSON_HEADERS = { ...CORS_HEADERS, 'Content-Type': 'application/json' }
+
+function jsonResponse(body: Record<string, unknown>, status: number): Response {
+  return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS })
+}
+
+// Escape a user-derived string for safe interpolation into HTML.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 function formatMins(seconds: number): string {
   const h = Math.floor(seconds / 3600)
   const m = Math.floor((seconds % 3600) / 60)
@@ -30,29 +56,36 @@ function scoreColor(score: number): string {
   return '#ef4444'
 }
 
+interface TopDomainRow {
+  domain: string
+  seconds: number
+  category: string
+}
+
 function buildEmail(params: {
   displayName: string | null
-  email: string
   date: string
   focusScore: number
   productiveSeconds: number
   distractionSeconds: number
   neutralSeconds: number
-  topDomains: { domain: string; seconds: number; category: string }[]
+  topDomains: TopDomainRow[]
   analysisText: string | null
 }): { subject: string; html: string } {
   const { displayName, date, focusScore, productiveSeconds, distractionSeconds,
     neutralSeconds, topDomains, analysisText } = params
 
-  const name = displayName ?? '用戶'
-  const color = scoreColor(focusScore)
-  const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('zh-TW', {
+  // All user-derived strings must go through escapeHtml before interpolation.
+  const name = escapeHtml(displayName ?? '用戶')
+  const score = Math.round(focusScore)
+  const color = scoreColor(score)
+  const formattedDate = escapeHtml(new Date(date + 'T00:00:00').toLocaleDateString('zh-TW', {
     year: 'numeric', month: 'long', day: 'numeric',
-  })
+  }))
 
   const domainRows = topDomains.slice(0, 5).map(d => `
     <tr>
-      <td style="padding:6px 0;color:#94a3b8;font-size:13px;">${d.domain}</td>
+      <td style="padding:6px 0;color:#94a3b8;font-size:13px;">${escapeHtml(d.domain)}</td>
       <td style="padding:6px 0;color:#64748b;font-size:12px;text-align:center;">
         ${d.category === 'productive' ? '🟢' : d.category === 'distraction' ? '🔴' : '⚪️'}
       </td>
@@ -62,7 +95,7 @@ function buildEmail(params: {
   const aiSection = analysisText ? `
     <div style="margin-top:24px;padding:16px;background:#1e293b;border-left:3px solid #22c55e;border-radius:4px;">
       <p style="margin:0 0 8px;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">🤖 AI 洞察</p>
-      <p style="margin:0;font-size:13px;color:#94a3b8;line-height:1.6;">${analysisText}</p>
+      <p style="margin:0;font-size:13px;color:#94a3b8;line-height:1.6;">${escapeHtml(analysisText)}</p>
     </div>` : ''
 
   const html = `<!DOCTYPE html>
@@ -85,11 +118,11 @@ function buildEmail(params: {
   <!-- Body -->
   <tr><td style="padding:32px;">
 
-    <p style="margin:0 0 24px;font-size:15px;color:#94a3b8;">嗨 ${name}，以下是你今天的生產力報告 👋</p>
+    <p style="margin:0 0 24px;font-size:15px;color:#94a3b8;">嗨 ${name}，以下是你的生產力報告 👋</p>
 
     <!-- Focus score -->
     <div style="text-align:center;padding:24px;background:#0f172a;border-radius:12px;margin-bottom:24px;">
-      <div style="font-size:64px;font-weight:800;color:${color};line-height:1;">${focusScore}</div>
+      <div style="font-size:64px;font-weight:800;color:${color};line-height:1;">${score}</div>
       <div style="font-size:13px;color:#64748b;margin-top:4px;">專注分數 / 100</div>
     </div>
 
@@ -120,7 +153,7 @@ function buildEmail(params: {
     <!-- Top domains -->
     ${topDomains.length > 0 ? `
     <div style="margin-bottom:24px;">
-      <p style="margin:0 0 12px;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">今日主要網站</p>
+      <p style="margin:0 0 12px;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">主要網站</p>
       <table width="100%" cellpadding="0" cellspacing="0">
         ${domainRows}
       </table>
@@ -151,15 +184,13 @@ function buildEmail(params: {
 </body></html>`
 
   return {
-    subject: `🎯 EchoFocus 每日報告 — 專注分數 ${focusScore}`,
+    subject: `🎯 EchoFocus 每日報告 — 專注分數 ${score}`,
     html,
   }
 }
 
-// FIX: Always consume the response body before returning.
-// Leaving a Deno fetch response body unconsumed causes EarlyDrop — the Deno
-// runtime holds the TCP connection open and drops the worker before the caller
-// can send its own Response back to the client.
+// Always consume the response body before returning — leaving a Deno fetch
+// body unconsumed can drop the worker before our own Response is sent.
 async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
   const res = await fetch(RESEND_URL, {
     method: 'POST',
@@ -170,16 +201,19 @@ async function sendEmail(to: string, subject: string, html: string): Promise<boo
     body: JSON.stringify({ from: FROM_EMAIL, to, subject, html }),
   })
 
-  // Always read the body — required to release the connection in Deno
   const responseBody = await res.text()
 
   if (!res.ok) {
-    console.error(`Resend error for ${to}: ${res.status} ${responseBody}`)
+    // Do not log the recipient address alongside provider errors more than needed.
+    console.error(`Resend error: ${res.status} ${responseBody}`)
     return false
   }
 
-  console.log(`Resend success for ${to}: ${res.status}`)
   return true
+}
+
+function toISODate(d: Date): string {
+  return d.toISOString().slice(0, 10)
 }
 
 Deno.serve(async (req: Request) => {
@@ -188,104 +222,106 @@ Deno.serve(async (req: Request) => {
     return new Response('ok', { status: 200, headers: CORS_HEADERS })
   }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+  if (req.method !== 'POST') {
+    return jsonResponse({ error: 'Method not allowed' }, 405)
+  }
 
   try {
-    let targetUserId: string | null = null
+    // ── Authentication: require the caller's own user JWT ────────────────────
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return jsonResponse({ error: 'Unauthorized' }, 401)
+    }
+    const token = authHeader.slice(7)
 
-    if (req.method === 'POST' && req.headers.get('content-type')?.includes('application/json')) {
-      const body = await req.json().catch(() => ({}))
-      targetUserId = body.userId ?? null
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+    // getUser(token) fails for the anon key or any non-user token — that is intended.
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    if (authError || !user || !user.email) {
+      return jsonResponse({ error: 'Invalid credentials' }, 401)
     }
 
-    console.log('send-email-report: targetUserId =', targetUserId)
+    // The report goes ONLY to the verified email on the JWT.
+    const recipientEmail = user.email
 
-    // When a specific userId is given (test/manual send), skip email_report_enabled
-    // filter so the test works regardless of saved preferences.
-    let prefQuery = supabase
+    // ── Preference gate: email_report_enabled is respected unconditionally ───
+    const { data: pref, error: prefError } = await supabase
       .from('user_preferences')
-      .select('user_id, email_report_enabled')
+      .select('email_report_enabled')
+      .eq('user_id', user.id)
+      .maybeSingle()
 
-    if (targetUserId) {
-      prefQuery = prefQuery.eq('user_id', targetUserId)
-    } else {
-      prefQuery = prefQuery.eq('email_report_enabled', true)
-    }
-
-    const { data: prefs, error: prefError } = await prefQuery
     if (prefError) throw prefError
 
-    console.log(`send-email-report: found ${prefs?.length ?? 0} user(s) to email`)
-
-    const results: { userId: string; sent: boolean }[] = []
-
-    for (const pref of (prefs ?? [])) {
-      const userId = pref.user_id
-
-      // Fetch profile — use maybeSingle to avoid 406 when row missing
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('email, display_name')
-        .eq('id', userId)
-        .maybeSingle()
-
-      if (profileError) console.error('Profile fetch error:', profileError.message)
-      if (!profile?.email) {
-        console.warn(`No profile/email for user ${userId}, skipping`)
-        continue
-      }
-
-      // Fetch latest synced aggregate
-      const { data: agg, error: aggError } = await supabase
-        .from('synced_aggregates')
-        .select('date, productive_seconds, distraction_seconds, neutral_seconds, focus_score, top_domains')
-        .eq('user_id', userId)
-        .order('date', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-
-      if (aggError) console.error('Aggregate fetch error:', aggError.message)
-      if (!agg) {
-        console.warn(`No synced aggregate for user ${userId}, skipping`)
-        continue
-      }
-
-      // Fetch latest AI analysis (optional — won't skip if missing)
-      const { data: analysis } = await supabase
-        .from('ai_analyses')
-        .select('analysis_text')
-        .eq('user_id', userId)
-        .order('date', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-
-      console.log(`Building email for ${profile.email}, date=${agg.date}`)
-
-      const { subject, html } = buildEmail({
-        displayName: profile.display_name,
-        email: profile.email,
-        date: agg.date,
-        focusScore: agg.focus_score,
-        productiveSeconds: agg.productive_seconds,
-        distractionSeconds: agg.distraction_seconds,
-        neutralSeconds: agg.neutral_seconds,
-        topDomains: agg.top_domains ?? [],
-        analysisText: analysis?.analysis_text ?? null,
-      })
-
-      const sent = await sendEmail(profile.email, subject, html)
-      results.push({ userId, sent })
+    if (!pref?.email_report_enabled) {
+      return jsonResponse(
+        { error: 'Email reports are disabled for this account. Enable them in Settings first.' },
+        403,
+      )
     }
 
-    return new Response(
-      JSON.stringify({ sent: results.filter(r => r.sent).length, total: results.length }),
-      { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
-    )
+    // ── Data selection: yesterday, or the most recent date within 2 days ─────
+    const now = new Date()
+    const cutoffDate = toISODate(new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000))
+
+    const { data: agg, error: aggError } = await supabase
+      .from('synced_aggregates')
+      .select('date, productive_seconds, distraction_seconds, neutral_seconds, focus_score, top_domains')
+      .eq('user_id', user.id)
+      .gte('date', cutoffDate)
+      .order('date', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (aggError) throw aggError
+
+    if (!agg) {
+      return jsonResponse(
+        { sent: false, message: 'No recent synced data (last 2 days) — sync from the extension first, then try again.' },
+        200,
+      )
+    }
+
+    // Fetch display name (display only — never used as a recipient address).
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    // Fetch the AI analysis matching the report date (optional).
+    const { data: analysis } = await supabase
+      .from('ai_analyses')
+      .select('analysis_text')
+      .eq('user_id', user.id)
+      .eq('date', agg.date)
+      .maybeSingle()
+
+    const topDomains: TopDomainRow[] = Array.isArray(agg.top_domains)
+      ? (agg.top_domains as TopDomainRow[]).filter(d =>
+          typeof d?.domain === 'string' && typeof d?.seconds === 'number' && typeof d?.category === 'string')
+      : []
+
+    const { subject, html } = buildEmail({
+      displayName: typeof profile?.display_name === 'string' ? profile.display_name : null,
+      date: agg.date,
+      focusScore: agg.focus_score,
+      productiveSeconds: agg.productive_seconds,
+      distractionSeconds: agg.distraction_seconds,
+      neutralSeconds: agg.neutral_seconds,
+      topDomains,
+      analysisText: typeof analysis?.analysis_text === 'string' ? analysis.analysis_text : null,
+    })
+
+    const sent = await sendEmail(recipientEmail, subject, html)
+    if (!sent) {
+      return jsonResponse({ error: 'Email delivery failed. Please try again later.' }, 502)
+    }
+
+    return jsonResponse({ sent: true, date: agg.date }, 200)
   } catch (err) {
     console.error('send-email-report error:', err)
-    return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : '伺服器錯誤' }),
-      { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
-    )
+    return jsonResponse({ error: 'Server error' }, 500)
   }
 })
