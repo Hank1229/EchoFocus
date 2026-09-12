@@ -2,19 +2,14 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Lightbulb, MessageCircle } from 'lucide-react'
 import { getTodayDateString } from '@echofocus/shared'
 import { useLocale } from '@/lib/i18n'
-
-const SUPABASE_FUNCTIONS_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-  ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1`
-  : ''
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
+import { requestAiAnalysis } from '@/lib/ai'
 
 interface AnalysisResult {
-  analysis_text: string
-  focus_score: number
+  analysisText: string
+  focusScore: number
 }
 
 export default function AnalyzeButton() {
@@ -30,74 +25,24 @@ export default function AnalyzeButton() {
     setResult(null)
 
     try {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        setError(t.aiInsights.pleaseSignIn)
-        return
+      // Local date — the extension syncs by local day, so a UTC date would
+      // miss the row for most of the evening
+      const outcome = await requestAiAnalysis(getTodayDateString(), language)
+
+      switch (outcome.status) {
+        case 'success':
+          setResult({ analysisText: outcome.analysisText, focusScore: outcome.focusScore })
+          router.refresh()  // Reload server data so history list shows new entry
+          break
+        case 'cached':
+          setResult({ analysisText: outcome.analysisText, focusScore: outcome.focusScore })
+          break
+        case 'error':
+          if (outcome.reason === 'not-signed-in') setError(t.aiInsights.pleaseSignIn)
+          else if (outcome.reason === 'no-data') setError(t.aiInsights.noSyncedData)
+          else setError(`${t.aiInsights.analysisFailed}${outcome.message ?? t.aiInsights.unknownError}`)
+          break
       }
-
-      // Fetch today's synced aggregate (local date — the extension syncs by
-      // local day, so a UTC date would miss the row for most of the evening)
-      const today = getTodayDateString()
-      const { data: agg } = await supabase
-        .from('synced_aggregates')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .eq('date', today)
-        .maybeSingle()
-
-      if (!agg) {
-        setError(t.aiInsights.noSyncedData)
-        return
-      }
-
-      const payload = {
-        date: today,
-        language,
-        aggregate: {
-          date: today,
-          totalMinutes: Math.round(agg.total_seconds / 60),
-          productiveMinutes: Math.round(agg.productive_seconds / 60),
-          distractionMinutes: Math.round(agg.distraction_seconds / 60),
-          neutralMinutes: Math.round((agg.neutral_seconds + agg.uncategorized_seconds) / 60),
-          focusScore: agg.focus_score,
-          topDomains: (agg.top_domains ?? []).slice(0, 8).map((d: { domain: string; seconds: number; category: string }) => ({
-            domain: d.domain,
-            minutes: Math.round(d.seconds / 60),
-            category: d.category,
-          })),
-        },
-      }
-
-      const res = await fetch(`${SUPABASE_FUNCTIONS_URL}/ai-analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify(payload),
-      })
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => null) as
-          { error?: string; analysis_text?: string | null } | null
-
-        // 429 = daily generation cap reached. The response still carries the
-        // analysis already stored for today — show that instead of an error.
-        if (res.status === 429 && typeof body?.analysis_text === 'string') {
-          setResult({ analysis_text: body.analysis_text, focus_score: payload.aggregate.focusScore })
-          return
-        }
-
-        setError(`${t.aiInsights.analysisFailed}${body?.error ?? res.statusText}`)
-        return
-      }
-
-      const data = await res.json() as AnalysisResult
-      setResult(data)
-      router.refresh()  // Reload server data so history list shows new entry
     } catch (err) {
       setError(err instanceof Error ? err.message : t.aiInsights.unknownError)
     } finally {
@@ -138,9 +83,9 @@ export default function AnalyzeButton() {
               <MessageCircle size={18} strokeWidth={1.75} className="text-blue-400" />
               <span className="text-xs text-slate-500 uppercase tracking-wider">{t.aiInsights.todaySnapshot}</span>
             </div>
-            <span className="ml-auto text-sm font-bold text-green-400">{result.focus_score} {t.aiInsights.pts}</span>
+            <span className="ml-auto text-sm font-bold text-green-400">{result.focusScore} {t.aiInsights.pts}</span>
           </div>
-          <p className="text-sm text-slate-300 leading-relaxed">{result.analysis_text}</p>
+          <p className="text-sm text-slate-300 leading-relaxed">{result.analysisText}</p>
           <p className="text-xs text-slate-600 mt-3">{t.aiInsights.reloadNote}</p>
         </div>
       )}

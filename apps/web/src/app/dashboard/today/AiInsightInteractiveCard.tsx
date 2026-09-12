@@ -3,29 +3,17 @@
 import { useState } from 'react'
 import { TrendingUp, Search, CheckCircle, Sparkles } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
-import { createClient } from '@/lib/supabase/client'
-
-const SUPABASE_FUNCTIONS_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-  ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1`
-  : ''
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
+import { requestAiAnalysis } from '@/lib/ai'
 
 const PARAGRAPH_ICONS = [TrendingUp, Search, CheckCircle, Sparkles]
 
 interface Props {
   analysisText: string | null
-  analysisDate: string | null
-  userId: string
   todayDate: string
   language: string
 }
 
-export default function AiInsightInteractiveCard({
-  analysisText,
-  userId,
-  todayDate,
-  language,
-}: Props) {
+export default function AiInsightInteractiveCard({ analysisText, todayDate, language }: Props) {
   const { t } = useLocale()
   const [localText, setLocalText] = useState<string | null>(analysisText)
   const [isRegenerating, setIsRegenerating] = useState(false)
@@ -35,72 +23,19 @@ export default function AiInsightInteractiveCard({
     setIsRegenerating(true)
     setError(null)
     try {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        setError(t.aiInsights.pleaseSignIn)
-        return
+      const outcome = await requestAiAnalysis(todayDate, language)
+
+      switch (outcome.status) {
+        case 'success':
+        case 'cached':
+          setLocalText(outcome.analysisText)
+          break
+        case 'error':
+          if (outcome.reason === 'not-signed-in') setError(t.aiInsights.pleaseSignIn)
+          else if (outcome.reason === 'no-data') setError(t.aiInsights.noSyncedData)
+          else setError(`${t.aiInsights.analysisFailed}${outcome.message ?? t.aiInsights.unknownError}`)
+          break
       }
-
-      const { data: agg } = await supabase
-        .from('synced_aggregates')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('date', todayDate)
-        .maybeSingle()
-
-      if (!agg) {
-        setError(t.aiInsights.noSyncedData)
-        return
-      }
-
-      const payload = {
-        date: todayDate,
-        language,
-        aggregate: {
-          date: todayDate,
-          totalMinutes: Math.round(agg.total_seconds / 60),
-          productiveMinutes: Math.round(agg.productive_seconds / 60),
-          distractionMinutes: Math.round(agg.distraction_seconds / 60),
-          neutralMinutes: Math.round((agg.neutral_seconds + agg.uncategorized_seconds) / 60),
-          focusScore: agg.focus_score,
-          topDomains: (agg.top_domains ?? []).slice(0, 8).map((d: { domain: string; seconds: number; category: string }) => ({
-            domain: d.domain,
-            minutes: Math.round(d.seconds / 60),
-            category: d.category,
-          })),
-        },
-      }
-
-      const res = await fetch(`${SUPABASE_FUNCTIONS_URL}/ai-analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify(payload),
-      })
-
-      if (!res.ok) {
-        const body: unknown = await res.json().catch(() => null)
-        const parsed = (typeof body === 'object' && body !== null ? body : {}) as {
-          error?: unknown
-          analysis_text?: unknown
-        }
-        // 429 = daily generation cap reached; the Edge Function returns the
-        // analysis already stored for today — show it instead of an error.
-        if (res.status === 429 && typeof parsed.analysis_text === 'string' && parsed.analysis_text.length > 0) {
-          setLocalText(parsed.analysis_text)
-          return
-        }
-        const message = typeof parsed.error === 'string' ? parsed.error : res.statusText
-        setError(`${t.aiInsights.analysisFailed}${message}`)
-        return
-      }
-
-      const data = await res.json() as { analysis_text: string }
-      setLocalText(data.analysis_text)
     } catch (err) {
       setError(err instanceof Error ? err.message : t.aiInsights.unknownError)
     } finally {

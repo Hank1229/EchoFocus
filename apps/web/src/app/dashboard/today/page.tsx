@@ -92,6 +92,10 @@ export default async function TodayPage() {
   // the same day the page is showing (extension keys dates in the USER's local
   // time; this server renders in UTC, so never derive "today" here).
   const todayDate = row?.date ?? getTodayDateString()
+  // latestAi is the newest analysis for ANY date — only show it on this card
+  // when it actually belongs to the displayed day, otherwise a stale insight
+  // gets presented as today's.
+  const todaysAi = latestAi?.date === todayDate ? latestAi : null
 
   return (
     <>
@@ -153,9 +157,7 @@ export default async function TodayPage() {
               {/* AI Insight — 5 cols */}
               <div className="lg:col-span-5 col-span-12">
                 <AiInsightInteractiveCard
-                  analysisText={latestAi?.analysis_text ?? null}
-                  analysisDate={latestAi?.date ?? null}
-                  userId={user!.id}
+                  analysisText={todaysAi?.analysis_text ?? null}
                   todayDate={todayDate}
                   language={language}
                 />
