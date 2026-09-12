@@ -68,7 +68,20 @@
     "goToSnapshots": "Go to Daily Snapshots to analyze →",
     "noSyncedData": "No Synced Data Yet",
     "noSyncedDesc": "Install the EchoFocus Chrome extension and sign in — data syncs here automatically at 00:05 daily. You can also sync manually from the extension settings under the Account tab.",
-    "synced": "Synced"
+    "synced": "Synced",
+    "goodMorning": "Good morning",
+    "goodAfternoon": "Good afternoon",
+    "goodEvening": "Good evening",
+    "goodNight": "Good night",
+    "focusedFor": "You've been focused for",
+    "todayTotalSuffix": "today.",
+    "focusTimeline": "Focus Timeline",
+    "timelineTooltipDomains": "Top sites",
+    "timelineUntracked": "Untracked",
+    "regenerate": "Regenerate",
+    "regenerating": "Regenerating…",
+    "noInsightYet": "No insight generated yet.",
+    "generateInsight": "Generate Insight"
   },
   "trends": {
     "title": "Trends",

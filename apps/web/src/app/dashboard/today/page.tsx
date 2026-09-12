@@ -1,10 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import DashboardHeader from '@/components/layout/DashboardHeader'
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { formatDuration } from '@echofocus/shared'
-import { Zap, Coffee, Minus, FileText } from 'lucide-react'
+import { Zap, Coffee, Minus } from 'lucide-react'
 import { getLocale } from '@/lib/i18n-server'
+import GreetingHero from './GreetingHero'
+import FocusTimeline from './FocusTimeline'
+import AiInsightInteractiveCard from './AiInsightInteractiveCard'
 
 interface TopDomain {
   domain: string
@@ -85,74 +87,47 @@ export default async function TodayPage() {
     uncategorized: t.categoryLabels.uncategorized,
   }
 
-  const scoreLabel = (score: number) => {
-    if (score >= 70) return t.today.excellent
-    if (score >= 40) return t.today.average
-    return t.today.roomToGrow
-  }
+  const firstName = (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? ''
+  const todayDate = new Date().toISOString().slice(0, 10)
 
   return (
     <>
       <DashboardHeader title={t.today.title} userEmail={user?.email ?? undefined} avatarUrl={user?.user_metadata?.avatar_url as string | undefined} />
 
-      <main className="flex-1 px-6 py-8">
+      <main className="flex-1 px-6 py-8 space-y-6">
         {row ? (
           <>
-            {/* Date + sync info — full width */}
-            <div className="flex items-center justify-between mb-6">
+            {/* Date + sync info */}
+            <div className="flex items-center justify-between">
               <p className="text-sm text-slate-400">{formatDate(row.date)}</p>
               <p className="text-xs text-slate-600">{t.today.synced} {formatSyncTime(row.synced_at)}</p>
             </div>
 
-            {/* 3-column responsive grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* MACRO: Greeting hero */}
+            <GreetingHero
+              userName={firstName}
+              productiveSeconds={row.productive_seconds}
+              focusScore={row.focus_score}
+            />
 
-              {/* ── Left col: Focus Score ─────────────────────────── */}
-              <div className="lg:col-span-3">
-                <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5 h-full">
-                  <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-4">{t.today.focusScore}</p>
-                  <div className="flex flex-col items-center gap-3 py-2">
-                    <FocusRing score={row.focus_score} />
-                    <div className="text-center">
-                      <p className="text-5xl font-bold text-slate-100 tabular-nums">{row.focus_score}</p>
-                      <p className="text-xs text-slate-500 mt-1">{t.today.pts}</p>
-                      <p className="text-sm text-slate-400 mt-2">{scoreLabel(row.focus_score)}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            {/* MACRO: Focus timeline */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5">
+              <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-4">
+                {t.today.focusTimeline}
+              </p>
+              <FocusTimeline
+                productiveSeconds={row.productive_seconds}
+                distractionSeconds={row.distraction_seconds}
+                neutralSeconds={row.neutral_seconds}
+                uncategorizedSeconds={row.uncategorized_seconds}
+                topDomains={row.top_domains}
+              />
+            </div>
 
-              {/* ── Center col: Time Breakdown + Sites ───────────── */}
-              <div className="lg:col-span-6 space-y-6">
-
-                {/* Time Breakdown */}
-                <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5">
-                  <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">{t.today.timeBreakdown}</p>
-                  <div className="grid grid-cols-3 gap-4">
-                    {[
-                      { label: t.today.productive, seconds: row.productive_seconds, color: 'text-emerald-400', bg: 'bg-emerald-500/10', Icon: Zap },
-                      { label: t.today.breaksAndBrowsing, seconds: row.distraction_seconds, color: 'text-orange-400', bg: 'bg-orange-500/10', Icon: Coffee },
-                      { label: t.today.neutral, seconds: row.neutral_seconds + row.uncategorized_seconds, color: 'text-slate-400', bg: 'bg-slate-800', Icon: Minus },
-                    ].map(s => (
-                      <div key={s.label} className={`${s.bg} rounded-xl p-4`}>
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <s.Icon size={14} strokeWidth={1.75} className={s.color} />
-                        </div>
-                        <p className={`text-xl font-bold ${s.color}`}>{formatDuration(s.seconds)}</p>
-                        <p className="text-xs text-slate-500 mt-1">{s.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                  {row.total_seconds > 0 && (
-                    <div className="h-2 rounded-full bg-slate-700 overflow-hidden flex mt-4">
-                      <div className="bg-emerald-500 h-full" style={{ width: `${(row.productive_seconds / row.total_seconds) * 100}%` }} />
-                      <div className="bg-orange-500 h-full" style={{ width: `${(row.distraction_seconds / row.total_seconds) * 100}%` }} />
-                      <div className="bg-slate-500 h-full" style={{ width: `${((row.neutral_seconds + row.uncategorized_seconds) / row.total_seconds) * 100}%` }} />
-                    </div>
-                  )}
-                </div>
-
-                {/* Today's Sites */}
+            {/* MICRO: Detail grid */}
+            <div className="grid grid-cols-12 gap-6">
+              {/* Sites — 7 cols */}
+              <div className="lg:col-span-7 col-span-12">
                 <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5">
                   <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">{t.today.todaysSites}</p>
                   {row.top_domains.length === 0 ? (
@@ -172,32 +147,16 @@ export default async function TodayPage() {
                 </div>
               </div>
 
-              {/* ── Right col: Daily Insight ─────────────────────── */}
-              <div className="lg:col-span-3">
-                {latestAi ? (
-                  <div className="rounded-2xl border border-slate-800 border-l-4 border-l-green-500 bg-slate-900 shadow-sm p-5 h-full">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-1.5">
-                        <FileText size={18} strokeWidth={1.75} className="text-blue-400" />
-                        <p className="text-sm font-medium text-slate-400 uppercase tracking-wide">{t.today.dailyInsight}</p>
-                      </div>
-                      <Link href="/dashboard/ai-insights" className="text-xs text-green-400 hover:text-green-300 transition-colors">
-                        {t.today.viewAll}
-                      </Link>
-                    </div>
-                    <p className="text-sm text-slate-300 leading-relaxed">{latestAi.analysis_text}</p>
-                    <p className="text-xs text-slate-600 mt-3">{latestAi.date}</p>
-                  </div>
-                ) : (
-                  <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900 shadow-sm p-5 text-center h-full flex flex-col items-center justify-center gap-2">
-                    <p className="text-sm text-slate-500">{t.today.noDailyInsights}</p>
-                    <Link href="/dashboard/ai-insights" className="text-xs text-green-400 hover:text-green-300 transition-colors">
-                      {t.today.goToSnapshots}
-                    </Link>
-                  </div>
-                )}
+              {/* AI Insight — 5 cols */}
+              <div className="lg:col-span-5 col-span-12">
+                <AiInsightInteractiveCard
+                  analysisText={latestAi?.analysis_text ?? null}
+                  analysisDate={latestAi?.date ?? null}
+                  userId={user!.id}
+                  todayDate={todayDate}
+                  language={language}
+                />
               </div>
-
             </div>
           </>
         ) : (
@@ -212,23 +171,5 @@ export default async function TodayPage() {
         )}
       </main>
     </>
-  )
-}
-
-function FocusRing({ score }: { score: number }) {
-  const size = 100
-  const stroke = 10
-  const radius = (size - stroke) / 2
-  const circumference = 2 * Math.PI * radius
-  const progress = circumference - (score / 100) * circumference
-  const color = score >= 70 ? '#10b981' : score >= 40 ? '#f59e0b' : '#ef4444'
-
-  return (
-    <svg width={size} height={size} className="flex-shrink-0">
-      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#1e293b" strokeWidth={stroke} />
-      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={stroke}
-        strokeDasharray={circumference} strokeDashoffset={progress}
-        strokeLinecap="round" transform={`rotate(-90 ${size / 2} ${size / 2})`} />
-    </svg>
   )
 }

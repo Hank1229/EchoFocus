@@ -68,7 +68,20 @@
     "goToSnapshots": "前往每日快照進行分析 →",
     "noSyncedData": "尚無同步資料",
     "noSyncedDesc": "安裝 EchoFocus Chrome 擴充功能並登入 — 資料每日凌晨 00:05 自動同步至此。您也可以從擴充功能設定的帳戶頁籤手動同步。",
-    "synced": "已同步"
+    "synced": "已同步",
+    "goodMorning": "早安",
+    "goodAfternoon": "午安",
+    "goodEvening": "晚上好",
+    "goodNight": "晚安",
+    "focusedFor": "今天您已專注",
+    "todayTotalSuffix": "。",
+    "focusTimeline": "專注時間軸",
+    "timelineTooltipDomains": "熱門網站",
+    "timelineUntracked": "未追蹤",
+    "regenerate": "重新分析",
+    "regenerating": "分析中…",
+    "noInsightYet": "尚未產生洞察。",
+    "generateInsight": "產生洞察"
   },
   "trends": {
     "title": "趨勢",
