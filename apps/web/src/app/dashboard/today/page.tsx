@@ -1,12 +1,19 @@
 import { redirect } from 'next/navigation'
 import { Inbox } from 'lucide-react'
-import { formatDuration, getTodayDateString } from '@echofocus/shared'
+import { calculateStreak, formatDuration, getTodayDateString } from '@echofocus/shared'
 import { createClient } from '@/lib/supabase/server'
 import { getLocale } from '@/lib/i18n-server'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import VerdictBand from './VerdictBand'
 import DailyInsight from './DailyInsight'
 import SiteRanking, { type RankedSite } from './SiteRanking'
+import DateNav from './DateNav'
+
+function isValidDateString(value: string | undefined): value is string {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+  const parsed = new Date(`${value}T00:00:00Z`)
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
+}
 
 interface SyncedRow {
   date: string
@@ -27,32 +34,77 @@ interface AiAnalysisRow {
   created_at: string
 }
 
-export default async function TodayPage() {
+export default async function TodayPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>
+}) {
+  const { date: dateParam } = await searchParams
   const supabase = await createClient()
   const { t, language } = await getLocale()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // Available dates drive the prev/next nav; the newest one is also the
+  // fallback "current" date when no (or an invalid) ?date= is given.
+  const [{ data: availableRows }, { data: prefs }] = await Promise.all([
+    supabase
+      .from('synced_aggregates')
+      .select('date, productive_seconds')
+      .eq('user_id', user.id)
+      .order('date', { ascending: false })
+      .limit(90),
+    supabase
+      .from('user_preferences')
+      .select('daily_goal_minutes')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+  ])
+
+  const availableDates = (availableRows ?? []).map(r => r.date as string)
+  const requestedDate = isValidDateString(dateParam) ? dateParam : null
+  const displayDate = requestedDate ?? availableDates[0] ?? getTodayDateString()
+
+  // Anchor the streak on the day being shown, never the server clock — this
+  // server renders in UTC while the data is keyed to the user's local days.
+  const goalMinutes = (prefs?.daily_goal_minutes as number | undefined) ?? 360
+  const streak = calculateStreak(
+    (availableRows ?? []).map(r => ({
+      date: r.date as string,
+      productiveSeconds: r.productive_seconds as number,
+    })),
+    goalMinutes,
+    displayDate,
+  )
+
   const [{ data }, { data: aiData }] = await Promise.all([
     supabase
       .from('synced_aggregates')
       .select('*')
-      .eq('user_id', user!.id)
-      .order('date', { ascending: false })
-      .limit(1)
+      .eq('user_id', user.id)
+      .eq('date', displayDate)
       .maybeSingle(),
+    // Weekly summaries are stored under their last day's date, so without the
+    // type filter this would match two rows and maybeSingle() would return null.
     supabase
       .from('ai_analyses')
       .select('date, analysis_text, focus_score, created_at')
-      .eq('user_id', user!.id)
-      .order('date', { ascending: false })
-      .limit(1)
+      .eq('user_id', user.id)
+      .eq('date', displayDate)
+      .eq('type', 'daily')
       .maybeSingle(),
   ])
 
   const row = data as SyncedRow | null
-  const latestAi = aiData as AiAnalysisRow | null
+  const todaysAi = aiData as AiAnalysisRow | null
+
+  // Dates are sorted newest-first: an older day sits at a higher index, a
+  // newer one at a lower index. A date outside the available list (e.g. a
+  // hand-typed ?date= with no synced row) has no known neighbours.
+  const currentIndex = availableDates.indexOf(displayDate)
+  const prevDate = currentIndex === -1 ? null : availableDates[currentIndex + 1] ?? null
+  const nextDate = currentIndex <= 0 ? null : availableDates[currentIndex - 1] ?? null
 
   const dateLocale = language === 'zh-TW' ? 'zh-TW' : 'en-US'
 
@@ -67,13 +119,6 @@ export default async function TodayPage() {
     new Date(iso).toLocaleString(dateLocale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 
   const firstName = (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? ''
-  // Use the displayed aggregate's own date so the AI card queries/regenerates
-  // the same day the page is showing (extension keys dates in the USER's local
-  // time; this server renders in UTC, so never derive "today" here).
-  const todayDate = row?.date ?? getTodayDateString()
-  // latestAi is the newest analysis for ANY date — only show it here when it
-  // belongs to the displayed day, otherwise a stale insight reads as today's.
-  const todaysAi = latestAi?.date === todayDate ? latestAi : null
 
   return (
     <>
@@ -82,13 +127,14 @@ export default async function TodayPage() {
         userEmail={user?.email ?? undefined}
         avatarUrl={user?.user_metadata?.avatar_url as string | undefined}
         context={
-          row && (
-            <p className="truncate text-xs text-slate-500">
-              <span className="text-slate-400">{formatDate(row.date)}</span>
-              <span className="mx-2 text-slate-700">/</span>
-              {t.today.synced} {formatSyncTime(row.synced_at)}
-            </p>
-          )
+          <DateNav
+            label={formatDate(displayDate)}
+            syncedLabel={row ? `${t.today.synced} ${formatSyncTime(row.synced_at)}` : null}
+            prevHref={prevDate ? `/dashboard/today?date=${prevDate}` : null}
+            nextHref={nextDate ? `/dashboard/today?date=${nextDate}` : null}
+            prevAriaLabel={t.today.previousDay}
+            nextAriaLabel={t.today.nextDay}
+          />
         }
       />
 
@@ -97,6 +143,7 @@ export default async function TodayPage() {
           <div className="space-y-10">
             <VerdictBand
               userName={firstName}
+              streak={streak}
               focusScore={row.focus_score}
               productiveSeconds={row.productive_seconds}
               distractionSeconds={row.distraction_seconds}
@@ -106,7 +153,7 @@ export default async function TodayPage() {
 
             <DailyInsight
               analysisText={todaysAi?.analysis_text ?? null}
-              todayDate={todayDate}
+              todayDate={displayDate}
               language={language}
             />
 

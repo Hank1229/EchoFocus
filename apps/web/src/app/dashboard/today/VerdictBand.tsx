@@ -1,11 +1,13 @@
 'use client'
 
+import { Flame } from 'lucide-react'
 import { formatDuration } from '@echofocus/shared'
 import { useLocale } from '@/lib/i18n'
 import ScoreDial from '@/components/dashboard/ScoreDial'
 
 interface Props {
   userName: string
+  streak: { current: number; best: number }
   focusScore: number
   productiveSeconds: number
   distractionSeconds: number
@@ -22,6 +24,7 @@ function greetingFor(hour: number, t: { goodMorning: string; goodAfternoon: stri
 
 export default function VerdictBand({
   userName,
+  streak,
   focusScore,
   productiveSeconds,
   distractionSeconds,
@@ -63,6 +66,20 @@ export default function VerdictBand({
               <span className="font-semibold tabular-nums text-slate-200">{formatDuration(tracked)}</span>
               {t.today.todayTotalSuffix}
             </p>
+            {streak.current > 0 && (
+              <p className="mt-3 flex items-center gap-1.5 text-xs text-slate-500">
+                <Flame size={13} strokeWidth={1.75} className="text-productive" />
+                {t.today.streakDays.replace('{n}', String(streak.current))}
+                {streak.best > streak.current && (
+                  <>
+                    <span aria-hidden className="h-3 w-px bg-slate-700" />
+                    <span className="text-slate-600">
+                      {t.today.streakBest.replace('{n}', String(streak.best))}
+                    </span>
+                  </>
+                )}
+              </p>
+            )}
           </div>
         </div>
 

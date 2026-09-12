@@ -9,6 +9,7 @@ import SnapshotList, { type Snapshot } from './SnapshotList'
 interface AiAnalysisRow {
   id: string
   date: string
+  type: 'daily' | 'weekly'
   analysis_text: string
   focus_score: number
   created_at: string
@@ -22,9 +23,12 @@ export default async function AiInsightsPage() {
 
   const { data } = await supabase
     .from('ai_analyses')
-    .select('id, date, analysis_text, focus_score, created_at')
+    .select('id, date, type, analysis_text, focus_score, created_at')
     .eq('user_id', user!.id)
+    // A daily and a weekly row can share a date; newest-written wins the tie
+    // so "latest snapshot" is deterministic.
     .order('date', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(30)
 
   const analyses = (data ?? []) as AiAnalysisRow[]
@@ -33,6 +37,7 @@ export default async function AiInsightsPage() {
 
   const snapshots: Snapshot[] = analyses.map(row => ({
     id: row.id,
+    kind: row.type === 'weekly' ? 'weekly' : 'daily',
     dateLabel: new Date(row.date + 'T00:00:00').toLocaleDateString(dateLocale, {
       year: 'numeric',
       month: 'long',

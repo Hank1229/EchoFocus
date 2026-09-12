@@ -144,7 +144,11 @@
     "noInsightYet": "No insight generated yet.",
     "generateInsight": "Generate Insight",
     "trackedOf": " out of",
-    "whereTimeWent": "Where the time went"
+    "whereTimeWent": "Where the time went",
+    "previousDay": "Previous day",
+    "nextDay": "Next day",
+    "streakDays": "{n}-day streak",
+    "streakBest": "best {n}"
   },
   "trends": {
     "title": "Trends",
@@ -180,7 +184,10 @@
     "analysisFailed": "Analysis failed: ",
     "unknownError": "An unknown error occurred",
     "latestSnapshot": "Latest snapshot",
-    "earlierSnapshots": "Earlier snapshots"
+    "earlierSnapshots": "Earlier snapshots",
+    "weeklyReview": "Weekly",
+    "generateWeekly": "Weekly review",
+    "weeklyDesc": "Summarize the last seven days in one read."
   },
   "settings": {
     "title": "Profile",

@@ -5,6 +5,9 @@ const SUPABASE_FUNCTIONS_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
   : ''
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 
+const AGGREGATE_COLUMNS =
+  'total_seconds, productive_seconds, distraction_seconds, neutral_seconds, uncategorized_seconds, focus_score, top_domains'
+
 interface SyncedAggregateRow {
   total_seconds: number
   productive_seconds: number
@@ -15,6 +18,32 @@ interface SyncedAggregateRow {
   top_domains: { domain: string; seconds: number; category: string }[] | null
 }
 
+interface AggregatePayload {
+  date: string
+  totalMinutes: number
+  productiveMinutes: number
+  distractionMinutes: number
+  neutralMinutes: number
+  focusScore: number
+  topDomains: { domain: string; minutes: number; category: string }[]
+}
+
+function toAggregatePayload(date: string, row: SyncedAggregateRow): AggregatePayload {
+  return {
+    date,
+    totalMinutes: Math.round(row.total_seconds / 60),
+    productiveMinutes: Math.round(row.productive_seconds / 60),
+    distractionMinutes: Math.round(row.distraction_seconds / 60),
+    neutralMinutes: Math.round((row.neutral_seconds + row.uncategorized_seconds) / 60),
+    focusScore: row.focus_score,
+    topDomains: (row.top_domains ?? []).slice(0, 8).map(d => ({
+      domain: d.domain,
+      minutes: Math.round(d.seconds / 60),
+      category: d.category,
+    })),
+  }
+}
+
 export type AiAnalysisOutcome =
   | { status: 'success'; analysisText: string; focusScore: number }
   // Daily generation cap reached (429) — the Edge Function returns the
@@ -23,43 +52,15 @@ export type AiAnalysisOutcome =
   | { status: 'error'; reason: 'not-signed-in' | 'no-data' | 'request-failed'; message?: string }
 
 /**
- * Fetch the synced aggregate for `date` and request an AI analysis for it.
- * Shared by the Today insight card and the AI Insights page.
+ * POST a validated payload to the ai-analyze Edge Function.
+ * `cachedFocusScore` is used when the generation cap (429) makes the function
+ * return a previously stored analysis, which carries no score of its own.
  */
-export async function requestAiAnalysis(date: string, language: string): Promise<AiAnalysisOutcome> {
-  const supabase = createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return { status: 'error', reason: 'not-signed-in' }
-
-  const { data, error: aggError } = await supabase
-    .from('synced_aggregates')
-    .select('total_seconds, productive_seconds, distraction_seconds, neutral_seconds, uncategorized_seconds, focus_score, top_domains')
-    .eq('user_id', session.user.id)
-    .eq('date', date)
-    .maybeSingle()
-
-  if (aggError) return { status: 'error', reason: 'request-failed', message: aggError.message }
-  if (!data) return { status: 'error', reason: 'no-data' }
-  const agg = data as SyncedAggregateRow
-
-  const payload = {
-    date,
-    language,
-    aggregate: {
-      date,
-      totalMinutes: Math.round(agg.total_seconds / 60),
-      productiveMinutes: Math.round(agg.productive_seconds / 60),
-      distractionMinutes: Math.round(agg.distraction_seconds / 60),
-      neutralMinutes: Math.round((agg.neutral_seconds + agg.uncategorized_seconds) / 60),
-      focusScore: agg.focus_score,
-      topDomains: (agg.top_domains ?? []).slice(0, 8).map(d => ({
-        domain: d.domain,
-        minutes: Math.round(d.seconds / 60),
-        category: d.category,
-      })),
-    },
-  }
-
+async function postAnalysis(
+  payload: Record<string, unknown>,
+  accessToken: string,
+  cachedFocusScore: number,
+): Promise<AiAnalysisOutcome> {
   let res: Response
   try {
     res = await fetch(`${SUPABASE_FUNCTIONS_URL}/ai-analyze`, {
@@ -67,7 +68,7 @@ export async function requestAiAnalysis(date: string, language: string): Promise
       headers: {
         'Content-Type': 'application/json',
         'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${session.access_token}`,
+        'Authorization': `Bearer ${accessToken}`,
       },
       body: JSON.stringify(payload),
     })
@@ -86,7 +87,7 @@ export async function requestAiAnalysis(date: string, language: string): Promise
       analysis_text?: unknown
     }
     if (res.status === 429 && typeof parsed.analysis_text === 'string' && parsed.analysis_text.length > 0) {
-      return { status: 'cached', analysisText: parsed.analysis_text, focusScore: agg.focus_score }
+      return { status: 'cached', analysisText: parsed.analysis_text, focusScore: cachedFocusScore }
     }
     return {
       status: 'error',
@@ -106,4 +107,61 @@ export async function requestAiAnalysis(date: string, language: string): Promise
     return { status: 'error', reason: 'request-failed' }
   }
   return { status: 'success', analysisText: result.analysis_text, focusScore: result.focus_score }
+}
+
+/**
+ * Fetch the synced aggregate for `date` and request an AI analysis for it.
+ * Shared by the Today insight card and the AI Insights page.
+ */
+export async function requestAiAnalysis(date: string, language: string): Promise<AiAnalysisOutcome> {
+  const supabase = createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return { status: 'error', reason: 'not-signed-in' }
+
+  const { data, error: aggError } = await supabase
+    .from('synced_aggregates')
+    .select(AGGREGATE_COLUMNS)
+    .eq('user_id', session.user.id)
+    .eq('date', date)
+    .maybeSingle()
+
+  if (aggError) return { status: 'error', reason: 'request-failed', message: aggError.message }
+  if (!data) return { status: 'error', reason: 'no-data' }
+  const agg = data as SyncedAggregateRow
+
+  return postAnalysis(
+    { date, language, aggregate: toAggregatePayload(date, agg) },
+    session.access_token,
+    agg.focus_score,
+  )
+}
+
+/**
+ * Request a weekly retrospective over the user's 7 most recently synced days.
+ * Capped server-side at one generation per calendar week; once capped the
+ * stored weekly summary comes back as `cached`.
+ */
+export async function requestWeeklyAnalysis(language: string): Promise<AiAnalysisOutcome> {
+  const supabase = createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return { status: 'error', reason: 'not-signed-in' }
+
+  const { data, error: aggError } = await supabase
+    .from('synced_aggregates')
+    .select(`date, ${AGGREGATE_COLUMNS}`)
+    .eq('user_id', session.user.id)
+    .order('date', { ascending: false })
+    .limit(7)
+
+  if (aggError) return { status: 'error', reason: 'request-failed', message: aggError.message }
+  const rows = (data ?? []) as (SyncedAggregateRow & { date: string })[]
+  if (rows.length === 0) return { status: 'error', reason: 'no-data' }
+
+  // Oldest first, so the Edge Function stores the summary under the latest date.
+  const aggregates = rows.map(row => toAggregatePayload(row.date, row)).reverse()
+  const averageFocusScore = Math.round(
+    aggregates.reduce((sum, day) => sum + day.focusScore, 0) / aggregates.length,
+  )
+
+  return postAnalysis({ type: 'weekly', language, aggregates }, session.access_token, averageFocusScore)
 }

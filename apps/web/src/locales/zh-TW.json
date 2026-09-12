@@ -144,7 +144,11 @@
     "noInsightYet": "尚未產生洞察。",
     "generateInsight": "產生洞察",
     "trackedOf": "，追蹤時間共",
-    "whereTimeWent": "時間去哪了"
+    "whereTimeWent": "時間去哪了",
+    "previousDay": "前一天",
+    "nextDay": "後一天",
+    "streakDays": "連續 {n} 天達標",
+    "streakBest": "最佳 {n} 天"
   },
   "trends": {
     "title": "趨勢",
@@ -180,7 +184,10 @@
     "analysisFailed": "分析失敗：",
     "unknownError": "發生未知錯誤",
     "latestSnapshot": "最新快照",
-    "earlierSnapshots": "較早的快照"
+    "earlierSnapshots": "較早的快照",
+    "weeklyReview": "每週",
+    "generateWeekly": "每週回顧",
+    "weeklyDesc": "把最近七天彙整成一份回顧。"
   },
   "settings": {
     "title": "個人檔案",

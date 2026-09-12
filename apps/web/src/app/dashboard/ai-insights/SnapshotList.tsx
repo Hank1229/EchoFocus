@@ -7,10 +7,19 @@ import { scoreNumeralClass } from '@/components/dashboard/score'
 
 export interface Snapshot {
   id: string
+  kind: 'daily' | 'weekly'
   dateLabel: string
   analyzedLabel: string
   score: number
   text: string
+}
+
+function WeeklyBadge({ label }: { label: string }) {
+  return (
+    <span className="inline-flex flex-shrink-0 items-center rounded-md border border-brand/30 bg-brand/[0.06] px-1.5 py-0.5 text-[0.6875rem] font-medium text-brand">
+      {label}
+    </span>
+  )
 }
 
 // Newest snapshot reads in full — it is what anyone opens this page for. The
@@ -34,7 +43,10 @@ export default function SnapshotList({ snapshots }: { snapshots: Snapshot[] }) {
               {latest.score}
             </p>
             <div>
-              <p className="text-sm text-slate-300">{latest.dateLabel}</p>
+              <p className="flex items-center gap-2 text-sm text-slate-300">
+                {latest.dateLabel}
+                {latest.kind === 'weekly' && <WeeklyBadge label={t.aiInsights.weeklyReview} />}
+              </p>
               <p className="mt-1 text-xs text-slate-600">{latest.analyzedLabel}</p>
             </div>
           </div>
@@ -57,7 +69,10 @@ export default function SnapshotList({ snapshots }: { snapshots: Snapshot[] }) {
                     aria-expanded={isOpen}
                     className="flex w-full items-center gap-4 py-3.5 text-left transition-colors hover:text-slate-100"
                   >
-                    <span className="w-40 flex-shrink-0 text-sm text-slate-300">{snapshot.dateLabel}</span>
+                    <span className="flex w-48 flex-shrink-0 items-center gap-2 text-sm text-slate-300">
+                      {snapshot.dateLabel}
+                      {snapshot.kind === 'weekly' && <WeeklyBadge label={t.aiInsights.weeklyReview} />}
+                    </span>
                     <span className={`w-8 flex-shrink-0 font-display text-sm font-semibold tabular-nums ${scoreNumeralClass(snapshot.score)}`}>
                       {snapshot.score}
                     </span>
