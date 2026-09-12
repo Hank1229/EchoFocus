@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import { redirect } from 'next/navigation'
-import { formatDuration } from '@echofocus/shared'
+import { formatDuration, getTodayDateString } from '@echofocus/shared'
 import { Zap, Coffee, Minus } from 'lucide-react'
 import { getLocale } from '@/lib/i18n-server'
 import GreetingHero from './GreetingHero'
@@ -88,7 +88,10 @@ export default async function TodayPage() {
   }
 
   const firstName = (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? ''
-  const todayDate = new Date().toISOString().slice(0, 10)
+  // Use the displayed aggregate's own date so the AI card queries/regenerates
+  // the same day the page is showing (extension keys dates in the USER's local
+  // time; this server renders in UTC, so never derive "today" here).
+  const todayDate = row?.date ?? getTodayDateString()
 
   return (
     <>

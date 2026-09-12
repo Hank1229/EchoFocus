@@ -83,8 +83,19 @@ export default function AiInsightInteractiveCard({
       })
 
       if (!res.ok) {
-        const errText = await res.text()
-        setError(`${t.aiInsights.analysisFailed}${errText}`)
+        const body: unknown = await res.json().catch(() => null)
+        const parsed = (typeof body === 'object' && body !== null ? body : {}) as {
+          error?: unknown
+          analysis_text?: unknown
+        }
+        // 429 = daily generation cap reached; the Edge Function returns the
+        // analysis already stored for today — show it instead of an error.
+        if (res.status === 429 && typeof parsed.analysis_text === 'string' && parsed.analysis_text.length > 0) {
+          setLocalText(parsed.analysis_text)
+          return
+        }
+        const message = typeof parsed.error === 'string' ? parsed.error : res.statusText
+        setError(`${t.aiInsights.analysisFailed}${message}`)
         return
       }
 
