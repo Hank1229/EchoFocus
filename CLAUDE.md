@@ -354,3 +354,9 @@ When building each phase:
 3. Then build the logic (tracking, categorization, aggregation)
 4. Then build the UI last
 5. Test each feature before moving on
+
+---
+
+## Skill usage preference
+
+- For tasks involving writing, revising, or optimizing prompts for AI tools (LLMs, Cursor, Midjourney, image/video AI, coding agents, etc.), prefer using the prompt-master skill.
