@@ -33,7 +33,7 @@ export default function GreetingHero({ userName, productiveSeconds, focusScore }
 
   return (
     <div className="relative flex items-center justify-between gap-6 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 px-6 py-7">
-      <div className="relative">
+      <div className="relative z-10">
         <h1 className="font-display text-3xl font-semibold tracking-tight text-slate-100">
           {greeting}{userName ? `, ${userName}` : ''}
         </h1>

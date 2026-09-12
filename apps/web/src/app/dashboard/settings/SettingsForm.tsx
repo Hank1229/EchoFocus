@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLocale, type Language } from '@/lib/i18n'
 
@@ -106,7 +107,9 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
 
       <div className="flex items-center justify-between pt-1">
         {saveState === 'saved' ? (
-          <span className="text-xs text-brand">{t.common.saved}</span>
+          <span className="flex items-center gap-1 text-xs text-brand">
+            <Check size={12} strokeWidth={2} /> {t.common.saved}
+          </span>
         ) : saveState === 'error' ? (
           <span className="text-xs text-danger">{t.common.saveFailed}{saveError ?? ''}</span>
         ) : (

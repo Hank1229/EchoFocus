@@ -115,7 +115,7 @@ export default async function PrivacyPage() {
         <Section title={t.privacy.section5Title}>
           <p>You can at any time:</p>
           <ul className="space-y-2 list-disc list-inside">
-            <li>Download or delete all local data from the extension options page (Settings → Privacy)</li>
+            <li>Download or delete all local data from the Privacy tab of the extension options page</li>
             <li>Disable email reports in account settings</li>
             <li>Delete your Supabase account and all cloud data from account settings</li>
             <li>Disable tracking entirely from the options page</li>

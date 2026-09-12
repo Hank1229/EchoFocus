@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLocale } from '@/lib/i18n'
 
@@ -23,7 +24,11 @@ export default function DeleteCloudDataButton({ userId }: { userId: string }) {
   }
 
   if (done) {
-    return <p className="text-xs text-brand">{t.settings.deleted}</p>
+    return (
+      <p className="flex items-center gap-1 text-xs text-brand">
+        <Check size={12} strokeWidth={2} /> {t.settings.deleted}
+      </p>
+    )
   }
 
   if (!showConfirm) {

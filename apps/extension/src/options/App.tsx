@@ -309,7 +309,7 @@ function CategoriesTab() {
                 </span>
                 <button onClick={() => void deleteRule(rule.id)}
                   className="text-slate-600 hover:text-danger transition-colors flex-shrink-0"
-                  title={t.categories.deleteRule}>
+                  title={t.categories.deleteRule} aria-label={t.categories.deleteRule}>
                   <X size={15} strokeWidth={2} />
                 </button>
               </li>
