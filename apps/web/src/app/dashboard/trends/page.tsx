@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import ActivityBarChart from '@/components/charts/ActivityBarChart'
 import FocusScoreChart from '@/components/charts/FocusScoreChart'
-import { formatDuration } from '@echofocus/shared'
+import { formatDuration, getDateNDaysAgo } from '@echofocus/shared'
 import { redirect } from 'next/navigation'
 import { getLocale } from '@/lib/i18n-server'
 
@@ -29,14 +29,24 @@ export default async function TrendsPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // Newest N days, then reverse so charts read left→right chronologically.
+  // (ascending + limit would return the OLDEST rows and freeze the charts in the past)
   const { data } = await supabase
     .from('synced_aggregates')
     .select('date, total_seconds, productive_seconds, distraction_seconds, neutral_seconds, uncategorized_seconds, focus_score')
-    .eq('user_id', user!.id)
-    .order('date', { ascending: true })
+    .eq('user_id', user.id)
+    .order('date', { ascending: false })
     .limit(days)
 
-  const rows = (data ?? []) as SyncedRow[]
+  const newest = (data ?? []) as SyncedRow[]
+  // "Last N days" means a calendar window, not "last N synced rows" — with
+  // sync gaps the latter silently spans months. Floor the window at newest
+  // date − (N−1), anchored to the data's own (user-local) dates: this server
+  // renders in UTC, so never derive the cutoff from the server clock.
+  const cutoff = newest.length
+    ? getDateNDaysAgo(days - 1, new Date(newest[0].date + 'T00:00:00'))
+    : ''
+  const rows = newest.filter(r => r.date >= cutoff).reverse()
 
   const dateLocale = language === 'zh-TW' ? 'zh-TW' : 'en-US'
 
