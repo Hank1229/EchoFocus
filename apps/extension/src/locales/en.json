@@ -19,7 +19,10 @@
     "todaysTotal": "Today's total",
     "noBrowsingYet": "No browsing activity recorded yet",
     "keepBrowsing": "Keep browsing — stats will appear here",
-    "openProfile": "Open Profile"
+    "openProfile": "Open Profile",
+    "streakDays": "{n}-day streak",
+    "streakBest": "best {n}",
+    "streakRestart": "1 day to restart your streak"
   },
   "aiInsight": {
     "generating": "Generating your snapshot…",

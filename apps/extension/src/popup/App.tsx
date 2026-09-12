@@ -2,8 +2,10 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Moon, Settings as SettingsIcon, User } from 'lucide-react'
 import iconSrc from '../assets/icon-32.png'
 import { useTodayStats } from './hooks/useTodayStats'
+import { useStreak } from './hooks/useStreak'
 import FocusScoreRing from './components/FocusScoreRing'
 import { CategoryRows, StatsSummary } from './components/StatsBar'
+import StreakChip from './components/StreakChip'
 import DomainList from './components/DomainList'
 import TrackingToggle from './components/TrackingToggle'
 import AiInsightCard from './components/AiInsightCard'
@@ -77,17 +79,6 @@ export default function App() {
     setLanguage(language === 'en' ? 'zh-TW' : 'en' as Language)
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex h-48 w-popup items-center justify-center bg-slate-900">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
-          <p className="text-xs text-slate-500">{t.popup.loading}</p>
-        </div>
-      </div>
-    )
-  }
-
   const isTracking = trackingState?.isTracking ?? false
   const neutralSeconds = aggregate?.neutralSeconds ?? 0
   const uncategorizedSeconds = aggregate?.uncategorizedSeconds ?? 0
@@ -111,6 +102,19 @@ export default function App() {
   const focusScore = scoredSeconds === 0
     ? aggregate?.focusScore ?? 0
     : Math.min(100, Math.round((productiveSeconds / scoredSeconds) * 100))
+
+  const streak = useStreak(productiveSeconds)
+
+  if (isLoading) {
+    return (
+      <div className="flex h-48 w-popup items-center justify-center bg-slate-900">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+          <p className="text-xs text-slate-500">{t.popup.loading}</p>
+        </div>
+      </div>
+    )
+  }
 
   const dateLocale = language === 'zh-TW' ? 'zh-TW' : 'en-US'
 
@@ -164,6 +168,8 @@ export default function App() {
             />
           </div>
         </section>
+
+        {streak && <StreakChip current={streak.current} best={streak.best} />}
 
         <AiInsightCard
           analysis={aiAnalysis}

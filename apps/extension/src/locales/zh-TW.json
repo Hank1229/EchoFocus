@@ -19,7 +19,10 @@
     "todaysTotal": "今日總計",
     "noBrowsingYet": "尚無瀏覽活動記錄",
     "keepBrowsing": "繼續瀏覽 — 統計將在此顯示",
-    "openProfile": "開啟個人檔案"
+    "openProfile": "開啟個人檔案",
+    "streakDays": "連續 {n} 天達標",
+    "streakBest": "最佳 {n} 天",
+    "streakRestart": "達標 1 天即可重啟連續紀錄"
   },
   "aiInsight": {
     "generating": "正在生成快照…",
