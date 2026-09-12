@@ -290,12 +290,14 @@ Deno.serve(async (req: Request) => {
       .eq('id', user.id)
       .maybeSingle()
 
-    // Fetch the AI analysis matching the report date (optional).
+    // Fetch the AI analysis matching the report date (optional). A weekly
+    // summary can share this date, so the type filter keeps it to one row.
     const { data: analysis } = await supabase
       .from('ai_analyses')
       .select('analysis_text')
       .eq('user_id', user.id)
       .eq('date', agg.date)
+      .eq('type', 'daily')
       .maybeSingle()
 
     const topDomains: TopDomainRow[] = Array.isArray(agg.top_domains)

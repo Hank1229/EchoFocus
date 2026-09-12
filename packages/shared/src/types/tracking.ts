@@ -53,11 +53,15 @@ export const DEFAULT_SETTINGS: Settings = {
   dailyGoalMinutes: 360,
 }
 
+// 'weekly' covers up to 7 days and is stored under the last of those dates.
+export type AiAnalysisType = 'daily' | 'weekly'
+
 // Result from AI analysis — stored locally and in Supabase ai_analyses.
 export interface AiAnalysisResult {
   analysisText: string
   focusScore: number
   analyzedAt: number  // Unix timestamp ms
+  type?: AiAnalysisType  // absent means daily
 }
 
 // Anonymized daily aggregate that gets synced to Supabase.
