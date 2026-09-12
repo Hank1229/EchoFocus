@@ -105,7 +105,7 @@
     "dailySnapshots": "每日快照",
     "settings": "設定",
     "profile": "個人檔案",
-    "privacyNote": "瀏覽資料僅儲存\n在您的裝置上"
+    "privacyNote": "瀏覽資料僅儲存在您的裝置上"
   },
   "header": {
     "signOut": "登出"
@@ -142,7 +142,9 @@
     "regenerate": "重新分析",
     "regenerating": "分析中…",
     "noInsightYet": "尚未產生洞察。",
-    "generateInsight": "產生洞察"
+    "generateInsight": "產生洞察",
+    "trackedOf": "，追蹤時間共",
+    "whereTimeWent": "時間去哪了"
   },
   "trends": {
     "title": "趨勢",
@@ -151,12 +153,14 @@
     "last30days": "最近 30 天",
     "noTrendData": "尚無趨勢資料",
     "noTrendDesc": "安裝擴充功能並使用幾天後 — 趨勢圖表將顯示在此。",
-    "avgFocusScore": "天平均專注分數",
+    "avgFocusScore": " 天平均專注分數",
     "productiveTime": "生產力時間",
     "breaksAndBrowsing": "休息與瀏覽",
     "dailyTimeBreakdown": "每日時間分佈",
     "focusScoreTrend": "專注分數趨勢",
-    "dashedLineNote": "虛線 = 70 分目標線"
+    "dashedLineNote": "虛線 = 70 分目標線",
+    "daysTracked": "追蹤天數",
+    "bestDay": "最佳一天"
   },
   "aiInsights": {
     "title": "每日快照",
@@ -174,14 +178,16 @@
     "pleaseSignIn": "請先登入",
     "noSyncedData": "今日尚無同步資料 — 請先從擴充功能手動同步",
     "analysisFailed": "分析失敗：",
-    "unknownError": "發生未知錯誤"
+    "unknownError": "發生未知錯誤",
+    "latestSnapshot": "最新快照",
+    "earlierSnapshots": "較早的快照"
   },
   "settings": {
     "title": "個人檔案",
     "account": "帳戶",
     "googleAccount": "Google 帳戶",
     "reset": "重置",
-    "deleteCloudDesc": "刪除雲端中的所有同步資料。您的本地擴充功能資料不受影響。",
+    "deleteCloudDesc": "移除雲端上所有同步統計與 AI 分析。此裝置擴充功能內的資料不受影響。",
     "preferences": "偏好設定",
     "dailyEmailReport": "每日電子郵件報告",
     "emailReportDesc": "在您的收件匣中接收每日生產力摘要",
@@ -199,10 +205,10 @@
     "language": "語言",
     "languageEn": "English",
     "languageZhTW": "繁體中文",
-    "dataManagement": "資料管理",
-    "exportData": "匯出雲端資料（JSON）",
+    "dataManagement": "資料",
+    "exportData": "匯出雲端資料",
     "exporting": "匯出中…",
-    "exportDesc": "下載同步的統計和 AI 分析（最近 30 天）",
+    "exportDesc": "將最近 30 天的同步統計與 AI 分析下載為 JSON。",
     "deleteAllCloud": "刪除所有雲端資料",
     "deleteCloudConfirm": "這將永久刪除雲端中所有同步的統計和 AI 分析。本地擴充功能資料不受影響。此操作無法撤銷。",
     "cancel": "取消",
@@ -212,7 +218,11 @@
     "about": "關於",
     "version": "版本",
     "reportIssue": "回報問題",
-    "appVersion": "1.0.0"
+    "appVersion": "1.0.0",
+    "languageDesc": "同時套用於儀表板與擴充功能彈出視窗。",
+    "dailyGoalDesc": "您每天希望達成的生產力時間。",
+    "exportAction": "下載 JSON",
+    "deleteAction": "刪除"
   },
   "categoryLabels": {
     "productive": "生產力",

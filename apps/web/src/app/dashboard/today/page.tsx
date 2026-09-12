@@ -1,18 +1,12 @@
-import { createClient } from '@/lib/supabase/server'
-import DashboardHeader from '@/components/layout/DashboardHeader'
 import { redirect } from 'next/navigation'
+import { Inbox } from 'lucide-react'
 import { formatDuration, getTodayDateString } from '@echofocus/shared'
-import { Zap, Coffee, Minus, Inbox } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
 import { getLocale } from '@/lib/i18n-server'
-import GreetingHero from './GreetingHero'
-import FocusTimeline from './FocusTimeline'
-import AiInsightInteractiveCard from './AiInsightInteractiveCard'
-
-interface TopDomain {
-  domain: string
-  seconds: number
-  category: 'productive' | 'distraction' | 'neutral' | 'uncategorized'
-}
+import DashboardHeader from '@/components/layout/DashboardHeader'
+import VerdictBand from './VerdictBand'
+import DailyInsight from './DailyInsight'
+import SiteRanking, { type RankedSite } from './SiteRanking'
 
 interface SyncedRow {
   date: string
@@ -22,16 +16,8 @@ interface SyncedRow {
   neutral_seconds: number
   uncategorized_seconds: number
   focus_score: number
-  top_domains: TopDomain[]
+  top_domains: RankedSite[]
   synced_at: string
-}
-
-function CategoryIcon({ category }: { category: TopDomain['category'] }) {
-  switch (category) {
-    case 'productive': return <Zap size={14} strokeWidth={1.75} className="text-productive flex-shrink-0" />
-    case 'distraction': return <Coffee size={14} strokeWidth={1.75} className="text-breaks flex-shrink-0" />
-    default: return <Minus size={14} strokeWidth={1.75} className="text-slate-400 flex-shrink-0" />
-  }
 }
 
 interface AiAnalysisRow {
@@ -70,108 +56,76 @@ export default async function TodayPage() {
 
   const dateLocale = language === 'zh-TW' ? 'zh-TW' : 'en-US'
 
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr + 'T00:00:00')
-    return d.toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })
-  }
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr + 'T00:00:00').toLocaleDateString(dateLocale, {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    })
 
-  const formatSyncTime = (iso: string) => {
-    const d = new Date(iso)
-    return d.toLocaleString(dateLocale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-  }
-
-  const CATEGORY_LABELS = {
-    productive: t.categoryLabels.productive,
-    distraction: t.categoryLabels.distraction,
-    neutral: t.categoryLabels.neutral,
-    uncategorized: t.categoryLabels.uncategorized,
-  }
+  const formatSyncTime = (iso: string) =>
+    new Date(iso).toLocaleString(dateLocale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 
   const firstName = (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? ''
   // Use the displayed aggregate's own date so the AI card queries/regenerates
   // the same day the page is showing (extension keys dates in the USER's local
   // time; this server renders in UTC, so never derive "today" here).
   const todayDate = row?.date ?? getTodayDateString()
-  // latestAi is the newest analysis for ANY date — only show it on this card
-  // when it actually belongs to the displayed day, otherwise a stale insight
-  // gets presented as today's.
+  // latestAi is the newest analysis for ANY date — only show it here when it
+  // belongs to the displayed day, otherwise a stale insight reads as today's.
   const todaysAi = latestAi?.date === todayDate ? latestAi : null
 
   return (
     <>
-      <DashboardHeader title={t.today.title} userEmail={user?.email ?? undefined} avatarUrl={user?.user_metadata?.avatar_url as string | undefined} />
+      <DashboardHeader
+        title={t.today.title}
+        userEmail={user?.email ?? undefined}
+        avatarUrl={user?.user_metadata?.avatar_url as string | undefined}
+        context={
+          row && (
+            <p className="truncate text-xs text-slate-500">
+              <span className="text-slate-400">{formatDate(row.date)}</span>
+              <span className="mx-2 text-slate-700">/</span>
+              {t.today.synced} {formatSyncTime(row.synced_at)}
+            </p>
+          )
+        }
+      />
 
-      <main className="flex-1 px-6 py-8 space-y-6">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
         {row ? (
-          <>
-            {/* Date + sync info */}
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-400">{formatDate(row.date)}</p>
-              <p className="text-xs text-slate-600">{t.today.synced} {formatSyncTime(row.synced_at)}</p>
-            </div>
-
-            {/* MACRO: Greeting hero */}
-            <GreetingHero
+          <div className="space-y-10">
+            <VerdictBand
               userName={firstName}
-              productiveSeconds={row.productive_seconds}
               focusScore={row.focus_score}
+              productiveSeconds={row.productive_seconds}
+              distractionSeconds={row.distraction_seconds}
+              neutralSeconds={row.neutral_seconds}
+              uncategorizedSeconds={row.uncategorized_seconds}
             />
 
-            {/* MACRO: Focus timeline */}
-            <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-              <p className="mb-4 text-sm font-medium text-slate-400">
-                {t.today.focusTimeline}
-              </p>
-              <FocusTimeline
-                productiveSeconds={row.productive_seconds}
-                distractionSeconds={row.distraction_seconds}
-                neutralSeconds={row.neutral_seconds}
-                uncategorizedSeconds={row.uncategorized_seconds}
-                topDomains={row.top_domains}
-              />
-            </div>
+            <DailyInsight
+              analysisText={todaysAi?.analysis_text ?? null}
+              todayDate={todayDate}
+              language={language}
+            />
 
-            {/* MICRO: Detail grid */}
-            <div className="grid grid-cols-12 gap-6">
-              {/* Sites — 7 cols */}
-              <div className="lg:col-span-7 col-span-12">
-                <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-                  <p className="mb-3 text-sm font-medium text-slate-400">{t.today.todaysSites}</p>
-                  {row.top_domains.length === 0 ? (
-                    <p className="text-sm text-slate-500">{t.today.noData}</p>
-                  ) : (
-                    <ul className="space-y-3">
-                      {row.top_domains.slice(0, 10).map(d => (
-                        <li key={d.domain} className="flex items-center gap-3">
-                          <CategoryIcon category={d.category} />
-                          <span className="flex-1 text-sm text-slate-300 truncate">{d.domain}</span>
-                          <span className="text-xs text-slate-500 flex-shrink-0">{CATEGORY_LABELS[d.category]}</span>
-                          <span className="text-xs text-slate-400 tabular-nums flex-shrink-0">{formatDuration(d.seconds)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
-
-              {/* AI Insight — 5 cols */}
-              <div className="lg:col-span-5 col-span-12">
-                <AiInsightInteractiveCard
-                  analysisText={todaysAi?.analysis_text ?? null}
-                  todayDate={todayDate}
-                  language={language}
-                />
-              </div>
-            </div>
-          </>
+            <SiteRanking
+              heading={t.today.whereTimeWent}
+              sites={row.top_domains ?? []}
+              emptyLabel={t.today.noData}
+              total={formatDuration(
+                (row.top_domains ?? []).reduce((sum, d) => sum + d.seconds, 0),
+              )}
+            />
+          </div>
         ) : (
-          /* Empty state */
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <Inbox size={36} strokeWidth={1.5} className="mb-4 text-slate-600" />
-            <h2 className="mb-2 font-display text-xl font-semibold tracking-tight text-slate-200">{t.today.noSyncedData}</h2>
-            <p className="max-w-sm text-sm leading-relaxed text-slate-500">
-              {t.today.noSyncedDesc}
-            </p>
+          <div className="max-w-md border-t border-slate-800/80 pt-10">
+            <Inbox size={28} strokeWidth={1.5} className="text-slate-600" />
+            <h2 className="mt-4 font-display text-xl font-semibold tracking-tight text-slate-200">
+              {t.today.noSyncedData}
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-500">{t.today.noSyncedDesc}</p>
           </div>
         )}
       </main>

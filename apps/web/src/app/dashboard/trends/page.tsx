@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
-import DashboardHeader from '@/components/layout/DashboardHeader'
-import ActivityBarChart from '@/components/charts/ActivityBarChart'
-import FocusScoreChart from '@/components/charts/FocusScoreChart'
-import { formatDuration, getDateNDaysAgo } from '@echofocus/shared'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { LineChart } from 'lucide-react'
+import { getDateNDaysAgo } from '@echofocus/shared'
+import { createClient } from '@/lib/supabase/server'
 import { getLocale } from '@/lib/i18n-server'
+import DashboardHeader from '@/components/layout/DashboardHeader'
+import TrendsView from './TrendsView'
 
 interface SyncedRow {
   date: string
@@ -51,10 +51,8 @@ export default async function TrendsPage({
 
   const dateLocale = language === 'zh-TW' ? 'zh-TW' : 'en-US'
 
-  const shortDate = (dateStr: string) => {
-    const d = new Date(dateStr + 'T00:00:00')
-    return d.toLocaleDateString(dateLocale, { month: 'short', day: 'numeric' })
-  }
+  const shortDate = (dateStr: string) =>
+    new Date(dateStr + 'T00:00:00').toLocaleDateString(dateLocale, { month: 'short', day: 'numeric' })
 
   const barData = rows.map(r => ({
     date: shortDate(r.date),
@@ -63,87 +61,68 @@ export default async function TrendsPage({
     neutral: r.neutral_seconds + r.uncategorized_seconds,
   }))
 
-  const scoreData = rows.map(r => ({
-    date: shortDate(r.date),
-    score: r.focus_score,
-  }))
+  const scoreData = rows.map(r => ({ date: shortDate(r.date), score: r.focus_score }))
 
   const avgScore = rows.length
     ? Math.round(rows.reduce((s, r) => s + r.focus_score, 0) / rows.length)
     : 0
 
   const totalProductive = rows.reduce((s, r) => s + r.productive_seconds, 0)
-  const totalDistraction = rows.reduce((s, r) => s + r.distraction_seconds, 0)
+  const totalBreaks = rows.reduce((s, r) => s + r.distraction_seconds, 0)
+
+  const best = rows.reduce<SyncedRow | null>(
+    (top, r) => (!top || r.focus_score > top.focus_score ? r : top),
+    null,
+  )
+
+  const periods = [7, 30] as const
 
   return (
     <>
-      <DashboardHeader title={t.trends.title} userEmail={user?.email ?? undefined} avatarUrl={user?.user_metadata?.avatar_url as string | undefined} />
+      <DashboardHeader
+        title={t.trends.title}
+        userEmail={user?.email ?? undefined}
+        avatarUrl={user?.user_metadata?.avatar_url as string | undefined}
+        context={
+          <div className="flex items-center gap-1 rounded-lg border border-slate-800 p-0.5">
+            {periods.map(p => (
+              <Link
+                key={p}
+                href={`/dashboard/trends?period=${p}`}
+                aria-current={days === p ? 'true' : undefined}
+                className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                  days === p ? 'bg-slate-800 text-slate-100' : 'text-slate-500 hover:text-slate-300'
+                }`}
+              >
+                {p === 7 ? t.trends.last7days : t.trends.last30days}
+              </Link>
+            ))}
+          </div>
+        }
+      />
 
-      <main className="flex-1 px-6 py-8 space-y-6">
-        {/* Period selector */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-500">{t.trends.show}</span>
-          <a href="/dashboard/trends?period=7"
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${days === 7 ? 'bg-brand/10 text-brand' : 'text-slate-500 hover:text-slate-300'}`}>
-            {t.trends.last7days}
-          </a>
-          <a href="/dashboard/trends?period=30"
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${days === 30 ? 'bg-brand/10 text-brand' : 'text-slate-500 hover:text-slate-300'}`}>
-            {t.trends.last30days}
-          </a>
-        </div>
-
+      <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
         {rows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <LineChart size={36} strokeWidth={1.5} className="mb-4 text-slate-600" />
-            <h2 className="mb-2 font-display text-xl font-semibold tracking-tight text-slate-200">{t.trends.noTrendData}</h2>
-            <p className="max-w-sm text-sm text-slate-500">
-              {t.trends.noTrendDesc}
-            </p>
+          <div className="max-w-md border-t border-slate-800/80 pt-10">
+            <LineChart size={28} strokeWidth={1.5} className="text-slate-600" />
+            <h2 className="mt-4 font-display text-xl font-semibold tracking-tight text-slate-200">
+              {t.trends.noTrendData}
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-500">{t.trends.noTrendDesc}</p>
           </div>
         ) : (
-          <>
-            {/* Summary stats — the average leads, the two totals sit under it */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-                <p className="font-display text-4xl font-semibold tabular-nums leading-none tracking-tight text-brand">
-                  {avgScore}
-                </p>
-                <p className="mt-2.5 text-xs text-slate-500">{days}{t.trends.avgFocusScore}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4 md:col-span-2">
-                {[
-                  { label: t.trends.productiveTime, value: formatDuration(totalProductive), color: 'text-productive' },
-                  { label: t.trends.breaksAndBrowsing, value: formatDuration(totalDistraction), color: 'text-breaks' },
-                ].map(s => (
-                  <div key={s.label} className="flex flex-col justify-center border-t border-slate-800 pt-4 md:border-l md:border-t-0 md:pl-5 md:pt-0">
-                    <p className={`text-2xl font-semibold tabular-nums ${s.color}`}>{s.value}</p>
-                    <p className="mt-1.5 text-xs text-slate-500">{s.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Activity bar chart */}
-            <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
-              <p className="mb-5 text-sm font-medium text-slate-400">{t.trends.dailyTimeBreakdown}</p>
-              <ActivityBarChart
-                data={barData}
-                labels={{
-                  productive: t.trends.productiveTime,
-                  distraction: t.trends.breaksAndBrowsing,
-                  neutral: t.today.neutral,
-                }}
-              />
-            </div>
-
-            {/* Focus score line chart */}
-            <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
-              <p className="mb-5 text-sm font-medium text-slate-400">{t.trends.focusScoreTrend}</p>
-              <FocusScoreChart data={scoreData} />
-              <p className="text-xs text-slate-600 mt-2">{t.trends.dashedLineNote}</p>
-            </div>
-          </>
+          <TrendsView
+            days={days}
+            avgScore={avgScore}
+            daysTracked={rows.length}
+            totalProductive={totalProductive}
+            totalBreaks={totalBreaks}
+            bestDay={best ? { label: shortDate(best.date), score: best.focus_score } : null}
+            barData={barData}
+            scoreData={scoreData}
+            copy={t.trends}
+            neutralLabel={t.today.neutral}
+          />
         )}
       </main>
     </>

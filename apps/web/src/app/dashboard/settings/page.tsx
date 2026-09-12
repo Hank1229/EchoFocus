@@ -1,12 +1,13 @@
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getLocale } from '@/lib/i18n-server'
 import DashboardHeader from '@/components/layout/DashboardHeader'
+import SettingRow from './SettingRow'
 import SettingsForm from './SettingsForm'
 import DeleteCloudDataButton from './DeleteCloudDataButton'
 import ExportCloudDataButton from './ExportCloudDataButton'
 import SignOutButton from './SignOutButton'
-import { redirect } from 'next/navigation'
-import { getLocale } from '@/lib/i18n-server'
-import Link from 'next/link'
 
 interface UserPreference {
   email_report_enabled: boolean
@@ -35,90 +36,70 @@ export default async function SettingsPage() {
     <>
       <DashboardHeader title={t.settings.profile} userEmail={user?.email ?? undefined} avatarUrl={avatarUrl} />
 
-      <main className="flex-1 px-6 py-8 max-w-xl space-y-6">
-
-        {/* Section 1: Account */}
-        <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
-          <p className="mb-4 text-sm font-medium text-slate-400">{t.settings.account}</p>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-4">
-              {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={avatarUrl}
-                  alt="Profile"
-                  width={56}
-                  height={56}
-                  className="rounded-full ring-1 ring-slate-700 flex-shrink-0"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-full bg-brand/20 border border-brand/30 flex items-center justify-center flex-shrink-0">
-                  <span className="text-xl font-bold text-brand">{initial}</span>
-                </div>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
+        <div className="max-w-3xl">
+          {/* Identity sits on the page ground, not in a card — it is who you are,
+              not a setting you change. */}
+          <div className="flex flex-wrap items-center gap-5 border-b border-slate-800/80 pb-8">
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarUrl}
+                alt=""
+                width={52}
+                height={52}
+                className="flex-shrink-0 rounded-full ring-1 ring-slate-700"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <span className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-full border border-slate-700 font-display text-xl font-semibold text-slate-400">
+                {initial}
+              </span>
+            )}
+            <div className="min-w-0 flex-1">
+              {fullName && (
+                <p className="font-display text-lg font-semibold tracking-tight text-slate-100">{fullName}</p>
               )}
-              <div>
-                {fullName && (
-                  <p className="text-sm font-semibold text-slate-100">{fullName}</p>
-                )}
-                <p className="text-sm text-slate-300">{user?.email}</p>
-                <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-brand/10 border border-brand/20 rounded-full text-xs text-brand">
-                  {t.settings.connectedViaGoogle}
-                </span>
-              </div>
+              <p className="truncate text-sm text-slate-400">{user?.email}</p>
+              <p className="mt-1 text-xs text-slate-600">{t.settings.connectedViaGoogle}</p>
             </div>
             <SignOutButton />
           </div>
-        </section>
 
-        {/* Section 2: Preferences */}
-        <SettingsForm userId={user!.id} initialPrefs={prefs as UserPreference ?? null} />
+          <dl>
+            <SettingsForm userId={user!.id} initialPrefs={prefs as UserPreference ?? null} />
 
-        {/* Section 3: Data Management */}
-        <section className="space-y-5 rounded-xl border border-slate-800 bg-slate-900 p-6">
-          <p className="text-sm font-medium text-slate-400">{t.settings.dataManagement}</p>
+            <SettingRow label={t.settings.exportData} description={t.settings.exportDesc}>
+              <ExportCloudDataButton userId={user!.id} />
+            </SettingRow>
 
-          <ExportCloudDataButton userId={user!.id} />
+            <SettingRow label={t.settings.deleteAllCloud} description={t.settings.deleteCloudDesc}>
+              <DeleteCloudDataButton userId={user!.id} />
+            </SettingRow>
+          </dl>
 
-          <div className="border-t border-slate-800 pt-4">
-            <p className="text-xs text-slate-500 mb-3">{t.settings.deleteCloudDesc}</p>
-            <DeleteCloudDataButton userId={user!.id} />
-          </div>
-        </section>
-
-        {/* Section 4: About */}
-        <section className="space-y-4 rounded-xl border border-slate-800 bg-slate-900 p-6">
-          <p className="text-sm font-medium text-slate-400">{t.settings.about}</p>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-400">EchoFocus</span>
-            <span className="text-xs text-slate-500">{t.settings.version} {t.settings.appVersion}</span>
-          </div>
-          <div className="flex flex-wrap gap-3 text-xs text-slate-500">
-            <Link href="/privacy" className="hover:text-slate-300 transition-colors">
-              {t.common.privacyPolicy}
-            </Link>
-            <Link href="/terms" className="hover:text-slate-300 transition-colors">
-              {t.common.termsOfService}
-            </Link>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-6 text-xs text-slate-600">
+            <span>EchoFocus {t.settings.appVersion}</span>
+            <Link href="/privacy" className="transition-colors hover:text-slate-400">{t.common.privacyPolicy}</Link>
+            <Link href="/terms" className="transition-colors hover:text-slate-400">{t.common.termsOfService}</Link>
             <a
-              href="https://github.com"
+              href="https://github.com/Hank1229/EchoFocus"
               target="_blank"
               rel="noreferrer"
-              className="hover:text-slate-300 transition-colors"
+              className="transition-colors hover:text-slate-400"
             >
               GitHub
             </a>
             <a
-              href="https://github.com/issues"
+              href="https://github.com/Hank1229/EchoFocus/issues"
               target="_blank"
               rel="noreferrer"
-              className="hover:text-slate-300 transition-colors"
+              className="transition-colors hover:text-slate-400"
             >
               {t.settings.reportIssue}
             </a>
           </div>
-        </section>
-
+        </div>
       </main>
     </>
   )

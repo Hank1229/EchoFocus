@@ -1,14 +1,14 @@
 'use client'
 
 import {
-  LineChart,
-  Line,
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
 } from 'recharts'
 import { palette } from '@echofocus/shared'
 
@@ -28,26 +28,52 @@ const CustomTooltip = ({ active, payload, label }: {
 }) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-xs shadow-xl">
-      <p className="text-slate-400 mb-1">{label}</p>
-      <p className="text-brand font-bold text-sm">{payload[0].value} pts</p>
+    <div className="rounded-lg border border-slate-700 bg-slate-900/95 px-3 py-2 text-xs shadow-xl backdrop-blur">
+      <p className="text-slate-500">{label}</p>
+      <p className="mt-0.5 font-display text-base font-semibold tabular-nums text-slate-100">{payload[0].value}</p>
     </div>
   )
 }
 
 export default function FocusScoreChart({ data }: FocusScoreChartProps) {
   return (
-    <ResponsiveContainer width="100%" height={240}>
-      <LineChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-        <XAxis dataKey="date" tick={{ fill: palette.neutral.deep, fontSize: 11 }} axisLine={false} tickLine={false} />
-        <YAxis domain={[0, 100]} tick={{ fill: palette.neutral.deep, fontSize: 11 }} axisLine={false} tickLine={false} />
-        <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#334155' }} />
-        <ReferenceLine y={70} stroke={palette.brand.DEFAULT} strokeDasharray="4 4" strokeOpacity={0.4} />
-        <Line type="monotone" dataKey="score" stroke={palette.brand.DEFAULT} strokeWidth={2}
-          dot={{ fill: palette.brand.DEFAULT, r: 3, strokeWidth: 0 }}
-          activeDot={{ r: 5, fill: palette.brand.DEFAULT, strokeWidth: 0 }} />
-      </LineChart>
+    <ResponsiveContainer width="100%" height={230}>
+      <AreaChart data={data} margin={{ top: 8, right: 8, left: -22, bottom: 0 }}>
+        <defs>
+          <linearGradient id="scoreFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={palette.brand.DEFAULT} stopOpacity={0.22} />
+            <stop offset="100%" stopColor={palette.brand.DEFAULT} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" vertical={false} />
+        <XAxis
+          dataKey="date"
+          tick={{ fill: palette.neutral.deep, fontSize: 11 }}
+          axisLine={false}
+          tickLine={false}
+          minTickGap={16}
+          dy={6}
+        />
+        <YAxis
+          domain={[0, 100]}
+          ticks={[0, 50, 100]}
+          tick={{ fill: palette.neutral.deep, fontSize: 11 }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#334155', strokeDasharray: '2 4' }} />
+        <ReferenceLine y={70} stroke={palette.neutral.deep} strokeDasharray="3 5" strokeOpacity={0.55} />
+        <Area
+          type="monotone"
+          dataKey="score"
+          stroke={palette.brand.DEFAULT}
+          strokeWidth={2}
+          fill="url(#scoreFill)"
+          dot={false}
+          isAnimationActive={false}
+          activeDot={{ r: 4, fill: palette.brand.DEFAULT, stroke: '#020617', strokeWidth: 2 }}
+        />
+      </AreaChart>
     </ResponsiveContainer>
   )
 }

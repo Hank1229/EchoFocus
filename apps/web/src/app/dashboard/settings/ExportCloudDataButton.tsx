@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Download } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLocale } from '@/lib/i18n'
 
@@ -41,15 +42,13 @@ export default function ExportCloudDataButton({ userId }: { userId: string }) {
   }
 
   return (
-    <div>
-      <p className="text-xs text-slate-500 mb-2">{t.settings.exportDesc}</p>
-      <button
-        onClick={handleExport}
-        disabled={isExporting}
-        className="px-4 py-2 text-sm text-slate-300 border border-slate-700 rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors"
-      >
-        {isExporting ? t.settings.exporting : t.settings.exportData}
-      </button>
-    </div>
+    <button
+      onClick={handleExport}
+      disabled={isExporting}
+      className="flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-100 disabled:opacity-50"
+    >
+      <Download size={14} strokeWidth={1.75} />
+      {isExporting ? t.settings.exporting : t.settings.exportAction}
+    </button>
   )
 }

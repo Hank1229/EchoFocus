@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check } from 'lucide-react'
+import { Check, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLocale } from '@/lib/i18n'
 
@@ -35,31 +35,30 @@ export default function DeleteCloudDataButton({ userId }: { userId: string }) {
     return (
       <button
         onClick={() => setShowConfirm(true)}
-        className="px-4 py-2 text-sm text-danger border border-danger/30 rounded-lg hover:bg-danger/10 transition-colors"
+        className="flex items-center gap-2 rounded-lg border border-danger/30 px-4 py-2 text-sm text-danger transition-colors hover:bg-danger/10"
       >
-        {t.settings.deleteAllCloud}
+        <Trash2 size={14} strokeWidth={1.75} />
+        {t.settings.deleteAction}
       </button>
     )
   }
 
   return (
-    <div className="space-y-3">
-      <p className="text-sm text-danger">
-        {t.settings.deleteCloudConfirm}
-      </p>
-      <div className="flex gap-2">
-        <button
-          onClick={() => setShowConfirm(false)}
-          className="flex-1 py-2 text-sm text-slate-400 bg-slate-800 rounded-lg hover:bg-slate-700 transition-colors"
-        >
-          {t.settings.cancel}
-        </button>
+    <div className="max-w-md rounded-lg border border-danger/30 bg-danger/[0.06] p-4">
+      <p className="text-xs leading-relaxed text-danger">{t.settings.deleteCloudConfirm}</p>
+      <div className="mt-4 flex gap-2">
         <button
           onClick={handleDelete}
           disabled={isDeleting}
-          className="flex-1 py-2 text-sm text-white bg-danger-deep hover:bg-danger disabled:opacity-50 rounded-lg transition-colors font-semibold"
+          className="rounded-lg bg-danger-deep px-4 py-2 text-sm font-semibold text-slate-950 transition-colors hover:bg-danger disabled:opacity-50"
         >
           {isDeleting ? t.settings.deleting : t.settings.confirmDelete}
+        </button>
+        <button
+          onClick={() => setShowConfirm(false)}
+          className="rounded-lg px-4 py-2 text-sm text-slate-400 transition-colors hover:text-slate-200"
+        >
+          {t.settings.cancel}
         </button>
       </div>
     </div>

@@ -1,6 +1,6 @@
 {
   "common": {
-    "signOut": "Sign Out",
+    "signOut": "Sign out",
     "signIn": "Sign In",
     "signInWithGoogle": "Sign in with Google",
     "signingIn": "Signing in…",
@@ -8,7 +8,7 @@
     "saved": "Saved",
     "saveFailed": "Save failed: ",
     "saving": "Saving…",
-    "saveSettings": "Save Settings",
+    "saveSettings": "Save settings",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "home": "Home"
@@ -105,14 +105,14 @@
     "dailySnapshots": "Daily Snapshots",
     "settings": "Settings",
     "profile": "Profile",
-    "privacyNote": "Browsing data stored\nonly on your device"
+    "privacyNote": "Browsing data stays on your device"
   },
   "header": {
     "signOut": "Sign Out"
   },
   "today": {
     "title": "Today's Overview",
-    "focusScore": "Focus Score",
+    "focusScore": "Focus score",
     "pts": "pts",
     "excellent": "Excellent",
     "average": "Average",
@@ -123,7 +123,7 @@
     "neutral": "Neutral",
     "todaysSites": "Today's Sites",
     "noData": "No data",
-    "dailyInsight": "Daily Insight",
+    "dailyInsight": "Daily insight",
     "viewAll": "View all",
     "noDailyInsights": "No daily insights yet",
     "goToSnapshots": "Go to Daily Snapshots to analyze",
@@ -135,14 +135,16 @@
     "goodEvening": "Good evening",
     "goodNight": "Good night",
     "focusedFor": "You've been focused for",
-    "todayTotalSuffix": "today.",
+    "todayTotalSuffix": " tracked today.",
     "focusTimeline": "Focus Timeline",
     "timelineTooltipDomains": "Top sites",
     "timelineUntracked": "Untracked",
     "regenerate": "Regenerate",
     "regenerating": "Regenerating…",
     "noInsightYet": "No insight generated yet.",
-    "generateInsight": "Generate Insight"
+    "generateInsight": "Generate Insight",
+    "trackedOf": " out of",
+    "whereTimeWent": "Where the time went"
   },
   "trends": {
     "title": "Trends",
@@ -151,12 +153,14 @@
     "last30days": "Last 30 days",
     "noTrendData": "No trend data yet",
     "noTrendDesc": "Install the extension and use it for a few days — trend charts will appear here.",
-    "avgFocusScore": "-Day Avg Focus Score",
-    "productiveTime": "Productive Time",
+    "avgFocusScore": "-day average focus score",
+    "productiveTime": "Productive time",
     "breaksAndBrowsing": "Breaks & Browsing",
-    "dailyTimeBreakdown": "Daily Time Breakdown",
-    "focusScoreTrend": "Focus Score Trend",
-    "dashedLineNote": "Dashed line = 70-point target"
+    "dailyTimeBreakdown": "Daily time breakdown",
+    "focusScoreTrend": "Focus score trend",
+    "dashedLineNote": "Dashed line = 70-point target",
+    "daysTracked": "Days tracked",
+    "bestDay": "Best day"
   },
   "aiInsights": {
     "title": "Daily Snapshots",
@@ -174,14 +178,16 @@
     "pleaseSignIn": "Please sign in first",
     "noSyncedData": "No synced data for today — please sync manually from the extension first",
     "analysisFailed": "Analysis failed: ",
-    "unknownError": "An unknown error occurred"
+    "unknownError": "An unknown error occurred",
+    "latestSnapshot": "Latest snapshot",
+    "earlierSnapshots": "Earlier snapshots"
   },
   "settings": {
     "title": "Profile",
     "account": "Account",
     "googleAccount": "Google Account",
     "reset": "Reset",
-    "deleteCloudDesc": "Delete all synced data from the cloud. Your local extension data is not affected.",
+    "deleteCloudDesc": "Removes every synced stat and AI analysis from the cloud. Data stored in the extension on this device is not affected.",
     "preferences": "Preferences",
     "dailyEmailReport": "Daily Email Report",
     "emailReportDesc": "Receive a daily productivity summary in your inbox",
@@ -190,20 +196,20 @@
     "sent": "Sent",
     "failed": "Failed",
     "sendTestEmail": "Send Test Email",
-    "dailyFocusGoal": "Daily Focus Goal",
+    "dailyFocusGoal": "Daily focus goal",
     "range1hr": "1 hr",
     "range12hr": "12 hr",
     "profile": "Profile",
     "connectedViaGoogle": "Connected via Google",
-    "signOut": "Sign Out",
+    "signOut": "Sign out",
     "language": "Language",
     "languageEn": "English",
     "languageZhTW": "繁體中文",
-    "dataManagement": "Data Management",
-    "exportData": "Export Cloud Data (JSON)",
+    "dataManagement": "Data",
+    "exportData": "Export cloud data",
     "exporting": "Exporting…",
-    "exportDesc": "Download synced stats and AI analyses (last 30 days)",
-    "deleteAllCloud": "Delete All Cloud Data",
+    "exportDesc": "Download your synced stats and AI analyses from the last 30 days as JSON.",
+    "deleteAllCloud": "Delete all cloud data",
     "deleteCloudConfirm": "This permanently deletes all synced stats and AI analyses from the cloud. Local extension data is not affected. This cannot be undone.",
     "cancel": "Cancel",
     "confirmDelete": "Confirm Delete",
@@ -212,7 +218,11 @@
     "about": "About",
     "version": "Version",
     "reportIssue": "Report an Issue",
-    "appVersion": "1.0.0"
+    "appVersion": "1.0.0",
+    "languageDesc": "Applies to the dashboard and the extension popup.",
+    "dailyGoalDesc": "The productive time you are aiming for each day.",
+    "exportAction": "Download JSON",
+    "deleteAction": "Delete"
   },
   "categoryLabels": {
     "productive": "Productive",
