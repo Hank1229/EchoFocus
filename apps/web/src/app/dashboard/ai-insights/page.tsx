@@ -14,15 +14,15 @@ interface AiAnalysisRow {
 }
 
 function scoreColor(score: number) {
-  if (score >= 70) return 'text-brand-soft'
+  if (score >= 70) return 'text-productive'
   if (score >= 40) return 'text-brand'
-  return 'text-brand-deep'
+  return 'text-neutral'
 }
 
 function scoreBg(score: number) {
-  if (score >= 70) return 'bg-brand-soft/10'
+  if (score >= 70) return 'bg-productive/10'
   if (score >= 40) return 'bg-brand/10'
-  return 'bg-brand-deep/10'
+  return 'bg-neutral/10'
 }
 
 export default async function AiInsightsPage() {

@@ -22,12 +22,13 @@ export default function FocusScoreRing({ score, size = 104 }: FocusScoreRingProp
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (score / 100) * circumference
 
-  // Teal is the only brand color, so the tier is encoded by shade, not by hue.
+  // High scores should feel like a reward: green for great days, teal for
+  // steady ones, muted slate when there's room to grow. Never red.
   const tier = score >= 70
-    ? { accent: palette.brand.soft, label: t.popup.excellent }
+    ? { accent: palette.productive.DEFAULT, label: t.popup.excellent }
     : score >= 40
       ? { accent: palette.brand.DEFAULT, label: t.popup.average }
-      : { accent: palette.brand.deep, label: t.popup.roomToGrow }
+      : { accent: palette.neutral.DEFAULT, label: t.popup.roomToGrow }
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -86,13 +87,17 @@ export default function FocusScoreRing({ score, size = 104 }: FocusScoreRingProp
         </svg>
 
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="font-display text-[32px] font-semibold leading-none tabular-nums text-slate-100">
+          {/* mt compensates Bricolage's high cap-height so the numeral sits on the optical center */}
+          <span
+            className="mt-[3px] font-display text-[32px] font-semibold leading-none tabular-nums"
+            style={{ color: tier.accent }}
+          >
             {score}
           </span>
         </div>
       </div>
 
-      <p className="text-xs font-medium" style={{ color: tier.accent }}>{tier.label}</p>
+      <p className="text-xs font-medium text-slate-500">{tier.label}</p>
     </div>
   )
 }
