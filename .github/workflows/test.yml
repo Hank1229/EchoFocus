@@ -1,4 +1,4 @@
-name: Test
+name: CI
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,8 +18,27 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @echofocus/shared test
+
+      - name: Typecheck all packages
+        run: pnpm typecheck
+
+      - name: Test all packages
+        run: pnpm -r --if-present test
+
+      - name: Build extension
+        run: pnpm build:extension
+        env:
+          VITE_SUPABASE_URL: https://ci-placeholder.supabase.co
+          VITE_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+          VITE_SUPABASE_FUNCTIONS_URL: https://ci-placeholder.supabase.co/functions/v1
+          VITE_DASHBOARD_URL: https://ci-placeholder.example.com
+
+      - name: Build web
+        run: pnpm --filter @echofocus/web build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
