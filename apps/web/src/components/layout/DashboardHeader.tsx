@@ -16,7 +16,7 @@ export default function DashboardHeader({ title: _title, userEmail, avatarUrl }:
     <header className="border-b border-slate-800 px-6 py-4 flex items-center justify-between">
       <Link href="/dashboard/today" className="flex items-center gap-2">
         <Image src="/images/logo-icon.png" alt="EchoFocus logo" width={32} height={32} className="rounded-lg" />
-        <span className="font-bold text-sm tracking-wide hidden md:inline">
+        <span className="hidden font-display text-base font-semibold tracking-tight md:inline">
           <span className="text-slate-200">Echo</span><span className="text-brand">Focus</span>
         </span>
       </Link>

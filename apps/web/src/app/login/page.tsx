@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
+import { Lock } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 
 export default function LoginPage() {
@@ -32,19 +33,19 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center px-4">
-      <Link href="/" className="flex items-center gap-2 mb-12">
+      <Link href="/" className="mb-12 flex items-center gap-2">
         <Image src="/images/logo-icon.png" alt="EchoFocus logo" width={32} height={32} className="rounded-lg" />
-        <span className="text-lg font-bold tracking-wide">
+        <span className="font-display text-lg font-semibold tracking-tight">
           <span className="text-slate-200">Echo</span><span className="text-brand">Focus</span>
         </span>
       </Link>
 
-      <div className="w-full max-w-sm bg-slate-800 border border-slate-700 rounded-2xl p-8">
-        <h1 className="text-xl font-bold text-slate-100 mb-2 text-center">{t.login.welcomeBack}</h1>
-        <p className="text-sm text-slate-400 text-center mb-8">{t.login.signInDesc}</p>
+      <div className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-800 p-8">
+        <h1 className="mb-2 text-center font-display text-2xl font-semibold tracking-tight text-slate-100">{t.login.welcomeBack}</h1>
+        <p className="mb-8 text-center text-sm text-slate-400">{t.login.signInDesc}</p>
 
         {error && (
-          <div className="mb-4 px-4 py-3 bg-danger/10 border border-danger/30 rounded-lg text-sm text-danger">
+          <div className="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
             {error}
           </div>
         )}
@@ -52,7 +53,7 @@ export default function LoginPage() {
         <button
           onClick={handleGoogleLogin}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-3 py-3 bg-white hover:bg-slate-100 disabled:opacity-60 text-slate-900 font-semibold rounded-xl transition-colors"
+          className="flex w-full items-center justify-center gap-3 rounded-lg bg-white py-3 font-semibold text-slate-900 transition-colors hover:bg-slate-100 disabled:opacity-60"
         >
           {isLoading ? (
             <>
@@ -67,9 +68,9 @@ export default function LoginPage() {
           )}
         </button>
 
-        <div className="mt-6 flex items-start gap-2.5 px-3 py-3 bg-slate-700/50 border border-slate-700 rounded-xl">
-          <span className="text-sm mt-0.5">🔒</span>
-          <p className="text-xs text-slate-400 leading-relaxed">
+        <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-slate-700 bg-slate-700/50 px-3 py-3">
+          <Lock size={14} strokeWidth={1.75} className="mt-0.5 flex-shrink-0 text-slate-400" />
+          <p className="text-xs leading-relaxed text-slate-400">
             {t.login.privacyNote}
           </p>
         </div>

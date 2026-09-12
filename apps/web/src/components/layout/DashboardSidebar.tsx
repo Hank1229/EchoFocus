@@ -27,7 +27,7 @@ export default function DashboardSidebar() {
       <div className="px-5 py-5 border-b border-slate-800">
         <Link href="/dashboard/today" className="flex items-center gap-2">
           <Image src="/images/logo-icon.png" alt="EchoFocus logo" width={32} height={32} className="rounded-lg" />
-          <span className="font-bold text-sm tracking-wide">
+          <span className="font-display text-base font-semibold tracking-tight">
             <span className="text-slate-200">Echo</span><span className="text-brand">Focus</span>
           </span>
         </Link>

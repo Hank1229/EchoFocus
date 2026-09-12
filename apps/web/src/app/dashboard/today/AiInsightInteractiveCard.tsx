@@ -46,9 +46,9 @@ export default function AiInsightInteractiveCard({ analysisText, todayDate, lang
   const paragraphs = (localText ?? '').split(/\n\n+/).filter(Boolean).slice(0, 4)
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-sm font-medium text-slate-400 uppercase tracking-wide">{t.today.dailyInsight}</p>
+    <div className="flex h-full flex-col rounded-xl border border-slate-800 bg-slate-900 p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm font-medium text-slate-400">{t.today.dailyInsight}</p>
         <button
           onClick={handleRegenerate}
           disabled={isRegenerating}
@@ -94,7 +94,7 @@ export default function AiInsightInteractiveCard({ analysisText, todayDate, lang
       </div>
 
       {error && (
-        <div className="mt-3 bg-danger/10 border border-danger/30 rounded-xl p-3">
+        <div className="mt-3 rounded-lg border border-danger/30 bg-danger/10 p-3">
           <p className="text-xs text-danger">{error}</p>
         </div>
       )}

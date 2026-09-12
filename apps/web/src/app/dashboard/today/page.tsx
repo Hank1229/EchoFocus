@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import { redirect } from 'next/navigation'
 import { formatDuration, getTodayDateString } from '@echofocus/shared'
-import { Zap, Coffee, Minus } from 'lucide-react'
+import { Zap, Coffee, Minus, Inbox } from 'lucide-react'
 import { getLocale } from '@/lib/i18n-server'
 import GreetingHero from './GreetingHero'
 import FocusTimeline from './FocusTimeline'
@@ -118,8 +118,8 @@ export default async function TodayPage() {
             />
 
             {/* MACRO: Focus timeline */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5">
-              <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-4">
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+              <p className="mb-4 text-sm font-medium text-slate-400">
                 {t.today.focusTimeline}
               </p>
               <FocusTimeline
@@ -135,8 +135,8 @@ export default async function TodayPage() {
             <div className="grid grid-cols-12 gap-6">
               {/* Sites — 7 cols */}
               <div className="lg:col-span-7 col-span-12">
-                <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5">
-                  <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">{t.today.todaysSites}</p>
+                <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+                  <p className="mb-3 text-sm font-medium text-slate-400">{t.today.todaysSites}</p>
                   {row.top_domains.length === 0 ? (
                     <p className="text-sm text-slate-500">{t.today.noData}</p>
                   ) : (
@@ -167,9 +167,9 @@ export default async function TodayPage() {
         ) : (
           /* Empty state */
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <p className="text-4xl mb-4">📭</p>
-            <h2 className="text-xl font-bold text-slate-300 mb-2">{t.today.noSyncedData}</h2>
-            <p className="text-sm text-slate-500 max-w-sm leading-relaxed">
+            <Inbox size={36} strokeWidth={1.5} className="mb-4 text-slate-600" />
+            <h2 className="mb-2 font-display text-xl font-semibold tracking-tight text-slate-200">{t.today.noSyncedData}</h2>
+            <p className="max-w-sm text-sm leading-relaxed text-slate-500">
               {t.today.noSyncedDesc}
             </p>
           </div>

@@ -64,8 +64,8 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
   }
 
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-6 space-y-5">
-      <p className="text-xs text-slate-500 uppercase tracking-wider">{t.settings.preferences}</p>
+    <section className="space-y-5 rounded-xl border border-slate-800 bg-slate-900 p-6">
+      <p className="text-sm font-medium text-slate-400">{t.settings.preferences}</p>
 
       {/* Language */}
       <div>

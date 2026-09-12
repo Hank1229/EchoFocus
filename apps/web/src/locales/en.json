@@ -25,7 +25,7 @@
       "sub": "EchoFocus tracks your active tab on-device, scores your focus, and sends Gemini nothing but an anonymized daily summary — domain names and minutes. No URLs, no page titles, no history upload.",
       "download": "Download from GitHub",
       "dashboard": "Open dashboard",
-      "note": "Chrome · Manifest V3 · free. Not on the Chrome Web Store yet — grab the latest release build from GitHub."
+      "note": "Free, and it runs in Chrome as a Manifest V3 extension. It isn't on the Chrome Web Store yet, so download the latest release build from GitHub."
     },
     "preview": {
       "day": "Today",
@@ -39,7 +39,6 @@
       "aiText": "Your longest unbroken stretch was 96 minutes on github.com before lunch — the strongest block this week. Breaks clustered in the hour right after it."
     },
     "how": {
-      "eyebrow": "How it works",
       "title": "Three steps, and only one of them touches a server",
       "step1Title": "Track on-device",
       "step1Desc": "The extension reads the active tab through Chrome's tabs API and writes domain-and-duration entries straight into chrome.storage.local. It pauses when your machine goes idle or locks. No page content, no network request.",
@@ -49,7 +48,6 @@
       "step3Desc": "The analysis comes back to the extension popup, and to this dashboard if you sign in, where daily and 7- or 30-day trends accumulate."
     },
     "privacy": {
-      "eyebrow": "Privacy",
       "title": "Privacy is the architecture here, not a policy page",
       "desc": "Other trackers upload your history and promise to behave. EchoFocus structurally cannot: raw entries are written to chrome.storage.local on your machine, and no code path ships them anywhere.",
       "staysTitle": "Stays on your device",
@@ -68,7 +66,6 @@
       "link": "Read the full privacy policy"
     },
     "features": {
-      "eyebrow": "Features",
       "title": "Enough signal to change how you work",
       "f1Title": "Automatic tracking",
       "f1Desc": "No timers to start or stop. Active-tab time is attributed per domain and pauses the moment you step away.",
@@ -96,7 +93,7 @@
     }
   },
   "login": {
-    "welcomeBack": "Welcome Back",
+    "welcomeBack": "Welcome back",
     "signInDesc": "Sign in to view your productivity dashboard",
     "signingIn": "Signing in…",
     "signInWithGoogle": "Sign in with Google",
@@ -117,9 +114,9 @@
     "title": "Today's Overview",
     "focusScore": "Focus Score",
     "pts": "pts",
-    "excellent": "Excellent 🎉",
-    "average": "Average 💪",
-    "roomToGrow": "Room to grow 📈",
+    "excellent": "Excellent",
+    "average": "Average",
+    "roomToGrow": "Room to grow",
     "timeBreakdown": "Time Breakdown",
     "productive": "Productive",
     "breaksAndBrowsing": "Breaks & Browsing",
@@ -127,10 +124,10 @@
     "todaysSites": "Today's Sites",
     "noData": "No data",
     "dailyInsight": "Daily Insight",
-    "viewAll": "View all →",
+    "viewAll": "View all",
     "noDailyInsights": "No daily insights yet",
-    "goToSnapshots": "Go to Daily Snapshots to analyze →",
-    "noSyncedData": "No Synced Data Yet",
+    "goToSnapshots": "Go to Daily Snapshots to analyze",
+    "noSyncedData": "No synced data yet",
     "noSyncedDesc": "Install the EchoFocus Chrome extension and sign in — data syncs here automatically at 00:05 daily. You can also sync manually from the extension settings under the Account tab.",
     "synced": "Synced",
     "goodMorning": "Good morning",
@@ -152,7 +149,7 @@
     "show": "Show:",
     "last7days": "Last 7 days",
     "last30days": "Last 30 days",
-    "noTrendData": "No Trend Data Yet",
+    "noTrendData": "No trend data yet",
     "noTrendDesc": "Install the extension and use it for a few days — trend charts will appear here.",
     "avgFocusScore": "-Day Avg Focus Score",
     "productiveTime": "Productive Time",
@@ -166,7 +163,7 @@
     "generateNow": "Generate Now",
     "generateDesc": "Use Gemini AI to analyze today's browsing patterns and get personalized productivity tips.",
     "snapshotHistory": "Snapshot History",
-    "noSnapshots": "No Daily Snapshots Yet",
+    "noSnapshots": "No daily snapshots yet",
     "noSnapshotsDesc": "Click the button to analyze today's data and generate your first snapshot",
     "analyzed": "analyzed",
     "pts": "pts",
@@ -224,7 +221,7 @@
     "uncategorized": "Uncategorized"
   },
   "privacy": {
-    "backToHome": "← Back to Home",
+    "backToHome": "Back to home",
     "lastUpdated": "Last updated:",
     "coreCommitmentLabel": "Core Commitment:",
     "coreCommitment": "Your browsing history is your private data. EchoFocus uses a local-first architecture — all raw browsing data (URLs, page titles, time spent) is stored exclusively on your device and is never uploaded to any server.",
@@ -239,7 +236,7 @@
     "section9Title": "9. Contact Us"
   },
   "terms": {
-    "backToHome": "← Back to Home",
+    "backToHome": "Back to home",
     "lastUpdated": "Last updated:",
     "intro": "Thank you for using EchoFocus. Please read these terms carefully before use. Installing and using EchoFocus constitutes your agreement to these terms.",
     "section1Title": "1. Description of Service",

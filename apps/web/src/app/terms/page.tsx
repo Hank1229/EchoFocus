@@ -13,7 +13,7 @@ const LAST_UPDATED = 'January 1, 2025'
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
+      <h2 className="font-display text-xl font-semibold tracking-tight text-slate-100">{title}</h2>
       <div className="text-sm text-slate-400 leading-relaxed space-y-3">{children}</div>
     </section>
   )
@@ -29,7 +29,7 @@ export default async function TermsPage() {
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-slate-100 hover:text-white transition-colors">
             <Image src="/images/logo-icon.png" alt="EchoFocus logo" width={28} height={28} className="rounded-lg" />
-            <span className="font-bold">
+            <span className="font-display text-base font-semibold tracking-tight">
               <span className="text-slate-200">Echo</span><span className="text-brand">Focus</span>
             </span>
           </Link>
@@ -42,7 +42,7 @@ export default async function TermsPage() {
       {/* Content */}
       <main className="max-w-3xl mx-auto px-6 py-12 space-y-10">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-slate-100">{t.common.termsOfService}</h1>
+          <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-tight text-slate-100">{t.common.termsOfService}</h1>
           <p className="text-sm text-slate-500">{t.terms.lastUpdated} {LAST_UPDATED}</p>
         </div>
 

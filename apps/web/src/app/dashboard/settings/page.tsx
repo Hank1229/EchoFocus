@@ -38,8 +38,8 @@ export default async function SettingsPage() {
       <main className="flex-1 px-6 py-8 max-w-xl space-y-6">
 
         {/* Section 1: Account */}
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-6">
-          <p className="text-xs text-slate-500 uppercase tracking-wider mb-4">{t.settings.account}</p>
+        <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
+          <p className="mb-4 text-sm font-medium text-slate-400">{t.settings.account}</p>
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-4">
               {avatarUrl ? (
@@ -75,8 +75,8 @@ export default async function SettingsPage() {
         <SettingsForm userId={user!.id} initialPrefs={prefs as UserPreference ?? null} />
 
         {/* Section 3: Data Management */}
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-6 space-y-5">
-          <p className="text-xs text-slate-500 uppercase tracking-wider">{t.settings.dataManagement}</p>
+        <section className="space-y-5 rounded-xl border border-slate-800 bg-slate-900 p-6">
+          <p className="text-sm font-medium text-slate-400">{t.settings.dataManagement}</p>
 
           <ExportCloudDataButton userId={user!.id} />
 
@@ -87,8 +87,8 @@ export default async function SettingsPage() {
         </section>
 
         {/* Section 4: About */}
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-6 space-y-4">
-          <p className="text-xs text-slate-500 uppercase tracking-wider">{t.settings.about}</p>
+        <section className="space-y-4 rounded-xl border border-slate-800 bg-slate-900 p-6">
+          <p className="text-sm font-medium text-slate-400">{t.settings.about}</p>
           <div className="flex items-center justify-between">
             <span className="text-sm text-slate-400">EchoFocus</span>
             <span className="text-xs text-slate-500">{t.settings.version} {t.settings.appVersion}</span>

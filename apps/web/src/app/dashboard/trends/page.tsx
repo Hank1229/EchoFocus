@@ -4,6 +4,7 @@ import ActivityBarChart from '@/components/charts/ActivityBarChart'
 import FocusScoreChart from '@/components/charts/FocusScoreChart'
 import { formatDuration, getDateNDaysAgo } from '@echofocus/shared'
 import { redirect } from 'next/navigation'
+import { LineChart } from 'lucide-react'
 import { getLocale } from '@/lib/i18n-server'
 
 interface SyncedRow {
@@ -94,31 +95,38 @@ export default async function TrendsPage({
 
         {rows.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <p className="text-4xl mb-4">📉</p>
-            <h2 className="text-xl font-bold text-slate-300 mb-2">{t.trends.noTrendData}</h2>
-            <p className="text-sm text-slate-500 max-w-sm">
+            <LineChart size={36} strokeWidth={1.5} className="mb-4 text-slate-600" />
+            <h2 className="mb-2 font-display text-xl font-semibold tracking-tight text-slate-200">{t.trends.noTrendData}</h2>
+            <p className="max-w-sm text-sm text-slate-500">
               {t.trends.noTrendDesc}
             </p>
           </div>
         ) : (
           <>
-            {/* Summary stats — responsive horizontal row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { label: `${days}${t.trends.avgFocusScore}`, value: `${avgScore}`, color: 'text-brand' },
-                { label: t.trends.productiveTime, value: formatDuration(totalProductive), color: 'text-productive' },
-                { label: t.trends.breaksAndBrowsing, value: formatDuration(totalDistraction), color: 'text-breaks' },
-              ].map(s => (
-                <div key={s.label} className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5">
-                  <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-                  <p className="text-xs text-slate-500 mt-1">{s.label}</p>
-                </div>
-              ))}
+            {/* Summary stats — the average leads, the two totals sit under it */}
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+                <p className="font-display text-4xl font-semibold tabular-nums leading-none tracking-tight text-brand">
+                  {avgScore}
+                </p>
+                <p className="mt-2.5 text-xs text-slate-500">{days}{t.trends.avgFocusScore}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 md:col-span-2">
+                {[
+                  { label: t.trends.productiveTime, value: formatDuration(totalProductive), color: 'text-productive' },
+                  { label: t.trends.breaksAndBrowsing, value: formatDuration(totalDistraction), color: 'text-breaks' },
+                ].map(s => (
+                  <div key={s.label} className="flex flex-col justify-center border-t border-slate-800 pt-4 md:border-l md:border-t-0 md:pl-5 md:pt-0">
+                    <p className={`text-2xl font-semibold tabular-nums ${s.color}`}>{s.value}</p>
+                    <p className="mt-1.5 text-xs text-slate-500">{s.label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Activity bar chart */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-6">
-              <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-5">{t.trends.dailyTimeBreakdown}</p>
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
+              <p className="mb-5 text-sm font-medium text-slate-400">{t.trends.dailyTimeBreakdown}</p>
               <ActivityBarChart
                 data={barData}
                 labels={{
@@ -130,8 +138,8 @@ export default async function TrendsPage({
             </div>
 
             {/* Focus score line chart */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-6">
-              <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-5">{t.trends.focusScoreTrend}</p>
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
+              <p className="mb-5 text-sm font-medium text-slate-400">{t.trends.focusScoreTrend}</p>
               <FocusScoreChart data={scoreData} />
               <p className="text-xs text-slate-600 mt-2">{t.trends.dashedLineNote}</p>
             </div>

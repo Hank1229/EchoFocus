@@ -56,9 +56,9 @@ export default async function AiInsightsPage() {
 
           {/* ── Left: Generate Now ───────────────────────────── */}
           <div className="lg:col-span-5">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5 space-y-4">
+            <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-900 p-5">
               <div>
-                <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-1">{t.aiInsights.generateNow}</p>
+                <p className="mb-1 font-display text-base font-semibold tracking-tight text-slate-100">{t.aiInsights.generateNow}</p>
                 <p className="text-sm text-slate-400">
                   {t.aiInsights.generateDesc}
                 </p>
@@ -69,28 +69,28 @@ export default async function AiInsightsPage() {
 
           {/* ── Right: Snapshot History ───────────────────────── */}
           <div className="lg:col-span-7">
-            <p className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-4">{t.aiInsights.snapshotHistory}</p>
+            <p className="mb-4 text-sm font-medium text-slate-400">{t.aiInsights.snapshotHistory}</p>
 
             {analyses.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900 shadow-sm p-12 text-center">
-                <div className="flex justify-center mb-3">
+              <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900 p-12 text-center">
+                <div className="mb-3 flex justify-center">
                   <Lightbulb size={36} strokeWidth={1.5} className="text-slate-600" />
                 </div>
-                <p className="text-slate-300 font-medium mb-1">{t.aiInsights.noSnapshots}</p>
+                <p className="mb-1 font-medium text-slate-300">{t.aiInsights.noSnapshots}</p>
                 <p className="text-sm text-slate-500">{t.aiInsights.noSnapshotsDesc}</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {analyses.map(row => (
-                  <div key={row.id} className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5">
-                    <div className="flex items-start justify-between mb-3">
+                  <div key={row.id} className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+                    <div className="mb-3 flex items-start justify-between">
                       <div>
                         <p className="text-sm font-medium text-slate-200">{formatDate(row.date)}</p>
                         <p className="text-xs text-slate-600 mt-0.5">
                           {new Date(row.created_at).toLocaleString(dateLocale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} {t.aiInsights.analyzed}
                         </p>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${scoreBg(row.focus_score)} ${scoreColor(row.focus_score)}`}>
+                      <span className={`rounded-md px-2.5 py-1 text-xs font-semibold tabular-nums ${scoreBg(row.focus_score)} ${scoreColor(row.focus_score)}`}>
                         {row.focus_score} {t.aiInsights.pts}
                       </span>
                     </div>

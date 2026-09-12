@@ -78,8 +78,8 @@ export default function FocusTimeline({
 
       {/* Tooltip */}
       {hoveredSegment && tooltipDomains.length > 0 && (
-        <div className="mt-2 bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs">
-          <p className="text-slate-500 uppercase tracking-wide mb-2">{t.today.timelineTooltipDomains}</p>
+        <div className="mt-2 rounded-lg border border-slate-700 bg-slate-800 p-3 text-xs">
+          <p className="mb-2 font-medium text-slate-500">{t.today.timelineTooltipDomains}</p>
           <ul className="space-y-1">
             {tooltipDomains.map(d => (
               <li key={d.domain} className="flex justify-between gap-4">

@@ -55,7 +55,7 @@ export default function AnalyzeButton() {
       <button
         onClick={handleAnalyze}
         disabled={loading}
-        className="flex items-center gap-2 px-5 py-2.5 bg-brand hover:bg-brand-soft disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 text-sm font-semibold rounded-xl transition-colors"
+        className="flex items-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-brand-soft disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading ? (
           <>
@@ -71,22 +71,22 @@ export default function AnalyzeButton() {
       </button>
 
       {error && (
-        <div className="bg-danger/10 border border-danger/30 rounded-xl p-4">
+        <div className="rounded-lg border border-danger/30 bg-danger/10 p-4">
           <p className="text-sm text-danger">{error}</p>
         </div>
       )}
 
       {result && (
-        <div className="bg-slate-800 border-l-4 border-brand rounded-r-xl p-5">
-          <div className="flex items-center gap-3 mb-3">
+        <div className="rounded-r-lg border-l-2 border-brand bg-slate-800 p-5">
+          <div className="mb-3 flex items-center gap-3">
             <div className="flex items-center gap-1.5">
-              <MessageCircle size={18} strokeWidth={1.75} className="text-brand" />
-              <span className="text-xs text-slate-500 uppercase tracking-wider">{t.aiInsights.todaySnapshot}</span>
+              <MessageCircle size={16} strokeWidth={1.75} className="text-slate-400" />
+              <span className="text-sm font-medium text-slate-400">{t.aiInsights.todaySnapshot}</span>
             </div>
-            <span className="ml-auto text-sm font-bold text-brand">{result.focusScore} {t.aiInsights.pts}</span>
+            <span className="ml-auto text-sm font-semibold tabular-nums text-brand">{result.focusScore} {t.aiInsights.pts}</span>
           </div>
-          <p className="text-sm text-slate-300 leading-relaxed">{result.analysisText}</p>
-          <p className="text-xs text-slate-600 mt-3">{t.aiInsights.reloadNote}</p>
+          <p className="text-sm leading-relaxed text-slate-300">{result.analysisText}</p>
+          <p className="mt-3 text-xs text-slate-600">{t.aiInsights.reloadNote}</p>
         </div>
       )}
     </div>

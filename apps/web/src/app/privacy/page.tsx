@@ -13,7 +13,7 @@ const LAST_UPDATED = 'January 1, 2025'
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
+      <h2 className="font-display text-xl font-semibold tracking-tight text-slate-100">{title}</h2>
       <div className="text-sm text-slate-400 leading-relaxed space-y-3">{children}</div>
     </section>
   )
@@ -29,7 +29,7 @@ export default async function PrivacyPage() {
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-slate-100 hover:text-white transition-colors">
             <Image src="/images/logo-icon.png" alt="EchoFocus logo" width={28} height={28} className="rounded-lg" />
-            <span className="font-bold">
+            <span className="font-display text-base font-semibold tracking-tight">
               <span className="text-slate-200">Echo</span><span className="text-brand">Focus</span>
             </span>
           </Link>
@@ -42,11 +42,11 @@ export default async function PrivacyPage() {
       {/* Content */}
       <main className="max-w-3xl mx-auto px-6 py-12 space-y-10">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-slate-100">{t.common.privacyPolicy}</h1>
+          <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-tight text-slate-100">{t.common.privacyPolicy}</h1>
           <p className="text-sm text-slate-500">{t.privacy.lastUpdated} {LAST_UPDATED}</p>
         </div>
 
-        <div className="bg-brand/10 border border-brand/20 rounded-xl px-5 py-4">
+        <div className="rounded-xl border-l-2 border-brand bg-brand/[0.06] px-5 py-4">
           <p className="text-sm text-brand leading-relaxed">
             <strong className="font-semibold">{t.privacy.coreCommitmentLabel}</strong>{' '}
             {t.privacy.coreCommitment}
@@ -66,12 +66,12 @@ export default async function PrivacyPage() {
               </thead>
               <tbody className="divide-y divide-slate-800">
                 {[
-                  ['Browsing URLs & page titles', 'Your device (chrome.storage.local)', '❌ Never'],
-                  ['Time spent per site', 'Your device (chrome.storage.local)', '❌ Never'],
-                  ['Site category results', 'Your device (chrome.storage.local)', '❌ Never'],
-                  ['Daily aggregate stats (domain + duration only)', 'Your device; optional cloud sync', '⚠️ Anonymous aggregates only (opt-in)'],
-                  ['AI analysis results', 'chrome.storage.local + Supabase', '✅ Analysis text only — no raw browsing data'],
-                  ['Account info (email, preferences)', 'Supabase (encrypted)', '✅ Used for authentication & reports'],
+                  ['Browsing URLs & page titles', 'Your device (chrome.storage.local)', 'Never'],
+                  ['Time spent per site', 'Your device (chrome.storage.local)', 'Never'],
+                  ['Site category results', 'Your device (chrome.storage.local)', 'Never'],
+                  ['Daily aggregate stats (domain + duration only)', 'Your device; optional cloud sync', 'Anonymous aggregates only (opt-in)'],
+                  ['AI analysis results', 'chrome.storage.local + Supabase', 'Analysis text only — no raw browsing data'],
+                  ['Account info (email, preferences)', 'Supabase (encrypted)', 'Used for authentication & reports'],
                 ].map(([type, location, uploaded]) => (
                   <tr key={type}>
                     <td className="py-2.5 pr-4 text-slate-300">{type}</td>
