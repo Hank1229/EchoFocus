@@ -3,6 +3,7 @@ import type { Locale } from '@/lib/i18n-server'
 import ActivityBarChart from '@/components/charts/ActivityBarChart'
 import FocusScoreChart from '@/components/charts/FocusScoreChart'
 import { scoreNumeralClass } from '@/components/dashboard/score'
+import FocusHours from './FocusHours'
 
 export interface TrendsViewProps {
   days: number
@@ -11,6 +12,8 @@ export interface TrendsViewProps {
   totalProductive: number
   totalBreaks: number
   bestDay: { label: string; score: number } | null
+  /** Productive seconds per local hour, summed over the period. 24 entries. */
+  hours: number[]
   barData: { date: string; productive: number; distraction: number; neutral: number }[]
   scoreData: { date: string; score: number }[]
   copy: Locale['trends']
@@ -24,6 +27,7 @@ export default function TrendsView({
   totalProductive,
   totalBreaks,
   bestDay,
+  hours,
   barData,
   scoreData,
   copy,
@@ -98,6 +102,10 @@ export default function TrendsView({
           />
         </div>
       </section>
+
+      {/* daysTracked, not the requested window: two synced days shouldn't
+          claim a 30-day pattern. */}
+      <FocusHours hours={hours} days={daysTracked} copy={copy} />
     </div>
   )
 }

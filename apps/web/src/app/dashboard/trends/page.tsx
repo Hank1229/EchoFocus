@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { LineChart } from 'lucide-react'
-import { getDateNDaysAgo } from '@echofocus/shared'
+import { getDateNDaysAgo, emptyProductiveByHour, HOURS_PER_DAY } from '@echofocus/shared'
 import { createClient } from '@/lib/supabase/server'
 import { getLocale } from '@/lib/i18n-server'
 import DashboardHeader from '@/components/layout/DashboardHeader'
@@ -15,6 +15,22 @@ interface SyncedRow {
   neutral_seconds: number
   uncategorized_seconds: number
   focus_score: number
+  productive_by_hour: number[] | null
+}
+
+// Fold the period into 24 buckets. Rows synced before the hourly breakdown
+// existed carry the column's 24 zeros; a row that comes back malformed is
+// skipped rather than turned into NaN.
+function sumHours(rows: SyncedRow[]): number[] {
+  const hours = emptyProductiveByHour()
+  for (const row of rows) {
+    if (!Array.isArray(row.productive_by_hour)) continue
+    for (let hour = 0; hour < HOURS_PER_DAY; hour++) {
+      const seconds = row.productive_by_hour[hour]
+      if (typeof seconds === 'number' && seconds > 0) hours[hour] += seconds
+    }
+  }
+  return hours
 }
 
 export default async function TrendsPage({
@@ -34,7 +50,7 @@ export default async function TrendsPage({
   // (ascending + limit would return the OLDEST rows and freeze the charts in the past)
   const { data } = await supabase
     .from('synced_aggregates')
-    .select('date, total_seconds, productive_seconds, distraction_seconds, neutral_seconds, uncategorized_seconds, focus_score')
+    .select('date, total_seconds, productive_seconds, distraction_seconds, neutral_seconds, uncategorized_seconds, focus_score, productive_by_hour')
     .eq('user_id', user.id)
     .order('date', { ascending: false })
     .limit(days)
@@ -118,6 +134,7 @@ export default async function TrendsPage({
             totalProductive={totalProductive}
             totalBreaks={totalBreaks}
             bestDay={best ? { label: shortDate(best.date), score: best.focus_score } : null}
+            hours={sumHours(rows)}
             barData={barData}
             scoreData={scoreData}
             copy={t.trends}

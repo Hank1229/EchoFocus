@@ -61,8 +61,8 @@
       "leaves3": "Up to 8 domain names with minutes",
       "leaves4": "The insight text written from that summary",
       "payloadCaption": "The exact payload an analysis request sends — nothing is elided here",
-      "permsTitle": "Four permissions, no host access",
-      "permsDesc": "The manifest asks for tabs, storage, alarms and idle — plus identity, only for optional sign-in. There is no host_permissions entry, so the extension can never read a single page.",
+      "permsTitle": "No host access, ever",
+      "permsDesc": "The manifest asks for tabs, storage, alarms and idle — plus identity for optional sign-in and notifications for the optional daily summary. There is no host_permissions entry, so the extension can never read a single page.",
       "link": "Read the full privacy policy"
     },
     "features": {
@@ -164,7 +164,14 @@
     "focusScoreTrend": "Focus score trend",
     "dashedLineNote": "Dashed line = 70-point target",
     "daysTracked": "Days tracked",
-    "bestDay": "Best day"
+    "bestDay": "Best day",
+    "focusHours": "Best focus hours",
+    "focusHoursPeak": "You focus most around {hour} — {duration} of productive time over {days} days.",
+    "focusHoursTop": "Top hours",
+    "focusHoursLess": "Less",
+    "focusHoursMore": "More",
+    "focusHoursCell": "{hour}: {duration} of productive time",
+    "focusHoursEmpty": "Hourly focus appears once the extension syncs a day tracked with this version."
   },
   "aiInsights": {
     "title": "Daily Snapshots",

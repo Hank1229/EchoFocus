@@ -61,8 +61,8 @@
       "leaves3": "最多 8 個網域名稱與對應分鐘數",
       "leaves4": "依這份摘要寫出的洞察文字",
       "payloadCaption": "一次分析請求實際送出的內容 — 這裡沒有任何省略",
-      "permsTitle": "四個權限，沒有網站存取權",
-      "permsDesc": "manifest 只要求 tabs、storage、alarms、idle，再加上 identity（僅用於選擇性登入）。沒有 host_permissions，所以擴充功能永遠讀不到任何一個網頁。",
+      "permsTitle": "永遠沒有網站存取權",
+      "permsDesc": "manifest 只要求 tabs、storage、alarms、idle，再加上選擇性登入用的 identity 與選擇性每日摘要用的 notifications。沒有 host_permissions，所以擴充功能永遠讀不到任何一個網頁。",
       "link": "閱讀完整隱私政策"
     },
     "features": {
@@ -164,7 +164,14 @@
     "focusScoreTrend": "專注分數趨勢",
     "dashedLineNote": "虛線 = 70 分目標線",
     "daysTracked": "追蹤天數",
-    "bestDay": "最佳一天"
+    "bestDay": "最佳一天",
+    "focusHours": "最佳專注時段",
+    "focusHoursPeak": "你在 {hour} 前後最專注 — {days} 天內累積 {duration} 的生產力時間。",
+    "focusHoursTop": "專注時段排行",
+    "focusHoursLess": "較少",
+    "focusHoursMore": "較多",
+    "focusHoursCell": "{hour}：生產力時間 {duration}",
+    "focusHoursEmpty": "擴充功能同步第一天以此版本記錄的資料後，時段分佈就會出現。"
   },
   "aiInsights": {
     "title": "每日快照",
