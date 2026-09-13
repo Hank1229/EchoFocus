@@ -66,6 +66,9 @@ importers:
       vite:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@25.3.0)(jiti@1.21.7)
+      vitest:
+        specifier: ^5.0.0
+        version: 5.0.0(@types/node@25.3.0)(vite@8.3.0(@types/node@25.3.0)(jiti@1.21.7))
 
   apps/web:
     dependencies:
@@ -118,6 +121,9 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      vitest:
+        specifier: ^5.0.0
+        version: 5.0.0(@types/node@22.19.11)(vite@8.3.0(@types/node@22.19.11)(jiti@1.21.7))
 
   packages/shared:
     devDependencies:
@@ -1833,6 +1839,15 @@ snapshots:
       '@rolldown/pluginutils': 1.0.1
       vite: 8.3.0(@types/node@25.3.0)(jiti@1.21.7)
 
+  '@vitest/mocker@5.0.0(vite@8.3.0(@types/node@22.19.11)(jiti@1.21.7))':
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.31
+      '@vitest/spy': 5.0.0
+      estree-walker: 3.0.3
+      magic-string: 1.3.1
+    optionalDependencies:
+      vite: 8.3.0(@types/node@22.19.11)(jiti@1.21.7)
+
   '@vitest/mocker@5.0.0(vite@8.3.0(@types/node@25.3.0)(jiti@1.21.7))':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
@@ -2568,6 +2583,18 @@ snapshots:
       d3-time: 3.1.0
       d3-timer: 3.0.1
 
+  vite@8.3.0(@types/node@22.19.11)(jiti@1.21.7):
+    dependencies:
+      lightningcss: 1.33.0
+      picomatch: 4.0.7
+      postcss: 8.5.28
+      rolldown: 1.2.8
+      tinyglobby: 0.2.17
+    optionalDependencies:
+      '@types/node': 22.19.11
+      fsevents: 2.3.3
+      jiti: 1.21.7
+
   vite@8.3.0(@types/node@25.3.0)(jiti@1.21.7):
     dependencies:
       lightningcss: 1.33.0
@@ -2579,6 +2606,27 @@ snapshots:
       '@types/node': 25.3.0
       fsevents: 2.3.3
       jiti: 1.21.7
+
+  vitest@5.0.0(@types/node@22.19.11)(vite@8.3.0(@types/node@22.19.11)(jiti@1.21.7)):
+    dependencies:
+      '@types/chai': 5.2.3
+      '@vitest/mocker': 5.0.0(vite@8.3.0(@types/node@22.19.11)(jiti@1.21.7))
+      chai: 6.2.2
+      es-module-lexer: 2.3.2
+      expect-type: 1.4.0
+      magic-string: 1.3.1
+      obug: 2.2.1
+      picomatch: 4.0.7
+      std-env: 4.2.0
+      tinybench: 6.1.4
+      tinyexec: 1.3.0
+      tinyglobby: 0.2.17
+      vite: 8.3.0(@types/node@22.19.11)(jiti@1.21.7)
+      why-is-node-running: 2.3.0
+    optionalDependencies:
+      '@types/node': 22.19.11
+    transitivePeerDependencies:
+      - msw
 
   vitest@5.0.0(@types/node@25.3.0)(vite@8.3.0(@types/node@25.3.0)(jiti@1.21.7)):
     dependencies:
