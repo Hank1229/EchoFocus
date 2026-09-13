@@ -109,25 +109,73 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
         </div>
       </SettingRow>
 
+      <SettingRow label={t.settings.idleTimeout} description={t.settings.idleTimeoutDesc} stack>
+        <div className="max-w-sm">
+          <p className="font-display text-2xl font-semibold tabular-nums text-slate-100">
+            {t.settings.minutesUnit.replace('{n}', String(prefs.idle_timeout_minutes))}
+          </p>
+          <input
+            type="range"
+            min={1}
+            max={30}
+            value={prefs.idle_timeout_minutes}
+            onChange={e => update('idle_timeout_minutes', Number(e.target.value))}
+            aria-label={t.settings.idleTimeout}
+            className="mt-3 w-full accent-brand"
+          />
+          <div className="mt-1 flex justify-between text-xs text-slate-600">
+            <span>{t.settings.range1min}</span>
+            <span>{t.settings.range30min}</span>
+          </div>
+        </div>
+      </SettingRow>
+
+      <SettingRow label={t.settings.dataRetention} description={t.settings.dataRetentionDesc} stack>
+        <div className="max-w-sm">
+          <p className="font-display text-2xl font-semibold tabular-nums text-slate-100">
+            {t.settings.daysUnit.replace('{n}', String(prefs.data_retention_days))}
+          </p>
+          <input
+            type="range"
+            min={7}
+            max={365}
+            step={7}
+            value={prefs.data_retention_days}
+            onChange={e => update('data_retention_days', Number(e.target.value))}
+            aria-label={t.settings.dataRetention}
+            className="mt-3 w-full accent-brand"
+          />
+          <div className="mt-1 flex justify-between text-xs text-slate-600">
+            <span>{t.settings.range7days}</span>
+            <span>{t.settings.range365days}</span>
+          </div>
+        </div>
+      </SettingRow>
+
       {/* Sits in the control column so the action lines up with what it saves. */}
       <div className="grid gap-x-10 border-b border-slate-800/80 py-6 sm:grid-cols-[16rem_1fr]">
         <span className="hidden sm:block" />
-        <div className="flex items-center gap-4">
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-brand-soft disabled:opacity-60"
-          >
-            {isSaving ? t.common.saving : t.common.saveSettings}
-          </button>
-          {saveState === 'saved' && (
-            <span className="flex items-center gap-1.5 text-xs text-brand">
-              <Check size={13} strokeWidth={2} /> {t.common.saved}
-            </span>
-          )}
-          {saveState === 'error' && (
-            <span className="text-xs text-danger">{t.common.saveFailed}{saveError ?? ''}</span>
-          )}
+        <div>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-brand-soft disabled:opacity-60"
+            >
+              {isSaving ? t.common.saving : t.common.saveSettings}
+            </button>
+            {saveState === 'saved' && (
+              <span className="flex items-center gap-1.5 text-xs text-brand">
+                <Check size={13} strokeWidth={2} /> {t.common.saved}
+              </span>
+            )}
+            {saveState === 'error' && (
+              <span className="text-xs text-danger">{t.common.saveFailed}{saveError ?? ''}</span>
+            )}
+          </div>
+          <p className="mt-3 max-w-[52ch] text-xs leading-relaxed text-slate-600">
+            {t.settings.extensionPrefsNote}
+          </p>
         </div>
       </div>
     </>

@@ -44,7 +44,8 @@ export default async function GuidePage() {
               </div>
             ))}
           </dl>
-          <p className="mt-5 max-w-[62ch] text-sm leading-relaxed text-slate-500">{g.whereNote}</p>
+          <p className="mt-5 max-w-[62ch] text-sm leading-relaxed text-slate-500">{g.whereSyncNote}</p>
+          <p className="mt-3 max-w-[62ch] text-sm leading-relaxed text-slate-500">{g.whereNote}</p>
         </section>
 
         <section className="mt-10 border-t border-slate-800/80 pt-8">
@@ -73,6 +74,13 @@ export default async function GuidePage() {
             ))}
           </ul>
           <p className="mt-4 max-w-[62ch] text-sm leading-relaxed text-slate-500">{g.categoriesNote}</p>
+
+          <Link
+            href="/dashboard/rules"
+            className="mt-4 inline-block text-sm text-brand transition-colors hover:text-brand-soft"
+          >
+            {g.linkRules}
+          </Link>
         </section>
 
         <section className="mt-10 border-t border-slate-800/80 pt-8">
