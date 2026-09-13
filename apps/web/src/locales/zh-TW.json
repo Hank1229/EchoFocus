@@ -249,7 +249,9 @@
     "range30min": "30 分鐘",
     "range7days": "7 天",
     "range365days": "365 天",
-    "extensionPrefsNote": "每日目標、閒置暫停時間與資料保留天數會套用到擴充功能，它會在下次同步時取得儲存的設定。"
+    "extensionPrefsNote": "每日目標、閒置暫停時間與資料保留天數會套用到擴充功能，它會在下次同步時取得儲存的設定。",
+    "hoursUnit": "{n} 小時",
+    "hoursMinutesUnit": "{h} 小時 {m} 分"
   },
   "rules": {
     "title": "網站規則",

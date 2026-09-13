@@ -249,7 +249,9 @@
     "range30min": "30 min",
     "range7days": "7 days",
     "range365days": "365 days",
-    "extensionPrefsNote": "Daily goal, idle timeout and data retention apply to the extension. It picks up the saved values on its next sync."
+    "extensionPrefsNote": "Daily goal, idle timeout and data retention apply to the extension. It picks up the saved values on its next sync.",
+    "hoursUnit": "{n}h",
+    "hoursMinutesUnit": "{h}h {m}m"
   },
   "rules": {
     "title": "Site rules",

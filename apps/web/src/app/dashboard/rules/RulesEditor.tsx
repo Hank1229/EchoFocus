@@ -288,7 +288,8 @@ export default function RulesEditor({ userId, initialRules }: { userId: string; 
                       <span className="hidden w-36 flex-shrink-0 text-xs text-slate-500 sm:block">
                         {matches[rule.match_type]}
                       </span>
-                      <span className="flex w-28 flex-shrink-0 items-center gap-2 text-xs text-slate-400">
+                      {/* Wide enough for the longest category label, "Breaks & Browsing" */}
+                      <span className="flex w-36 flex-shrink-0 items-center gap-2 text-xs text-slate-400">
                         <span aria-hidden className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${DOT[rule.category]}`} />
                         <span className="truncate">{t.categoryLabels[rule.category]}</span>
                       </span>

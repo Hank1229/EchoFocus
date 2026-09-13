@@ -67,6 +67,9 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
 
   const goalHours = Math.floor(prefs.daily_goal_minutes / 60)
   const goalMinutes = prefs.daily_goal_minutes % 60
+  const goalText = goalMinutes > 0
+    ? t.settings.hoursMinutesUnit.replace('{h}', String(goalHours)).replace('{m}', String(goalMinutes))
+    : t.settings.hoursUnit.replace('{n}', String(goalHours))
 
   return (
     <>
@@ -90,7 +93,7 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
       <SettingRow label={t.settings.dailyFocusGoal} description={t.settings.dailyGoalDesc} stack>
         <div className="max-w-sm">
           <p className="font-display text-2xl font-semibold tabular-nums text-slate-100">
-            {goalHours}h{goalMinutes > 0 ? ` ${goalMinutes}m` : ''}
+            {goalText}
           </p>
           <input
             type="range"
