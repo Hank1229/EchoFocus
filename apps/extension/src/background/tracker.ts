@@ -1,5 +1,5 @@
 import type { TrackingEntry, TrackingState, Category } from '@echofocus/shared'
-import { extractDomain, categorizeDomain, splitEntryAtMidnight, formatLocalDate } from '@echofocus/shared'
+import { extractDomain, categorizeUrl, splitEntryAtMidnight, formatLocalDate } from '@echofocus/shared'
 import {
   getTrackingState,
   saveTrackingState,
@@ -223,7 +223,10 @@ async function startSession(tabId: number, url: string, title: string): Promise<
   }
 
   const customRules = await getCustomRules()
-  const category = categorizeDomain(domain, customRules)
+  // categorizeUrl, not categorizeDomain: a path rule can only be decided from
+  // the full URL, and domain-only matching silently ignores every one of them.
+  // The URL is never stored beyond this device or sent anywhere.
+  const category = categorizeUrl(url, customRules)
 
   _state.activeTabId = tabId
   _state.activeDomain = domain

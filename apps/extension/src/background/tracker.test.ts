@@ -215,6 +215,36 @@ describe('domain extraction and categorization', () => {
     expect(allEntries()[1]).toMatchObject({ domain: 'github.com', category: 'distraction' })
   })
 
+  // Path rules are the only kind that needs more than the hostname, so they are
+  // also the only kind a domain-only classifier drops on the floor.
+  it('applies a path rule to one section of a site without moving the rest', async () => {
+    chromeStub.store['custom_rules'] = [
+      {
+        id: 'r1',
+        pattern: 'youtube.com/playlist',
+        matchType: 'path',
+        category: 'productive',
+        isDefault: false,
+        createdAt: BASE,
+      },
+    ]
+    const tracker = await loadTracker()
+
+    setActiveTab('https://www.youtube.com/playlist?list=WL')
+    await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
+    at(BASE + 30_000)
+    await tracker.handleWindowFocusChanged(-1)
+    expect(allEntries()[0]).toMatchObject({ domain: 'youtube.com', category: 'productive' })
+
+    at(BASE + 60_000)
+    await tracker.handleWindowFocusChanged(1)
+    setActiveTab('https://www.youtube.com/watch?v=abc')
+    await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
+    at(BASE + 120_000)
+    await tracker.handleWindowFocusChanged(-1)
+    expect(allEntries()[1]).toMatchObject({ domain: 'youtube.com', category: 'distraction' })
+  })
+
   it('starts no session for a URL with no extractable domain', async () => {
     const tracker = await loadTracker()
     setActiveTab('https://')
