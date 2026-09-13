@@ -105,7 +105,8 @@
     "dailySnapshots": "Daily Snapshots",
     "settings": "Settings",
     "profile": "Profile",
-    "privacyNote": "Browsing data stays on your device"
+    "privacyNote": "Browsing data stays on your device",
+    "guide": "Guide"
   },
   "header": {
     "signOut": "Sign Out"
@@ -275,5 +276,29 @@
     "section10Title": "10. Changes to These Terms",
     "section11Title": "11. Governing Law",
     "section12Title": "12. Contact Us"
+  },
+  "guide": {
+    "title": "Guide",
+    "intro": "How EchoFocus works, and where each control lives. Nothing here changes your data — it is a reference you can come back to.",
+    "howTitle": "How tracking works",
+    "howBody": "The extension watches which tab is in front and how long it stays there, then writes the domain and the duration straight into your browser's local storage. It pauses when your machine goes idle or locks, and resumes when you come back. Visits shorter than five seconds are discarded, and a visit that crosses midnight is split across both days.",
+    "scoreTitle": "How the focus score is calculated",
+    "scoreBody": "Productive time divided by productive plus breaks-and-browsing time, as a number from 0 to 100. Neutral time — search, mail, calendars — is left out entirely, so a day spent mostly in your inbox neither helps nor hurts the score.",
+    "categoriesTitle": "Categories",
+    "categoriesProductive": "Productive — work, docs, code, learning",
+    "categoriesBreaks": "Breaks & browsing — social, video, entertainment",
+    "categoriesNeutral": "Neutral — search, mail, calendars, reference",
+    "categoriesNote": "Over 100 domains are categorized by default, and you can reclassify any site with your own rules.",
+    "privacyTitle": "What stays on your device",
+    "privacyBody": "Every URL you visit, every page title, and every individual visit with its timestamps are written only to your browser's local storage. No code path uploads them.",
+    "privacyLeavesTitle": "What is sent for AI analysis",
+    "privacyLeaves": "A daily summary: the date, total minutes per category, your focus score, and up to eight domain names with their minutes. That is the entire payload.",
+    "whereTitle": "Where to find things",
+    "whereExtension": "In the extension",
+    "whereExtensionItems": "Tracking on/off, daily goal, idle timeout, data retention, notifications, category rules, local data export and deletion",
+    "whereDashboard": "In this dashboard",
+    "whereDashboardItems": "Daily and 30-day trends, AI snapshots and weekly reviews, focus hours, language, cloud data deletion",
+    "whereNote": "Local browsing data can only be reached by the extension — that is the privacy architecture, not an oversight. Open the extension's options from its toolbar icon.",
+    "linkPrivacy": "Full privacy policy"
   }
 }

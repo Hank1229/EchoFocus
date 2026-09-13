@@ -6,7 +6,7 @@
     "generateSnapshot": "讓 AI 解讀你今天的專注去向。",
     "needAtLeast30Min": "需要至少 30 分鐘的瀏覽資料",
     "idle": "閒置",
-    "aiError": "無法生成快照 — 請檢查網路連線後重試",
+    "aiError": "無法產生快照,請稍後再試一次。",
     "openSettings": "開啟設定",
     "tracking": "追蹤中",
     "paused": "已暫停",
@@ -22,7 +22,10 @@
     "openProfile": "開啟個人檔案",
     "streakDays": "連續 {n} 天達標",
     "streakBest": "最佳 {n} 天",
-    "streakRestart": "達標 1 天即可重啟連續紀錄"
+    "streakRestart": "達標 1 天即可重啟連續紀錄",
+    "aiSignedOut": "請先到設定頁登入,才能產生快照。",
+    "aiSessionExpired": "登入已過期,請到設定頁重新登入。",
+    "aiNoData": "今天的瀏覽資料還不夠,再使用一陣子後回來。"
   },
   "aiInsight": {
     "generating": "正在生成快照…",

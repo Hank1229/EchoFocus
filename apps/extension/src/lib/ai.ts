@@ -1,7 +1,15 @@
 import type { AiAnalysisResult } from '@echofocus/shared'
-import { getSession } from './auth'
+import { getSession, refreshSession } from './auth'
 import { validateAiAnalysisResult } from './schemas'
 import { getAggregateForDate } from '../background/storage'
+
+// Every failure used to collapse into null, so the popup blamed the network for
+// expired sessions and empty days alike. Callers localize these reasons.
+export type AiFailureReason = 'signed-out' | 'session-expired' | 'no-data' | 'unavailable'
+
+export type AiAnalysisOutcome =
+  | { ok: true; result: AiAnalysisResult }
+  | { ok: false; reason: AiFailureReason }
 
 const FUNCTIONS_URL = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL as string
 
@@ -50,77 +58,78 @@ function parseCachedAnalysis(body: string): string | null {
   return typeof text === 'string' && text.length > 0 ? text : null
 }
 
-// Request AI analysis for a given date.
-// Returns null if the user is not signed in, there is no local aggregate, or the Edge Function fails.
-export async function requestAiAnalysis(date: string, language = 'en'): Promise<AiAnalysisResult | null> {
-  console.log('[EchoFocus] AI analysis: starting for', date)
-  console.log('[EchoFocus] AI analysis: FUNCTIONS_URL =', FUNCTIONS_URL || '(empty!)')
-
-  // Gate 1: auth
+export async function requestAiAnalysis(date: string, language = 'en'): Promise<AiAnalysisOutcome> {
   const session = await getSession()
   if (!session?.access_token) {
-    console.warn('[EchoFocus] AI analysis: BLOCKED — no session. Sign in via Options → Account.')
-    return null
+    return { ok: false, reason: 'signed-out' }
   }
 
-  // Gate 2: local aggregate data
   const aggregate = await getAggregateForDate(date)
-  console.log('[EchoFocus] AI analysis: aggregate =', aggregate
-    ? `totalSeconds=${aggregate.totalSeconds}, focusScore=${aggregate.focusScore}`
-    : 'null (no stored aggregate for ' + date + ')')
-
   if (!aggregate || aggregate.totalSeconds === 0) {
-    console.warn('[EchoFocus] AI analysis: BLOCKED — no tracking data for', date)
-    return null
+    return { ok: false, reason: 'no-data' }
   }
 
   const payload = buildPayload(date, language, aggregate)
-  console.log('[EchoFocus] AI analysis: sending fetch to', `${FUNCTIONS_URL}/ai-analyze`)
 
+  let res: Response
+  let responseBody: string
   try {
-    const res = await fetch(`${FUNCTIONS_URL}/ai-analyze`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify(payload),
-    })
+    ;[res, responseBody] = await post(payload, session.access_token)
 
-    // Always consume the response body
-    const responseBody = await res.text()
-
-    if (!res.ok) {
-      // SECURITY: log only the error message — an error body can carry the
-      // stored analysis text, which is user data.
-      console.error('[EchoFocus] ai-analyze error:', res.status, parseErrorMessage(responseBody))
-      // 429 = daily generation cap reached. The Edge Function still returns
-      // the analysis already stored for today — surface it as the result.
-      if (res.status === 429) {
-        const cached = parseCachedAnalysis(responseBody)
-        if (cached !== null) {
-          return validateAiAnalysisResult({
-            analysisText: cached,
-            focusScore: payload.aggregate.focusScore,
-            analyzedAt: Date.now(),
-          })
-        }
+    // A stored token can be long expired while still looking like a session.
+    // Refresh once and retry before deciding the user has to sign in again.
+    if (res.status === 401) {
+      const refreshed = await refreshSession()
+      if (!refreshed?.access_token) {
+        return { ok: false, reason: 'session-expired' }
       }
-      return null
+      ;[res, responseBody] = await post(payload, refreshed.access_token)
+      if (res.status === 401) {
+        return { ok: false, reason: 'session-expired' }
+      }
     }
-
-    const data: unknown = JSON.parse(responseBody)
-    const raw = data as { analysis_text?: unknown; focus_score?: unknown }
-    // SECURITY: do not log the analysis text — treat AI output as user data.
-    console.log('[EchoFocus] AI analysis: status=', res.status,
-      '| analysis_text length=', typeof raw.analysis_text === 'string' ? raw.analysis_text.length : 0)
-    return validateAiAnalysisResult({
-      analysisText: raw.analysis_text,
-      focusScore: raw.focus_score,
-      analyzedAt: Date.now(),
-    })
   } catch (err) {
-    console.error('[EchoFocus] AI analysis fetch error:', err)
-    return null
+    console.error('[EchoFocus] ai-analyze request failed:', err)
+    return { ok: false, reason: 'unavailable' }
   }
+
+  if (!res.ok) {
+    // SECURITY: log only the error message — an error body can carry the
+    // stored analysis text, which is user data.
+    console.error('[EchoFocus] ai-analyze error:', res.status, parseErrorMessage(responseBody))
+    // 429 = daily generation cap reached. The Edge Function still returns the
+    // analysis already stored for today — surface it as the result.
+    if (res.status === 429) {
+      const cached = parseCachedAnalysis(responseBody)
+      if (cached !== null) {
+        const result = validateAiAnalysisResult({
+          analysisText: cached,
+          focusScore: payload.aggregate.focusScore,
+          analyzedAt: Date.now(),
+        })
+        if (result) return { ok: true, result }
+      }
+    }
+    return { ok: false, reason: 'unavailable' }
+  }
+
+  const raw = parseJsonObject(responseBody) as { analysis_text?: unknown; focus_score?: unknown } | null
+  const result = validateAiAnalysisResult({
+    analysisText: raw?.analysis_text,
+    focusScore: raw?.focus_score,
+    analyzedAt: Date.now(),
+  })
+  return result ? { ok: true, result } : { ok: false, reason: 'unavailable' }
+}
+
+async function post(payload: unknown, accessToken: string): Promise<[Response, string]> {
+  const res = await fetch(`${FUNCTIONS_URL}/ai-analyze`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(payload),
+  })
+  return [res, await res.text()]
 }

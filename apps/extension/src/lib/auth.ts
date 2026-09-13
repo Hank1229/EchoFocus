@@ -81,3 +81,18 @@ export async function getSession(): Promise<Session | null> {
   const { data } = await supabase.auth.getSession()
   return data.session
 }
+
+// The service worker is killed constantly, so supabase-js never gets to run its
+// background refresh timer: a stored access token can be hours expired while
+// still looking like a valid session. Call this when the server rejects one.
+// Returns null when the refresh token is dead too — the user must sign in again.
+export async function refreshSession(): Promise<Session | null> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase.auth.refreshSession()
+  if (error || !data.session) {
+    console.warn('[EchoFocus] Session refresh failed; signing out locally.')
+    await supabase.auth.signOut()
+    return null
+  }
+  return data.session
+}

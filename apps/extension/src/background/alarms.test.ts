@@ -53,7 +53,7 @@ beforeEach(() => {
   chromeStub = installChromeStub()
   vi.clearAllMocks()
   vi.mocked(storage.recomputeAndSaveAggregate).mockResolvedValue(emptyAggregate('2026-03-14'))
-  vi.mocked(ai.requestAiAnalysis).mockResolvedValue(null)
+  vi.mocked(ai.requestAiAnalysis).mockResolvedValue({ ok: false, reason: 'unavailable' })
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.spyOn(console, 'log').mockImplementation(() => undefined)
 })
@@ -245,7 +245,7 @@ describe('the daily AI job', () => {
       emptyAggregate('2026-03-14', 30 * 60),
     )
     const result = { analysisText: 'Solid focus.', focusScore: 88, analyzedAt: Date.now() }
-    vi.mocked(ai.requestAiAnalysis).mockResolvedValue(result)
+    vi.mocked(ai.requestAiAnalysis).mockResolvedValue({ ok: true, result })
 
     await handleAlarm(alarm('echofocus-ai-daily'))
 
@@ -266,7 +266,7 @@ describe('the daily AI job', () => {
     vi.mocked(storage.recomputeAndSaveAggregate).mockResolvedValue(
       emptyAggregate('2026-03-14', 60 * 60),
     )
-    vi.mocked(ai.requestAiAnalysis).mockResolvedValue(null)
+    vi.mocked(ai.requestAiAnalysis).mockResolvedValue({ ok: false, reason: 'unavailable' })
     await handleAlarm(alarm('echofocus-ai-daily'))
     expect(storage.saveAiAnalysis).not.toHaveBeenCalled()
   })

@@ -2,10 +2,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import type { DailyAggregate } from '@echofocus/shared'
 import { installChromeStub } from '../test/chrome-stub'
 
-vi.mock('./auth', () => ({ getSession: vi.fn() }))
+vi.mock('./auth', () => ({ getSession: vi.fn(), refreshSession: vi.fn() }))
 vi.mock('../background/storage', () => ({ getAggregateForDate: vi.fn() }))
 
-import { getSession } from './auth'
+import { getSession, refreshSession } from './auth'
 import { getAggregateForDate } from '../background/storage'
 import { requestAiAnalysis } from './ai'
 
@@ -26,26 +26,37 @@ function aggregate(overrides: Partial<DailyAggregate> = {}): DailyAggregate {
   }
 }
 
-function signedIn(): void {
-  vi.mocked(getSession).mockResolvedValue({ access_token: 'token-123' } as never)
+function signedIn(token = 'token-123'): void {
+  vi.mocked(getSession).mockResolvedValue({ access_token: token } as never)
+}
+
+/** Queue one fetch response per call, in order. */
+function respondWithSequence(...responses: { status: number; body: string }[]): void {
+  const fn = vi.fn()
+  for (const r of responses) {
+    fn.mockImplementationOnce(async () =>
+      new Response(r.body, { status: r.status, statusText: r.status === 200 ? 'OK' : '' }),
+    )
+  }
+  vi.stubGlobal('fetch', fn)
 }
 
 function respondWith(init: { status: number; body: string }): void {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async () =>
-      new Response(init.body, { status: init.status, statusText: init.status === 200 ? 'OK' : '' }),
-    ),
-  )
+  respondWithSequence(init)
+}
+
+function requestAt(index: number): { url: string; init: RequestInit } {
+  const mock = vi.mocked(globalThis.fetch)
+  const [url, init] = mock.mock.calls[index] as [string, RequestInit]
+  return { url, init }
 }
 
 function lastRequest(): { url: string; init: RequestInit } {
   const mock = vi.mocked(globalThis.fetch)
-  const [url, init] = mock.mock.calls[mock.mock.calls.length - 1] as [string, RequestInit]
-  return { url, init }
+  return requestAt(mock.mock.calls.length - 1)
 }
 
-function sentPayload(): {
+function sentPayload(callIndex = -1): {
   date: string
   language: string
   aggregate: {
@@ -58,7 +69,8 @@ function sentPayload(): {
     topDomains: { domain: string; minutes: number; category: string }[]
   }
 } {
-  return JSON.parse(lastRequest().init.body as string)
+  const req = callIndex === -1 ? lastRequest() : requestAt(callIndex)
+  return JSON.parse(req.init.body as string)
 }
 
 beforeEach(() => {
@@ -79,35 +91,35 @@ afterEach(() => {
 })
 
 describe('requestAiAnalysis gates', () => {
-  it('returns null and sends nothing when not signed in', async () => {
+  it('reports signed-out and sends nothing when there is no session', async () => {
     vi.mocked(getSession).mockResolvedValue(null)
     respondWith({ status: 200, body: '{}' })
 
-    expect(await requestAiAnalysis('2026-03-14')).toBeNull()
+    expect(await requestAiAnalysis('2026-03-14')).toEqual({ ok: false, reason: 'signed-out' })
     expect(globalThis.fetch).not.toHaveBeenCalled()
   })
 
-  it('returns null when the session carries no access token', async () => {
+  it('reports signed-out when the session carries no access token', async () => {
     vi.mocked(getSession).mockResolvedValue({ access_token: '' } as never)
     respondWith({ status: 200, body: '{}' })
 
-    expect(await requestAiAnalysis('2026-03-14')).toBeNull()
+    expect(await requestAiAnalysis('2026-03-14')).toEqual({ ok: false, reason: 'signed-out' })
     expect(globalThis.fetch).not.toHaveBeenCalled()
   })
 
-  it('returns null when there is no local aggregate for the date', async () => {
+  it('reports no-data when there is no local aggregate for the date', async () => {
     vi.mocked(getAggregateForDate).mockResolvedValue(null)
     respondWith({ status: 200, body: '{}' })
 
-    expect(await requestAiAnalysis('2026-03-14')).toBeNull()
+    expect(await requestAiAnalysis('2026-03-14')).toEqual({ ok: false, reason: 'no-data' })
     expect(globalThis.fetch).not.toHaveBeenCalled()
   })
 
-  it('returns null when the day has zero tracked seconds', async () => {
+  it('reports no-data when the day has zero tracked seconds', async () => {
     vi.mocked(getAggregateForDate).mockResolvedValue(aggregate({ totalSeconds: 0 }))
     respondWith({ status: 200, body: '{}' })
 
-    expect(await requestAiAnalysis('2026-03-14')).toBeNull()
+    expect(await requestAiAnalysis('2026-03-14')).toEqual({ ok: false, reason: 'no-data' })
     expect(globalThis.fetch).not.toHaveBeenCalled()
   })
 })
@@ -182,9 +194,8 @@ describe('response handling', () => {
     })
 
     expect(await requestAiAnalysis('2026-03-14')).toEqual({
-      analysisText: 'Great focus today.',
-      focusScore: 81,
-      analyzedAt: NOW,
+      ok: true,
+      result: { analysisText: 'Great focus today.', focusScore: 81, analyzedAt: NOW },
     })
   })
 
@@ -195,41 +206,44 @@ describe('response handling', () => {
     })
 
     expect(await requestAiAnalysis('2026-03-14')).toEqual({
-      analysisText: 'Yesterday\'s take.',
-      // The cached text carries no score — the local aggregate's score is used
-      focusScore: 67,
-      analyzedAt: NOW,
+      ok: true,
+      result: {
+        analysisText: 'Yesterday\'s take.',
+        // The cached text carries no score — the local aggregate's score is used
+        focusScore: 67,
+        analyzedAt: NOW,
+      },
     })
   })
 
-  it('returns null for a 429 that carries no stored analysis', async () => {
+  it('reports unavailable for a 429 that carries no stored analysis', async () => {
     respondWith({ status: 429, body: JSON.stringify({ error: 'Daily limit reached' }) })
-    expect(await requestAiAnalysis('2026-03-14')).toBeNull()
+    expect(await requestAiAnalysis('2026-03-14')).toEqual({ ok: false, reason: 'unavailable' })
   })
 
-  it('returns null for a 429 whose stored analysis is an empty string', async () => {
+  it('reports unavailable for a 429 whose stored analysis is an empty string', async () => {
     respondWith({ status: 429, body: JSON.stringify({ analysis_text: '' }) })
-    expect(await requestAiAnalysis('2026-03-14')).toBeNull()
+    expect(await requestAiAnalysis('2026-03-14')).toEqual({ ok: false, reason: 'unavailable' })
   })
 
-  it('returns null for any other error status', async () => {
+  it('reports unavailable for any other error status', async () => {
     respondWith({ status: 500, body: 'Internal Server Error' })
-    expect(await requestAiAnalysis('2026-03-14')).toBeNull()
+    expect(await requestAiAnalysis('2026-03-14')).toEqual({ ok: false, reason: 'unavailable' })
   })
 
-  it('returns null for a non-JSON success body instead of throwing', async () => {
+  it('reports unavailable for a non-JSON success body instead of throwing', async () => {
     respondWith({ status: 200, body: '<html>gateway</html>' })
-    await expect(requestAiAnalysis('2026-03-14')).resolves.toBeNull()
+    await expect(requestAiAnalysis('2026-03-14')).resolves.toEqual({ ok: false, reason: 'unavailable' })
   })
 
-  it('returns null when the success body is missing the expected fields', async () => {
+  it('reports unavailable when the success body is missing the expected fields', async () => {
     respondWith({ status: 200, body: JSON.stringify({ analysis_text: 'text' }) })
-    expect(await requestAiAnalysis('2026-03-14')).toBeNull()
+    expect(await requestAiAnalysis('2026-03-14')).toEqual({ ok: false, reason: 'unavailable' })
   })
 
-  it('returns null when fetch rejects', async () => {
+  it('reports unavailable when fetch rejects, without throwing', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('Failed to fetch') }))
-    await expect(requestAiAnalysis('2026-03-14')).resolves.toBeNull()
+    await expect(requestAiAnalysis('2026-03-14')).resolves.toEqual({ ok: false, reason: 'unavailable' })
   })
 
   it('never logs the analysis text', async () => {
@@ -243,5 +257,52 @@ describe('response handling', () => {
 
     const logged = log.mock.calls.flat().map(String).join(' ')
     expect(logged).not.toContain('SECRET-USER-DATA')
+  })
+})
+
+describe('401 handling — refresh and retry once', () => {
+  it('refreshes the session once and retries with the new token on success', async () => {
+    respondWithSequence(
+      { status: 401, body: '{}' },
+      { status: 200, body: JSON.stringify({ analysis_text: 'Refreshed take.', focus_score: 70 }) },
+    )
+    vi.mocked(refreshSession).mockResolvedValue({ access_token: 'token-456' } as never)
+
+    const outcome = await requestAiAnalysis('2026-03-14')
+
+    expect(refreshSession).toHaveBeenCalledTimes(1)
+    expect(outcome).toEqual({
+      ok: true,
+      result: { analysisText: 'Refreshed take.', focusScore: 70, analyzedAt: NOW },
+    })
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2)
+    expect(requestAt(0).init.headers).toMatchObject({ Authorization: 'Bearer token-123' })
+    expect(requestAt(1).init.headers).toMatchObject({ Authorization: 'Bearer token-456' })
+  })
+
+  it('reports session-expired without retrying when refresh fails', async () => {
+    respondWithSequence({ status: 401, body: '{}' })
+    vi.mocked(refreshSession).mockResolvedValue(null)
+
+    const outcome = await requestAiAnalysis('2026-03-14')
+
+    expect(refreshSession).toHaveBeenCalledTimes(1)
+    expect(outcome).toEqual({ ok: false, reason: 'session-expired' })
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('reports session-expired and stops after the retry also returns 401', async () => {
+    respondWithSequence(
+      { status: 401, body: '{}' },
+      { status: 401, body: '{}' },
+    )
+    vi.mocked(refreshSession).mockResolvedValue({ access_token: 'token-456' } as never)
+
+    const outcome = await requestAiAnalysis('2026-03-14')
+
+    expect(refreshSession).toHaveBeenCalledTimes(1)
+    expect(outcome).toEqual({ ok: false, reason: 'session-expired' })
+    // No infinite retry loop: exactly the original attempt plus one retry.
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2)
   })
 })

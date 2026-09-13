@@ -105,7 +105,8 @@
     "dailySnapshots": "每日快照",
     "settings": "設定",
     "profile": "個人檔案",
-    "privacyNote": "瀏覽資料僅儲存在您的裝置上"
+    "privacyNote": "瀏覽資料僅儲存在您的裝置上",
+    "guide": "使用指南"
   },
   "header": {
     "signOut": "登出"
@@ -275,5 +276,29 @@
     "section10Title": "10. 條款變更",
     "section11Title": "11. 適用法律",
     "section12Title": "12. 聯絡我們"
+  },
+  "guide": {
+    "title": "使用指南",
+    "intro": "EchoFocus 怎麼運作,以及每個設定在哪裡。這一頁不會更動任何資料,隨時可以回來查。",
+    "howTitle": "追蹤怎麼運作",
+    "howBody": "擴充功能會看哪個分頁在前景、停留多久,然後把網域和時長直接寫進瀏覽器的本機儲存。電腦閒置或鎖定時自動暫停,回來後繼續。停留不到五秒的造訪會被捨棄,跨過午夜的造訪會拆分到兩天。",
+    "scoreTitle": "專注分數怎麼算",
+    "scoreBody": "生產力時間 ÷(生產力時間 + 休息與瀏覽時間),換算成 0 到 100。中性時間(搜尋、信箱、行事曆)完全不列入計算,所以一天大部分在收信,分數既不會被拉高也不會被拉低。",
+    "categoriesTitle": "分類方式",
+    "categoriesProductive": "生產力 — 工作、文件、程式、學習",
+    "categoriesBreaks": "休息與瀏覽 — 社群、影音、娛樂",
+    "categoriesNeutral": "中性 — 搜尋、信箱、行事曆、查資料",
+    "categoriesNote": "預設已分類超過 100 個網域,你也可以用自訂規則把任何網站改到別的分類。",
+    "privacyTitle": "留在你裝置上的資料",
+    "privacyBody": "你造訪的每個網址、每個網頁標題、每一次造訪與時間戳記,都只寫進瀏覽器的本機儲存。程式裡沒有任何一條路徑會把它們上傳。",
+    "privacyLeavesTitle": "送出去做 AI 分析的資料",
+    "privacyLeaves": "一份每日摘要:日期、各分類的總分鐘數、專注分數,以及最多八個網域名稱與各自的分鐘數。整個傳輸內容就只有這些。",
+    "whereTitle": "各項設定在哪裡",
+    "whereExtension": "在擴充功能裡",
+    "whereExtensionItems": "追蹤開關、每日目標、閒置時間、資料保留天數、通知、分類規則、本機資料匯出與刪除",
+    "whereDashboard": "在這個儀表板裡",
+    "whereDashboardItems": "每日與 30 天趨勢、AI 快照與每週回顧、專注時段、語言、雲端資料刪除",
+    "whereNote": "本機瀏覽資料只有擴充功能碰得到 —— 這是隱私架構的設計,不是疏漏。從工具列的擴充功能圖示進入選項頁即可。",
+    "linkPrivacy": "完整隱私政策"
   }
 }

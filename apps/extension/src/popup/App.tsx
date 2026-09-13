@@ -69,10 +69,15 @@ export default function App() {
     if (res.success && res.data) {
       setAiAnalysis(res.data)
     } else {
-      setAiError(res.error ?? t.popup.aiError)
+      const reasons: Record<string, string> = {
+        'signed-out': t.popup.aiSignedOut,
+        'session-expired': t.popup.aiSessionExpired,
+        'no-data': t.popup.aiNoData,
+      }
+      setAiError(reasons[res.error ?? ''] ?? t.popup.aiError)
     }
     setIsAnalyzing(false)
-  }, [isAnalyzing, today, language, t.popup.aiError])
+  }, [isAnalyzing, today, language, t.popup])
 
   const toggleLanguage = () => {
     setLanguage(language === 'en' ? 'zh-TW' : 'en' as Language)

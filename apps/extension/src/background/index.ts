@@ -1,4 +1,4 @@
-import { getSettings, saveSettings, getCustomRules, saveCustomRules, getAiAnalysis, saveAiAnalysis, recomputeAndSaveAggregate, getAggregateForDate, getAllDataForExport, deleteAllTrackingData, getStorageInfo } from './storage'
+import { getSettings, saveSettings, getCustomRules, saveCustomRules, getAiAnalysis, saveAiAnalysis, recomputeAndSaveAggregate, getAllDataForExport, deleteAllTrackingData, getStorageInfo } from './storage'
 import {
   restoreState,
   handleTabActivated,
@@ -15,7 +15,6 @@ import { setupAlarms, ensureHeartbeatAlarm, handleAlarm } from './alarms'
 import { openDailySummary } from './notifications'
 import { partialSettingsSchema, classificationRuleArraySchema } from '../lib/schemas'
 import { requestAiAnalysis } from '../lib/ai'
-import { getSession } from '../lib/auth'
 import { drainSyncQueue } from '../lib/sync'
 
 // ─── Message Types ─────────────────────────────────────────────────────────
@@ -201,25 +200,17 @@ async function handleMessage(
       const date = typeof payload === 'string' ? payload : payload.date
       const language = typeof payload === 'string' ? 'en' : (payload.language ?? 'en')
 
-      // Gate 1: must be signed in
-      const session = await getSession()
-      if (!session?.access_token) {
-        return { success: false, error: 'Please sign in first — go to Settings → Account' }
-      }
-
-      // Ensure aggregate is fresh, then check data exists
+      // Recompute first so the request sees the session currently in progress.
       await recomputeAndSaveAggregate(date)
-      const aggregate = await getAggregateForDate(date)
-      if (!aggregate || aggregate.totalSeconds === 0) {
-        return { success: false, error: "Not enough browsing data yet. Use Chrome for a bit and try again!" }
-      }
 
-      const result = await requestAiAnalysis(date, language)
-      if (result) {
-        await saveAiAnalysis(date, result)
+      // The reason travels as a code; the popup owns the wording so the user
+      // reads it in their own language.
+      const outcome = await requestAiAnalysis(date, language)
+      if (!outcome.ok) {
+        return { success: false, error: outcome.reason }
       }
-      if (!result) return { success: false, error: "Couldn't generate your snapshot — check your internet connection and try again" }
-      return { success: true, data: result }
+      await saveAiAnalysis(date, outcome.result)
+      return { success: true, data: outcome.result }
     }
 
     case 'EXPORT_DATA': {

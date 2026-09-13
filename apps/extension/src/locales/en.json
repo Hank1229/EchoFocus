@@ -6,7 +6,7 @@
     "generateSnapshot": "Get an AI read on where today's focus went.",
     "needAtLeast30Min": "Need at least 30 min of browsing data",
     "idle": "Idle",
-    "aiError": "Couldn't generate your snapshot — check your internet connection and try again",
+    "aiError": "Couldn't generate your snapshot. Try again in a moment.",
     "openSettings": "Open settings",
     "tracking": "Tracking",
     "paused": "Paused",
@@ -22,7 +22,10 @@
     "openProfile": "Open Profile",
     "streakDays": "{n}-day streak",
     "streakBest": "best {n}",
-    "streakRestart": "1 day to restart your streak"
+    "streakRestart": "1 day to restart your streak",
+    "aiSignedOut": "Sign in from Settings to generate snapshots.",
+    "aiSessionExpired": "Your sign-in expired. Open Settings and sign in again.",
+    "aiNoData": "There isn't enough browsing data for today yet."
   },
   "aiInsight": {
     "generating": "Generating your snapshot…",
