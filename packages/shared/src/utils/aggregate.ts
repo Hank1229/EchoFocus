@@ -1,4 +1,5 @@
 import type { TrackingEntry, DailyAggregate, TopDomain, Category } from '../types/tracking'
+import { emptyProductiveByHour } from '../types/tracking'
 
 // Calculate focus score (0-100) from productive and distraction seconds.
 // Score = productive / (productive + distraction) * 100
@@ -12,11 +13,35 @@ export function calculateFocusScore(
   return Math.min(100, Math.round((productiveSeconds / total) * 100))
 }
 
+// Spread one entry's duration over the local hours it covers, mirroring how
+// splitEntryAtMidnight() spreads across days: every hour but the last is
+// rounded, the last absorbs the remainder, so the buckets sum to exactly
+// `seconds`. Local hours are read off the Date, so DST shifts follow the
+// user's clock instead of a fixed 3600s stride.
+function addToHours(buckets: number[], startTime: number, seconds: number): void {
+  const end = startTime + seconds * 1000
+  let segmentStart = startTime
+  let allocated = 0
+
+  while (segmentStart < end) {
+    const nextHour = new Date(segmentStart)
+    nextHour.setMinutes(60, 0, 0)
+    const segmentEnd = Math.min(end, nextHour.getTime())
+    const slice = segmentEnd >= end
+      ? seconds - allocated
+      : Math.round((segmentEnd - segmentStart) / 1000)
+    allocated += slice
+    buckets[new Date(segmentStart).getHours()] += slice
+    segmentStart = segmentEnd
+  }
+}
+
 // Aggregate an array of TrackingEntry records into a DailyAggregate.
 export function aggregateEntries(
   entries: TrackingEntry[],
   date: string,
 ): DailyAggregate {
+  const productiveByHour = emptyProductiveByHour()
   let productiveSeconds = 0
   let distractionSeconds = 0
   let neutralSeconds = 0
@@ -30,6 +55,7 @@ export function aggregateEntries(
     switch (entry.category) {
       case 'productive':
         productiveSeconds += dur
+        addToHours(productiveByHour, entry.startTime, dur)
         break
       case 'distraction':
         distractionSeconds += dur
@@ -65,6 +91,7 @@ export function aggregateEntries(
     uncategorizedSeconds,
     topDomains,
     focusScore: calculateFocusScore(productiveSeconds, distractionSeconds),
+    productiveByHour,
   }
 }
 

@@ -17,6 +17,16 @@ export interface TopDomain {
   category: Category
 }
 
+// Productive seconds per hour of the user's LOCAL day: index 0 = 00:00–00:59.
+// Always 24 entries. Only productive time is bucketed — the feature it drives
+// ("when do I focus best?") reads as a single-signal heat strip, and the
+// per-category totals above already cover the rest of the day.
+export const HOURS_PER_DAY = 24
+
+export function emptyProductiveByHour(): number[] {
+  return new Array<number>(HOURS_PER_DAY).fill(0)
+}
+
 export interface DailyAggregate {
   date: string
   totalSeconds: number
@@ -26,6 +36,9 @@ export interface DailyAggregate {
   uncategorizedSeconds: number
   topDomains: TopDomain[]
   focusScore: number  // 0-100
+  // Optional: aggregates written before the hourly breakdown shipped don't
+  // have it, and rejecting those would erase a user's local history.
+  productiveByHour?: number[]
 }
 
 export interface TrackingState {
