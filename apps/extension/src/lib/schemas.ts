@@ -43,6 +43,10 @@ export const dailyAggregateSchema: z.ZodType<DailyAggregate> = z.object({
   uncategorizedSeconds: z.number(),
   topDomains: z.array(topDomainSchema),
   focusScore: z.number(),
+  // Absent on aggregates written before the hourly breakdown shipped, and
+  // dropped (rather than failing the whole day) if the wrong shape shows up —
+  // a bad bucket array must not cost the user a day of stats.
+  productiveByHour: z.array(z.number()).length(24).optional().catch(undefined),
 })
 
 export const trackingStateSchema: z.ZodType<TrackingState> = z.object({

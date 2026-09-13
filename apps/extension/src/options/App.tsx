@@ -1,15 +1,17 @@
-import React, { useEffect, useState, useCallback } from 'react'
-import { ArrowUpRight, Check, Lock, X } from 'lucide-react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
+import { ArrowUpRight, Check, Download, Lock, Upload, X } from 'lucide-react'
 import iconSrc from '../assets/icon-32.png'
 import type { Settings, ClassificationRule, Category, MatchType, DailyAggregate } from '@echofocus/shared'
 import { DEFAULT_SETTINGS } from '@echofocus/shared'
 import type { Session } from '@supabase/supabase-js'
 import { signInWithGoogle, signOut, getSession } from '../lib/auth'
 import { syncAggregateForDate, getLastSyncTime } from '../lib/sync'
+import { isDailySummaryEnabled, setDailySummaryEnabled } from '../background/notifications'
+import { mergeImportedRules } from './rules-import'
 import { getTodayDateString, getDateNDaysAgo } from '@echofocus/shared'
 import { useLocale, type Language } from '../lib/i18n'
+import { DASHBOARD_URL } from '../lib/config'
 
-const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL ?? 'http://localhost:3000'
 const APP_VERSION = '1.0.0'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -33,19 +35,38 @@ const CATEGORY_COLORS: Record<Category, string> = {
   uncategorized: 'text-neutral-deep',
 }
 
+function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (value: boolean) => void; label: string }) {
+  return (
+    <button
+      onClick={() => onChange(!checked)}
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${checked ? 'bg-brand' : 'bg-slate-600'}`}
+    >
+      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
+    </button>
+  )
+}
+
 // ─── General Tab ──────────────────────────────────────────────────────────
 
 function GeneralTab() {
   const { t, language, setLanguage } = useLocale()
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
+  const [dailySummary, setDailySummary] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [savedAt, setSavedAt] = useState<number | null>(null)
 
   useEffect(() => {
     const load = async () => {
-      const loaded = await sendMessage<Settings>('GET_SETTINGS')
+      const [loaded, summaryEnabled] = await Promise.all([
+        sendMessage<Settings>('GET_SETTINGS'),
+        isDailySummaryEnabled(),
+      ])
       if (loaded) setSettings(loaded)
+      setDailySummary(summaryEnabled)
       setIsLoading(false)
     }
     void load()
@@ -54,6 +75,7 @@ function GeneralTab() {
   const handleSave = async () => {
     setIsSaving(true)
     await sendMessage('SAVE_SETTINGS', settings)
+    await setDailySummaryEnabled(dailySummary)
     setIsSaving(false)
     setSavedAt(Date.now())
   }
@@ -78,12 +100,7 @@ function GeneralTab() {
             <p className="text-sm font-medium text-slate-200">{t.general.enableTracking}</p>
             <p className="text-xs text-slate-500 mt-0.5">{t.general.enableTrackingDesc}</p>
           </div>
-          <button
-            onClick={() => update('trackingEnabled', !settings.trackingEnabled)}
-            className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${settings.trackingEnabled ? 'bg-brand' : 'bg-slate-600'}`}
-          >
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${settings.trackingEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
-          </button>
+          <Toggle checked={settings.trackingEnabled} onChange={value => update('trackingEnabled', value)} label={t.general.enableTracking} />
         </div>
 
         {/* idleTimeoutMinutes */}
@@ -138,6 +155,22 @@ function GeneralTab() {
         </div>
       </section>
 
+      <section className="bg-slate-800 rounded-xl p-5 space-y-5">
+        <h2 className="text-xs font-medium text-slate-400">{t.general.notifications}</h2>
+
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-slate-200">{t.general.dailySummary}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{t.general.dailySummaryDesc}</p>
+          </div>
+          <Toggle
+            checked={dailySummary}
+            onChange={value => { setDailySummary(value); setSavedAt(null) }}
+            label={t.general.dailySummary}
+          />
+        </div>
+      </section>
+
       {/* Language setting */}
       <section className="px-5 space-y-3">
         <h2 className="text-xs font-medium text-slate-400">{t.general.language}</h2>
@@ -187,6 +220,9 @@ function CategoriesTab() {
   const [newPattern, setNewPattern] = useState('')
   const [newMatchType, setNewMatchType] = useState<MatchType>('exact')
   const [newCategory, setNewCategory] = useState<Category>('productive')
+
+  const fileInput = useRef<HTMLInputElement>(null)
+  const [importMessage, setImportMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
   const CATEGORY_LABELS: Record<Category, string> = {
     productive: t.categories.categoryLabels.productive,
@@ -238,6 +274,48 @@ function CategoriesTab() {
     const updated = rules.filter(r => r.id !== id)
     setRules(updated)
     await saveRules(updated)
+  }
+
+  // Object URL + a temporary anchor: the same download path the Privacy tab
+  // already uses, and `blob:` is untouched by the extension_pages CSP.
+  const exportRules = () => {
+    const blob = new Blob([JSON.stringify(rules, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `echofocus-rules-${getTodayDateString()}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const importRules = async (file: File) => {
+    setImportMessage(null)
+
+    let raw: unknown
+    try {
+      raw = JSON.parse(await file.text())
+    } catch {
+      setImportMessage({ text: t.categories.importUnreadable, ok: false })
+      return
+    }
+
+    const merged = mergeImportedRules(rules, raw)
+    if (!merged) {
+      setImportMessage({ text: t.categories.importNotRules, ok: false })
+      return
+    }
+
+    if (merged.added > 0) {
+      setRules(merged.rules)
+      await saveRules(merged.rules)
+    }
+    setImportMessage({
+      text: t.categories.importResult
+        .replace('{added}', String(merged.added))
+        .replace('{skipped}', String(merged.skipped)),
+      // Nothing imported is a failed import, however well-formed the file was.
+      ok: merged.added > 0,
+    })
   }
 
   if (isLoading) {
@@ -316,6 +394,45 @@ function CategoriesTab() {
             ))}
           </ul>
         )}
+      </section>
+
+      {/* Import / export */}
+      <section className="bg-slate-800 rounded-xl p-5 space-y-3">
+        <h2 className="text-xs font-medium text-slate-400">{t.categories.importExport}</h2>
+        <p className="text-xs text-slate-500">{t.categories.importExportDesc}</p>
+
+        <p role="status" className={`text-xs ${importMessage?.ok === false ? 'text-danger' : 'text-slate-400'}`}>
+          {importMessage?.text}
+        </p>
+
+        <div className="flex gap-2">
+          <button
+            onClick={exportRules}
+            disabled={rules.length === 0}
+            className="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-600"
+          >
+            <Download size={14} strokeWidth={2} />{t.categories.exportRules}
+          </button>
+          <button
+            onClick={() => fileInput.current?.click()}
+            disabled={isSaving}
+            className="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-600"
+          >
+            <Upload size={14} strokeWidth={2} />{t.categories.importRules}
+          </button>
+        </div>
+
+        <input
+          ref={fileInput}
+          type="file"
+          accept="application/json,.json"
+          className="hidden"
+          onChange={e => {
+            const file = e.target.files?.[0]
+            e.target.value = ''
+            if (file) void importRules(file)
+          }}
+        />
       </section>
 
       <p className="text-xs text-slate-600 text-center">
@@ -585,8 +702,6 @@ function PrivacyTab() {
   const usedMB = storageInfo ? (storageInfo.usedBytes / (1024 * 1024)).toFixed(2) : '…'
   const usedPercent = storageInfo ? Math.min(100, (storageInfo.usedBytes / storageInfo.quotaBytes) * 100) : 0
 
-  const DASHBOARD_URL_LOCAL = import.meta.env.VITE_DASHBOARD_URL ?? 'http://localhost:3000'
-
   return (
     <div className="space-y-5">
       {/* Storage usage */}
@@ -649,8 +764,8 @@ function PrivacyTab() {
       <section className="px-5">
         <h2 className="text-xs font-medium text-slate-400 mb-1">{t.privacy.documents}</h2>
         {[
-          { label: t.privacy.privacyPolicy, href: `${DASHBOARD_URL_LOCAL}/privacy` },
-          { label: t.privacy.termsOfService, href: `${DASHBOARD_URL_LOCAL}/terms` },
+          { label: t.privacy.privacyPolicy, href: `${DASHBOARD_URL}/privacy` },
+          { label: t.privacy.termsOfService, href: `${DASHBOARD_URL}/terms` },
         ].map(({ label, href }) => (
           <a key={label} href={href} target="_blank" rel="noreferrer"
             className="flex items-center justify-between text-sm text-slate-300 hover:text-slate-100 transition-colors py-2 border-b border-slate-800 last:border-0">
@@ -705,8 +820,6 @@ function PrivacyTab() {
 
 function AboutTab() {
   const { t } = useLocale()
-  const DASHBOARD_URL_LOCAL = import.meta.env.VITE_DASHBOARD_URL ?? 'http://localhost:3000'
-
   return (
     <div className="space-y-5">
       <section className="bg-slate-800 rounded-xl p-5 space-y-4">
@@ -737,8 +850,8 @@ function AboutTab() {
       <section className="px-5">
         <h2 className="text-xs font-medium text-slate-400 mb-1">{t.about.links}</h2>
         {[
-          { label: t.privacy.privacyPolicy, href: `${DASHBOARD_URL_LOCAL}/privacy` },
-          { label: t.privacy.termsOfService, href: `${DASHBOARD_URL_LOCAL}/terms` },
+          { label: t.privacy.privacyPolicy, href: `${DASHBOARD_URL}/privacy` },
+          { label: t.privacy.termsOfService, href: `${DASHBOARD_URL}/terms` },
           { label: t.about.reportIssue, href: 'https://github.com/Hank1229/EchoFocus/issues' },
         ].map(({ label, href }) => (
           <a key={label} href={href} target="_blank" rel="noreferrer"

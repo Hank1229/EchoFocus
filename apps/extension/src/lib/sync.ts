@@ -1,5 +1,5 @@
 import type { DailyAggregate } from '@echofocus/shared'
-import { getDateNDaysAgo } from '@echofocus/shared'
+import { emptyProductiveByHour, getDateNDaysAgo } from '@echofocus/shared'
 import { getSupabaseClient } from './supabase'
 import { getSession } from './auth'
 import { getAggregateForDate, withStorageLock } from '../background/storage'
@@ -26,6 +26,10 @@ async function upsertAggregate(aggregate: DailyAggregate, userId: string): Promi
     uncategorized_seconds: aggregate.uncategorizedSeconds,
     focus_score: aggregate.focusScore,
     top_domains: aggregate.topDomains,  // { domain, seconds, category } — no URLs
+    // 24 productive-second counts, nothing attached to them. Days recorded
+    // before the hourly breakdown shipped sync as zeros, matching the column
+    // default rather than leaving the row's old value behind.
+    productive_by_hour: aggregate.productiveByHour ?? emptyProductiveByHour(),
     synced_at: new Date().toISOString(),
   }, {
     onConflict: 'user_id,date',

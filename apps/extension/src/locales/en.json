@@ -67,6 +67,9 @@
     "saved": "Saved",
     "saveSettings": "Save settings",
     "saving": "Saving…",
+    "notifications": "Notifications",
+    "dailySummary": "Daily summary",
+    "dailySummaryDesc": "A Chrome notification at 21:00 with today's focus score",
     "language": "Language",
     "languageDesc": "Choose your preferred display language",
     "english": "English",
@@ -81,6 +84,13 @@
     "deleteRule": "Delete rule",
     "rulesNote": "Custom rules take priority over defaults. Changes apply immediately.",
     "saved": "Saved",
+    "importExport": "Import & export",
+    "importExportDesc": "Save your rules to a JSON file, or merge rules from one into this list.",
+    "exportRules": "Export rules",
+    "importRules": "Import rules",
+    "importResult": "{added} rules added, {skipped} skipped",
+    "importNotRules": "That file doesn't contain a list of rules",
+    "importUnreadable": "Couldn't read that file — it isn't valid JSON",
     "matchTypes": {
       "exact": "Exact domain",
       "wildcard": "Wildcard",
@@ -146,6 +156,13 @@
     "links": "Links",
     "reportIssue": "Report an issue",
     "copyright": "© 2026 EchoFocus — Powered by Google Gemini AI"
+  },
+  "notifications": {
+    "dailySummary": {
+      "title": "Today's focus score: {score}",
+      "message": "{time} of productive time today.",
+      "messageWithStreak": "{time} of productive time today — {n} days in a row."
+    }
   },
   "onboarding": {
     "skip": "Skip setup",

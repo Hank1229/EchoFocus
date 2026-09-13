@@ -3,6 +3,7 @@ import { getTodayDateString } from '@echofocus/shared'
 import { syncYesterdayAggregate } from '../lib/sync'
 import { requestAiAnalysis } from '../lib/ai'
 import { recordHeartbeat } from './tracker'
+import { notifyDailySummary } from './notifications'
 
 const CLEANUP_ALARM = 'echofocus-cleanup'
 const AGGREGATE_ALARM = 'echofocus-aggregate'
@@ -34,7 +35,7 @@ export async function setupAlarms(): Promise<void> {
     periodInMinutes: 24 * 60,
   })
 
-  // Daily AI analysis at 21:00 — analyses today's browsing after a full day
+  // 21:00 — daily summary notification plus the AI analysis of today's browsing
   await chrome.alarms.create(AI_ALARM, {
     when: next9PM(),
     periodInMinutes: 24 * 60,
@@ -91,7 +92,7 @@ export async function handleAlarm(alarm: chrome.alarms.Alarm): Promise<void> {
       break
 
     case AI_ALARM:
-      await runAiAnalysis()
+      await runEveningSummary()
       break
 
     case HEARTBEAT_ALARM:
@@ -121,12 +122,21 @@ async function runSync(): Promise<void> {
   await syncYesterdayAggregate()
 }
 
-async function runAiAnalysis(): Promise<void> {
+// The notification goes out for any day with data; the AI analysis needs
+// enough of a day behind it to say something useful.
+async function runEveningSummary(): Promise<void> {
   const today = getTodayDateString()
-  console.log('[EchoFocus] Running daily AI analysis for', today)
-
-  // Guard: skip if less than 30 minutes of browsing data — avoids misleading analysis
   const aggregate = await recomputeAndSaveAggregate(today)
+
+  // The AI analysis below is the important half of this alarm — a notification
+  // failure must not cost the user their daily insight.
+  try {
+    await notifyDailySummary(today, aggregate)
+  } catch (err) {
+    console.error('[EchoFocus] Daily summary notification failed:', err)
+  }
+
+  console.log('[EchoFocus] Running daily AI analysis for', today)
   if (aggregate.totalSeconds < 30 * 60) {
     console.log('[EchoFocus] Insufficient data, skipping AI analysis')
     return

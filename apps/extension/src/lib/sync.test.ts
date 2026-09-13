@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { DailyAggregate } from '@echofocus/shared'
+import { emptyProductiveByHour } from '@echofocus/shared'
 import { installChromeStub, type ChromeStub } from '../test/chrome-stub'
 
 vi.mock('./supabase', () => ({ getSupabaseClient: vi.fn() }))
@@ -46,6 +47,12 @@ function signedIn(userId = 'user-1'): void {
   vi.mocked(getSession).mockResolvedValue({ user: { id: userId } } as never)
 }
 
+function hourly(byHour: Record<number, number>): number[] {
+  const buckets = emptyProductiveByHour()
+  for (const [hour, seconds] of Object.entries(byHour)) buckets[Number(hour)] = seconds
+  return buckets
+}
+
 function aggregate(date: string, overrides: Partial<DailyAggregate> = {}): DailyAggregate {
   return {
     date,
@@ -56,6 +63,7 @@ function aggregate(date: string, overrides: Partial<DailyAggregate> = {}): Daily
     uncategorizedSeconds: 200,
     topDomains: [{ domain: 'github.com', seconds: 2400, category: 'productive' }],
     focusScore: 80,
+    productiveByHour: hourly({ 9: 1200, 14: 1200 }),
     ...overrides,
   }
 }
@@ -215,8 +223,18 @@ describe('the upserted row', () => {
       uncategorized_seconds: agg.uncategorizedSeconds,
       focus_score: agg.focusScore,
       top_domains: agg.topDomains,
+      productive_by_hour: agg.productiveByHour,
       synced_at: new Date().toISOString(),
     })
+  })
+
+  it('sends 24 zeroed hours for a day recorded before the hourly breakdown', async () => {
+    storeAggregate('2026-03-14', { productiveByHour: undefined })
+    await enqueueSyncDate('2026-03-14')
+
+    await drainSyncQueue()
+
+    expect(upsertCalls[0].payload.productive_by_hour).toEqual(emptyProductiveByHour())
   })
 
   it('sends no URLs or page titles', async () => {
@@ -229,6 +247,18 @@ describe('the upserted row', () => {
     expect(serialized).not.toContain('http')
     expect(serialized).not.toContain('title')
     expect(serialized).not.toContain('url')
+  })
+
+  it('sends the hourly breakdown as bare numbers', async () => {
+    storeAggregate('2026-03-14')
+    await enqueueSyncDate('2026-03-14')
+
+    await drainSyncQueue()
+
+    const buckets = upsertCalls[0].payload.productive_by_hour
+    expect(Array.isArray(buckets)).toBe(true)
+    expect(buckets).toHaveLength(24)
+    expect((buckets as unknown[]).every(v => typeof v === 'number')).toBe(true)
   })
 })
 

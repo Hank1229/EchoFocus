@@ -133,6 +133,24 @@ describe('recomputeAndSaveAggregate', () => {
     expect(aggregate.topDomains).toEqual([])
   })
 
+  it('persists the hourly breakdown from the shared aggregation', async () => {
+    const at = (hour: number, minute: number) => new Date(2026, 2, 14, hour, minute, 0).getTime()
+    await saveEntry(entry({ id: 'a', startTime: at(9, 30), duration: 1800 }))
+    await saveEntry(entry({ id: 'b', startTime: at(13, 50), duration: 1200 }))
+    await saveEntry(entry({ id: 'c', startTime: at(20, 0), duration: 900, category: 'distraction' }))
+
+    const aggregate = await recomputeAndSaveAggregate('2026-03-14')
+    const stored = chromeStub.store['aggregates:2026-03-14'] as DailyAggregate
+
+    expect(stored.productiveByHour).toEqual(aggregate.productiveByHour)
+    expect(stored.productiveByHour).toHaveLength(24)
+    expect(stored.productiveByHour?.[9]).toBe(1800)
+    expect(stored.productiveByHour?.[13]).toBe(600)
+    expect(stored.productiveByHour?.[14]).toBe(600)
+    expect(stored.productiveByHour?.[20]).toBe(0)
+    expect(stored.productiveByHour?.reduce((a, b) => a + b, 0)).toBe(stored.productiveSeconds)
+  })
+
   it('overwrites a stale aggregate on recompute', async () => {
     chromeStub.store['aggregates:2026-03-14'] = { date: '2026-03-14', totalSeconds: 99999 }
     await saveEntry(entry({ duration: 30 }))
@@ -164,6 +182,29 @@ describe('getAggregateForDate', () => {
     }
     chromeStub.store['aggregates:2026-03-14'] = aggregate
     expect(await getAggregateForDate('2026-03-14')).toEqual(aggregate)
+  })
+
+  it('keeps the hourly breakdown through validation instead of stripping it', async () => {
+    const aggregate = await recomputeAndSaveAggregate('2026-03-14')
+    const read = await getAggregateForDate('2026-03-14')
+    expect(read?.productiveByHour).toEqual(aggregate.productiveByHour)
+  })
+
+  it('drops a malformed hourly breakdown but keeps the day', async () => {
+    chromeStub.store['aggregates:2026-03-14'] = {
+      date: '2026-03-14',
+      totalSeconds: 100,
+      productiveSeconds: 100,
+      distractionSeconds: 0,
+      neutralSeconds: 0,
+      uncategorizedSeconds: 0,
+      topDomains: [],
+      focusScore: 100,
+      productiveByHour: [1, 2, 3],
+    }
+    const read = await getAggregateForDate('2026-03-14')
+    expect(read?.totalSeconds).toBe(100)
+    expect(read?.productiveByHour).toBeUndefined()
   })
 })
 

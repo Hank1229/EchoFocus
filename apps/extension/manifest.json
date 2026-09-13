@@ -8,7 +8,8 @@
     "storage",
     "alarms",
     "idle",
-    "identity"
+    "identity",
+    "notifications"
   ],
   "background": {
     "service_worker": "src/background/index.ts",

@@ -300,7 +300,10 @@ export async function deleteAllTrackingData(): Promise<void> {
     const keysToRemove = Object.keys(allData).filter(key =>
       key.startsWith('entries:') ||
       key.startsWith('aggregates:') ||
-      key.startsWith('ai_analysis:')
+      key.startsWith('ai_analysis:') ||
+      // Leaving this behind would suppress tonight's summary for a day that
+      // no longer exists.
+      key === 'daily_summary_sent_on'
     )
     if (keysToRemove.length > 0) {
       await chrome.storage.local.remove(keysToRemove)

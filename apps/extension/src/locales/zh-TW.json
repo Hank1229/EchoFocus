@@ -67,6 +67,9 @@
     "saved": "已儲存",
     "saveSettings": "儲存設定",
     "saving": "儲存中…",
+    "notifications": "通知",
+    "dailySummary": "每日摘要",
+    "dailySummaryDesc": "晚上 9:00 以 Chrome 通知顯示今天的專注分數",
     "language": "語言",
     "languageDesc": "選擇您偏好的顯示語言",
     "english": "English",
@@ -81,6 +84,13 @@
     "deleteRule": "刪除規則",
     "rulesNote": "自訂規則優先於預設值，變更立即生效。",
     "saved": "已儲存",
+    "importExport": "匯入與匯出",
+    "importExportDesc": "將規則儲存為 JSON 檔案，或從檔案合併規則到這份清單。",
+    "exportRules": "匯出規則",
+    "importRules": "匯入規則",
+    "importResult": "已新增 {added} 條規則，略過 {skipped} 條",
+    "importNotRules": "這個檔案不包含規則清單",
+    "importUnreadable": "無法讀取這個檔案 — 不是有效的 JSON",
     "matchTypes": {
       "exact": "完全比對",
       "wildcard": "萬用字元",
@@ -146,6 +156,13 @@
     "links": "連結",
     "reportIssue": "回報問題 / 意見回饋",
     "copyright": "© 2026 EchoFocus — 由 Google Gemini AI 驅動"
+  },
+  "notifications": {
+    "dailySummary": {
+      "title": "今天的專注分數：{score}",
+      "message": "今天累積 {time} 專注時間。",
+      "messageWithStreak": "今天累積 {time} 專注時間 — 已連續 {n} 天達標。"
+    }
   },
   "onboarding": {
     "skip": "跳過設定",

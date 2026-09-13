@@ -19,11 +19,15 @@ vi.mock('../lib/ai', () => ({
 vi.mock('./tracker', () => ({
   recordHeartbeat: vi.fn(async () => undefined),
 }))
+vi.mock('./notifications', () => ({
+  notifyDailySummary: vi.fn(async () => false),
+}))
 
 import * as storage from './storage'
 import * as sync from '../lib/sync'
 import * as ai from '../lib/ai'
 import * as tracker from './tracker'
+import * as notifications from './notifications'
 import { setupAlarms, ensureHeartbeatAlarm, handleAlarm } from './alarms'
 
 function emptyAggregate(date: string, totalSeconds = 0): DailyAggregate {
@@ -265,5 +269,39 @@ describe('the daily AI job', () => {
     vi.mocked(ai.requestAiAnalysis).mockResolvedValue(null)
     await handleAlarm(alarm('echofocus-ai-daily'))
     expect(storage.saveAiAnalysis).not.toHaveBeenCalled()
+  })
+})
+
+describe('the daily summary notification', () => {
+  beforeEach(() => {
+    vi.setSystemTime(new Date(2026, 2, 14, 21, 0, 0))
+  })
+
+  it('is raised with today\'s freshly recomputed aggregate', async () => {
+    const aggregate = emptyAggregate('2026-03-14', 4 * 3600)
+    vi.mocked(storage.recomputeAndSaveAggregate).mockResolvedValue(aggregate)
+
+    await handleAlarm(alarm('echofocus-ai-daily'))
+
+    expect(notifications.notifyDailySummary).toHaveBeenCalledWith('2026-03-14', aggregate)
+  })
+
+  it('still goes out on a day too short for AI analysis', async () => {
+    vi.mocked(storage.recomputeAndSaveAggregate).mockResolvedValue(
+      emptyAggregate('2026-03-14', 10 * 60),
+    )
+
+    await handleAlarm(alarm('echofocus-ai-daily'))
+
+    expect(notifications.notifyDailySummary).toHaveBeenCalledTimes(1)
+    expect(ai.requestAiAnalysis).not.toHaveBeenCalled()
+  })
+
+  it('is not raised by any other alarm', async () => {
+    await handleAlarm(alarm('echofocus-aggregate'))
+    await handleAlarm(alarm('echofocus-sync'))
+    await handleAlarm(alarm('echofocus-heartbeat'))
+
+    expect(notifications.notifyDailySummary).not.toHaveBeenCalled()
   })
 })

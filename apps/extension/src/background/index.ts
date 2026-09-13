@@ -12,6 +12,7 @@ import {
   getInMemoryState,
 } from './tracker'
 import { setupAlarms, ensureHeartbeatAlarm, handleAlarm } from './alarms'
+import { openDailySummary } from './notifications'
 import { partialSettingsSchema, classificationRuleArraySchema } from '../lib/schemas'
 import { requestAiAnalysis } from '../lib/ai'
 import { getSession } from '../lib/auth'
@@ -109,6 +110,12 @@ chrome.idle.onStateChanged.addListener(async (newState) => {
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   await ready
   await handleAlarm(alarm)
+})
+
+// ─── Notifications ─────────────────────────────────────────────────────────
+
+chrome.notifications.onClicked.addListener(async (notificationId) => {
+  await openDailySummary(notificationId)
 })
 
 // ─── Message Handling (from Popup / Options) ───────────────────────────────

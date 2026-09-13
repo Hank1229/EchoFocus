@@ -18,6 +18,11 @@ export interface StubAlarm {
   periodInMinutes?: number
 }
 
+export interface StubNotification {
+  id: string
+  options: chrome.notifications.NotificationOptions<true>
+}
+
 export interface ChromeStub {
   /** Raw chrome.storage.local contents — assert on real key names. */
   store: Record<string, unknown>
@@ -34,6 +39,9 @@ export interface ChromeStub {
   createdTabUrls: string[]
   removedKeys: string[][]
   quotaBytes: number
+  /** Notifications currently on screen, in creation order. */
+  notifications: StubNotification[]
+  clearedNotificationIds: string[]
 }
 
 function clone<T>(value: T): T {
@@ -52,6 +60,8 @@ export function installChromeStub(): ChromeStub {
     createdTabUrls: [],
     removedKeys: [],
     quotaBytes: 10485760,
+    notifications: [],
+    clearedNotificationIds: [],
   }
 
   function keyList(keys: string | string[] | Record<string, unknown> | null | undefined): string[] {
@@ -153,10 +163,31 @@ export function installChromeStub(): ChromeStub {
     onUpdated: { addListener: () => undefined },
   }
 
+  // Callback-shaped like the real API, which @types/chrome still types as
+  // callback-only for this namespace.
+  const notifications = {
+    create(
+      id: string,
+      options: chrome.notifications.NotificationOptions<true>,
+      callback?: (notificationId: string) => void,
+    ): void {
+      stub.notifications.push({ id, options: clone(options) })
+      callback?.(id)
+    },
+    clear(id: string, callback?: (wasCleared: boolean) => void): void {
+      stub.clearedNotificationIds.push(id)
+      const index = stub.notifications.findIndex((n) => n.id === id)
+      if (index !== -1) stub.notifications.splice(index, 1)
+      callback?.(index !== -1)
+    },
+    onClicked: { addListener: () => undefined },
+  }
+
   const chromeStub = {
     storage: { local },
     alarms,
     tabs,
+    notifications,
     idle: {
       setDetectionInterval(seconds: number): void {
         stub.idleDetectionIntervalSeconds = seconds

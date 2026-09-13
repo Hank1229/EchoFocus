@@ -12,8 +12,7 @@ import AiInsightCard from './components/AiInsightCard'
 import type { AiAnalysisResult } from '@echofocus/shared'
 import { getTodayDateString } from '@echofocus/shared'
 import { useLocale, type Language } from '../lib/i18n'
-
-const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL as string || 'https://echo-focus-web.vercel.app'
+import { DASHBOARD_URL } from '../lib/config'
 
 // Gemini needs a meaningful sample before an insight is worth generating.
 const MIN_ANALYZE_SECONDS = 1800
