@@ -3,6 +3,7 @@ import { emptyProductiveByHour, getDateNDaysAgo } from '@echofocus/shared'
 import { getSupabaseClient } from './supabase'
 import { getSession } from './auth'
 import { getAggregateForDate, withStorageLock } from '../background/storage'
+import { reconcileWithCloud } from './prefs-sync'
 
 const LAST_SYNC_KEY = 'last_sync_at'
 const PENDING_SYNC_KEY = 'pending_sync_dates'
@@ -113,10 +114,12 @@ export async function drainSyncQueue(): Promise<void> {
   }
 }
 
-// Nightly sync: enqueue yesterday, then drain the whole queue (including
-// any previously failed days).
+// Nightly sync: enqueue yesterday, bring rules and preferences back in line
+// with the cloud, then drain the whole queue (including any previously failed
+// days).
 export async function syncYesterdayAggregate(): Promise<void> {
   await enqueueSyncDate(getDateNDaysAgo(1))
+  await reconcileWithCloud()
   await drainSyncQueue()
 }
 
@@ -126,6 +129,10 @@ export async function syncAggregateForDate(date: string): Promise<{ ok: boolean;
   if (!session) {
     return { ok: false, message: 'Please sign in first' }
   }
+
+  // "Sync now" is a user asking for everything to line up, not just today's
+  // numbers — same reconcile the nightly alarm runs.
+  await reconcileWithCloud()
 
   const aggregate = await getAggregateForDate(date)
   if (!aggregate) {

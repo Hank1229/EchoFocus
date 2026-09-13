@@ -1,4 +1,4 @@
-import { getSettings, saveSettings, getCustomRules, saveCustomRules, getAiAnalysis, saveAiAnalysis, recomputeAndSaveAggregate, getAllDataForExport, deleteAllTrackingData, getStorageInfo } from './storage'
+import { getSettings, getCustomRules, saveCustomRules, getAiAnalysis, saveAiAnalysis, recomputeAndSaveAggregate, getAllDataForExport, deleteAllTrackingData, getStorageInfo } from './storage'
 import {
   restoreState,
   handleTabActivated,
@@ -6,16 +6,17 @@ import {
   handleWindowFocusChanged,
   handleIdleStateChanged,
   toggleTracking,
-  applyTrackingEnabled,
   discardCurrentSession,
   getCurrentSessionInfo,
   getInMemoryState,
 } from './tracker'
+import { applySettings } from './settings'
 import { setupAlarms, ensureHeartbeatAlarm, handleAlarm } from './alarms'
 import { openDailySummary } from './notifications'
 import { partialSettingsSchema, classificationRuleArraySchema } from '../lib/schemas'
 import { requestAiAnalysis } from '../lib/ai'
 import { drainSyncQueue } from '../lib/sync'
+import { pushRules, pushSettings, reconcileWithCloud } from '../lib/prefs-sync'
 
 // ─── Message Types ─────────────────────────────────────────────────────────
 
@@ -72,8 +73,10 @@ chrome.runtime.onStartup.addListener(async () => {
   await setupAlarms()
   const settings = await getSettings()
   chrome.idle.setDetectionInterval(settings.idleTimeoutMinutes * 60)
-  // Retry any sync days that failed on previous nights
+  // Pick up rule and preference edits made elsewhere, then retry any sync days
+  // that failed on previous nights
   try {
+    await reconcileWithCloud()
     await drainSyncQueue()
   } catch (err) {
     console.error('[EchoFocus] Startup sync drain failed:', err)
@@ -164,14 +167,8 @@ async function handleMessage(
       if (!parsed.success) {
         return { success: false, error: 'Invalid settings payload' }
       }
-      await saveSettings(parsed.data)
-      // Keep the tracker's master switch in sync with the settings toggle
-      if (parsed.data.trackingEnabled !== undefined) {
-        await applyTrackingEnabled(parsed.data.trackingEnabled)
-      }
-      // Update idle detection interval if changed
-      const settings = await getSettings()
-      chrome.idle.setDetectionInterval(settings.idleTimeoutMinutes * 60)
+      await applySettings(parsed.data)
+      await pushSettings()
       return { success: true }
     }
 
@@ -186,6 +183,7 @@ async function handleMessage(
         return { success: false, error: 'Invalid rules — each rule needs a pattern, match type, and category' }
       }
       await saveCustomRules(parsed.data)
+      await pushRules()
       return { success: true }
     }
 
