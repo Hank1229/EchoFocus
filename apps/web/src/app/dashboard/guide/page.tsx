@@ -45,7 +45,19 @@ export default async function GuidePage() {
             ))}
           </dl>
           <p className="mt-5 max-w-[62ch] text-sm leading-relaxed text-slate-500">{g.whereSyncNote}</p>
-          <p className="mt-3 max-w-[62ch] text-sm leading-relaxed text-slate-500">{g.whereNote}</p>
+
+          {/* This section promises to say where each setting lives, so it has to
+              be able to take you there. */}
+          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+            <Link href="/dashboard/settings" className="text-sm text-brand transition-colors hover:text-brand-soft">
+              {g.linkSettings}
+            </Link>
+            <Link href="/dashboard/rules" className="text-sm text-brand transition-colors hover:text-brand-soft">
+              {g.linkRules}
+            </Link>
+          </div>
+
+          <p className="mt-5 max-w-[62ch] text-sm leading-relaxed text-slate-500">{g.whereNote}</p>
         </section>
 
         <section className="mt-10 border-t border-slate-800/80 pt-8">

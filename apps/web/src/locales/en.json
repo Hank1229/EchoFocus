@@ -251,7 +251,11 @@
     "range365days": "365 days",
     "extensionPrefsNote": "Daily goal, idle timeout and data retention apply to the extension. It picks up the saved values on its next sync.",
     "hoursUnit": "{n}h",
-    "hoursMinutesUnit": "{h}h {m}m"
+    "hoursMinutesUnit": "{h}h {m}m",
+    "settingsTitle": "Settings",
+    "settingsIntro": "Your language, your daily goal, and how the extension behaves on this account. Saved values reach the extension on its next sync.",
+    "linkProfile": "Account and data →",
+    "linkSettings": "Settings →"
   },
   "rules": {
     "title": "Site rules",
@@ -356,6 +360,7 @@
     "whereSyncNote": "Site rules, daily goal, idle timeout and data retention can be edited in either place. They are stored on your account, and on the extension's next sync the account's copy is the one that applies.",
     "whereNote": "Local browsing data can only be reached by the extension — that is the privacy architecture, not an oversight. Open the extension's options from its toolbar icon.",
     "linkPrivacy": "Full privacy policy",
-    "linkRules": "Manage site rules"
+    "linkRules": "Manage site rules",
+    "linkSettings": "Open settings"
   }
 }

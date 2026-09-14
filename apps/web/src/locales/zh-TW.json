@@ -251,7 +251,11 @@
     "range365days": "365 天",
     "extensionPrefsNote": "每日目標、閒置暫停時間與資料保留天數會套用到擴充功能，它會在下次同步時取得儲存的設定。",
     "hoursUnit": "{n} 小時",
-    "hoursMinutesUnit": "{h} 小時 {m} 分"
+    "hoursMinutesUnit": "{h} 小時 {m} 分",
+    "settingsTitle": "設定",
+    "settingsIntro": "語言、每日目標,以及擴充功能在這個帳戶上的行為。儲存後會在擴充功能下次同步時套用。",
+    "linkProfile": "帳戶與資料 →",
+    "linkSettings": "設定 →"
   },
   "rules": {
     "title": "網站規則",
@@ -356,6 +360,7 @@
     "whereSyncNote": "網站規則、每日目標、閒置暫停時間與資料保留天數兩邊都能編輯。它們儲存在你的帳戶裡,擴充功能下次同步時會以帳戶上的版本為準。",
     "whereNote": "本機瀏覽資料只有擴充功能碰得到 —— 這是隱私架構的設計,不是疏漏。從工具列的擴充功能圖示進入選項頁即可。",
     "linkPrivacy": "完整隱私政策",
-    "linkRules": "管理網站規則"
+    "linkRules": "管理網站規則",
+    "linkSettings": "前往設定"
   }
 }

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLocale, type Language } from '@/lib/i18n'
-import SettingRow from './SettingRow'
+import SettingRow from '@/components/dashboard/SettingRow'
 
 // NOTE (Phase 0): the email-report toggle and "send test email" UI are hidden
 // until a verified sending domain + scheduler exist. The user_preferences

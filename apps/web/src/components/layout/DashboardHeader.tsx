@@ -23,7 +23,7 @@ export default function DashboardHeader({ title, context, userEmail, avatarUrl }
         </div>
 
         <Link
-          href="/dashboard/settings"
+          href="/dashboard/profile"
           title={userEmail}
           className="flex-shrink-0"
           aria-label={userEmail ?? 'Profile'}

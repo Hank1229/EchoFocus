@@ -213,7 +213,7 @@ export default function App() {
             </span>
           )}
           <button
-            onClick={() => chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/settings` })}
+            onClick={() => chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/profile` })}
             className="text-slate-500 transition-colors hover:text-brand"
             title={t.popup.openProfile}
           >
