@@ -1,5 +1,9 @@
 import { formatLocalDate } from './aggregate'
 
+// How much history each surface reads before calling calculateStreak. The popup
+// and the dashboard must agree, or the same user sees two different "best" runs.
+export const STREAK_WINDOW_DAYS = 90
+
 export interface StreakDay {
   date: string            // YYYY-MM-DD, user-local
   productiveSeconds: number
