@@ -180,7 +180,7 @@ chrome.storage.local['aggregates:YYYY-MM-DD']
 3. `ai.ts` reads today's `DailyAggregate` from storage.
 4. Builds anonymized payload: `{ date, language, aggregate: { totalMinutes, productiveMinutes, distractionMinutes, neutralMinutes, topDomains: [{ domain, minutes, category }], focusScore } }`.
 5. POSTs to Supabase Edge Function `ai-analyze` with user's auth token.
-6. Edge Function calls Gemini API (`gemini-2.5-flash`) with a structured prompt (language-aware: EN or zh-TW).
+6. Edge Function calls Gemini API (`gemini-3.5-flash-lite`) with a structured prompt (language-aware: EN or zh-TW).
 7. Edge Function saves result to Supabase `ai_analyses` table.
 8. Returns analysis text + focus_score to extension.
 9. Extension saves to `chrome.storage.local['ai_analysis:YYYY-MM-DD']`.

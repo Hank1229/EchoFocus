@@ -114,7 +114,7 @@ echofocus/
 | Web UI | Tailwind CSS + shadcn/ui + Recharts | Professional look, chart support |
 | Backend | Supabase (Auth + DB + Edge Functions) | Zero backend management |
 | Database | PostgreSQL (via Supabase) | Reliable, RLS built-in |
-| AI | Google Gemini API (gemini-2.0-flash) | Fast, cheap, good quality |
+| AI | Google Gemini API (gemini-3.5-flash-lite) | Fast, cheap, good quality |
 | Email | Resend | Great DX, generous free tier |
 | Package Manager | pnpm | Fast, disk efficient |
 

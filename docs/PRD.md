@@ -95,7 +95,7 @@ EchoFocus 是一款 **AI 驅動的智慧生產力追蹤工具**。它透過 Chro
 - **Realtime:** Supabase Realtime (optional, for cross-device sync)
 
 ### External APIs
-- **AI:** Google Gemini API (gemini-2.0-flash — fast, cheap, sufficient)
+- **AI:** Google Gemini API (gemini-3.5-flash-lite — fast, cheap, sufficient)
 - **Email:** Resend (generous free tier, great DX)
 
 ---

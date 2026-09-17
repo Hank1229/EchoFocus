@@ -21,12 +21,15 @@ import { z } from 'https://esm.sh/zod@3'
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent'
 
 const MAX_GENERATIONS_PER_DAY = 8
 const MAX_WEEKLY_GENERATIONS = 1
 const MAX_WEEK_DAYS = 7
 const GEMINI_TIMEOUT_MS = 20_000
+// Room for a 150–250 word answer; Traditional Chinese costs roughly twice the
+// tokens English does for the same text.
+const GEMINI_MAX_OUTPUT_TOKENS = 2048
 // Clients may send up to ~10 domains; accept a generous 32 then keep only the top 8.
 const MAX_DOMAINS_ACCEPTED = 32
 const DOMAINS_KEPT = 8
@@ -252,8 +255,13 @@ async function callGemini(prompt: string): Promise<string> {
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 1024,
+          maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS,
+          // Flash models think before they answer and those thinking tokens
+          // are charged against maxOutputTokens. Left at the default, 2.5-flash
+          // spent almost the whole budget reasoning and every snapshot came
+          // back cut off after a sentence or two. Temperature is left at the
+          // model default, which Google recommends for Gemini 3.
+          thinkingConfig: { thinkingLevel: 'minimal' },
         },
       }),
       signal: controller.signal,
@@ -275,6 +283,13 @@ async function callGemini(prompt: string): Promise<string> {
 
     if (!text) {
       console.error('Empty response from Gemini, finishReason:', candidate?.finishReason ?? 'UNKNOWN')
+      throw new GeminiError()
+    }
+
+    // A truncated snapshot reads as a bug to the user, so treat it as a failed
+    // generation rather than storing half an analysis.
+    if (candidate?.finishReason === 'MAX_TOKENS') {
+      console.error(`Gemini hit the ${GEMINI_MAX_OUTPUT_TOKENS}-token cap; ${text.length} chars discarded`)
       throw new GeminiError()
     }
     return text.trim()

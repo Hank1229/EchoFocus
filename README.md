@@ -80,7 +80,7 @@ Unlike RescueTime or Toggl Track, EchoFocus uses a **local-first architecture**.
 | Extension UI | React + Tailwind CSS |
 | Web Dashboard | Next.js 14 (App Router) + Tailwind + shadcn/ui + Recharts |
 | Backend | Supabase (Auth + PostgreSQL + Edge Functions) |
-| AI | Google Gemini API (`gemini-2.0-flash`) |
+| AI | Google Gemini API (`gemini-3.5-flash-lite`) |
 | Email | Resend |
 
 ---
