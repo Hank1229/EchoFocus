@@ -144,6 +144,7 @@
     "regenerate": "重新分析",
     "regenerating": "分析中…",
     "noInsightYet": "尚未產生洞察。",
+    "insightWindowClosed": "洞察僅能在該日期後的幾天內產生，這一天已無法分析。",
     "generateInsight": "產生洞察",
     "trackedOf": "，追蹤時間共",
     "whereTimeWent": "時間去哪了",

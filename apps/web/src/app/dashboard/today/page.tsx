@@ -1,6 +1,12 @@
 import { redirect } from 'next/navigation'
 import { Inbox } from 'lucide-react'
-import { calculateStreak, formatDuration, getTodayDateString } from '@echofocus/shared'
+import {
+  STREAK_WINDOW_DAYS,
+  calculateStreak,
+  canGenerateDailyInsight,
+  formatDuration,
+  getTodayDateString,
+} from '@echofocus/shared'
 import { createClient } from '@/lib/supabase/server'
 import { getLocale } from '@/lib/i18n-server'
 import DashboardHeader from '@/components/layout/DashboardHeader'
@@ -54,7 +60,7 @@ export default async function TodayPage({
       .select('date, productive_seconds')
       .eq('user_id', user.id)
       .order('date', { ascending: false })
-      .limit(90),
+      .limit(STREAK_WINDOW_DAYS),
     supabase
       .from('user_preferences')
       .select('daily_goal_minutes')
@@ -153,7 +159,8 @@ export default async function TodayPage({
 
             <DailyInsight
               analysisText={todaysAi?.analysis_text ?? null}
-              todayDate={displayDate}
+              date={displayDate}
+              canGenerate={canGenerateDailyInsight(displayDate)}
               language={language}
             />
 

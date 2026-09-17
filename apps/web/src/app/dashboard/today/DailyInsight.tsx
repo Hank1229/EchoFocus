@@ -7,11 +7,14 @@ import { requestAiAnalysis } from '@/lib/ai'
 
 interface Props {
   analysisText: string | null
-  todayDate: string
+  date: string
+  // False for days the ai-analyze function will not accept any more, so the
+  // page explains the limit instead of offering a button that 400s.
+  canGenerate: boolean
   language: string
 }
 
-export default function DailyInsight({ analysisText, todayDate, language }: Props) {
+export default function DailyInsight({ analysisText, date, canGenerate, language }: Props) {
   const { t } = useLocale()
   const [text, setText] = useState<string | null>(analysisText)
   const [isRunning, setIsRunning] = useState(false)
@@ -21,7 +24,7 @@ export default function DailyInsight({ analysisText, todayDate, language }: Prop
     setIsRunning(true)
     setError(null)
     try {
-      const outcome = await requestAiAnalysis(todayDate, language)
+      const outcome = await requestAiAnalysis(date, language)
       switch (outcome.status) {
         case 'success':
         case 'cached':
@@ -50,7 +53,7 @@ export default function DailyInsight({ analysisText, todayDate, language }: Prop
           <Sparkles size={15} strokeWidth={1.75} className="text-brand" />
           {t.today.dailyInsight}
         </h2>
-        {text && (
+        {text && canGenerate && (
           <button
             onClick={run}
             disabled={isRunning}
@@ -84,24 +87,28 @@ export default function DailyInsight({ analysisText, todayDate, language }: Prop
         </div>
       ) : (
         <div className="mt-6 max-w-md">
-          <p className="text-[0.9375rem] leading-relaxed text-slate-400">{t.today.noInsightYet}</p>
-          <button
-            onClick={run}
-            disabled={isRunning}
-            className="mt-5 flex items-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-brand-soft disabled:opacity-60"
-          >
-            {isRunning ? (
-              <>
-                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
-                {t.today.regenerating}
-              </>
-            ) : (
-              <>
-                <Sparkles size={15} strokeWidth={2} />
-                {t.today.generateInsight}
-              </>
-            )}
-          </button>
+          <p className="text-[0.9375rem] leading-relaxed text-slate-400">
+            {canGenerate ? t.today.noInsightYet : t.today.insightWindowClosed}
+          </p>
+          {canGenerate && (
+            <button
+              onClick={run}
+              disabled={isRunning}
+              className="mt-5 flex items-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-brand-soft disabled:opacity-60"
+            >
+              {isRunning ? (
+                <>
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
+                  {t.today.regenerating}
+                </>
+              ) : (
+                <>
+                  <Sparkles size={15} strokeWidth={2} />
+                  {t.today.generateInsight}
+                </>
+              )}
+            </button>
+          )}
         </div>
       )}
 

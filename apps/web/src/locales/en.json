@@ -144,6 +144,7 @@
     "regenerate": "Regenerate",
     "regenerating": "Regenerating…",
     "noInsightYet": "No insight generated yet.",
+    "insightWindowClosed": "Insights can only be generated within a few days of the date itself, so this day can no longer be analyzed.",
     "generateInsight": "Generate Insight",
     "trackedOf": " out of",
     "whereTimeWent": "Where the time went",
