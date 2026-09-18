@@ -21,6 +21,16 @@ function at(ms: number): void {
   vi.setSystemTime(new Date(ms))
 }
 
+// Move the clock the way a RUNNING service worker experiences it: the
+// 1-minute heartbeat alarm keeps proving the machine is awake. A bare at()
+// jump models a machine that slept through the gap, which is exactly what the
+// session end-time clamp exists to catch — so any test expecting the full
+// elapsed time to be credited has to beat along with the clock.
+function awake(ms: number): void {
+  at(ms)
+  chromeStub.store['last_seen_at'] = ms
+}
+
 function asTab(partial: Partial<StubTab>): chrome.tabs.Tab {
   return partial as unknown as chrome.tabs.Tab
 }
@@ -70,7 +80,7 @@ describe('duration attribution', () => {
     setActiveTab('https://www.github.com/echofocus/repo', 'EchoFocus')
     await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
 
-    at(BASE + 600_000) // 10 minutes later
+    awake(BASE + 600_000) // 10 minutes later
     chromeStub.tabs.push({ id: 2, windowId: 1, active: true, url: 'https://example.org/', title: 'x' })
     await tracker.handleTabActivated({ tabId: 2, windowId: 1 })
 
@@ -119,7 +129,7 @@ describe('duration attribution', () => {
     const tracker = await loadTracker()
     setActiveTab('https://github.com/')
     await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
-    at(BASE + 120_000)
+    awake(BASE + 120_000)
     await tracker.handleWindowFocusChanged(-1)
 
     expect(aggregateOn('2026-03-14')).toMatchObject({
@@ -146,7 +156,7 @@ describe('duration attribution', () => {
     setActiveTab('https://youtube.com/watch', 'video', { audible: true })
     await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
 
-    at(BASE + 9 * 60 * 60 * 1000)
+    awake(BASE + 9 * 60 * 60 * 1000)
     await tracker.handleIdleStateChanged('locked')
 
     expect(allEntries()).toHaveLength(1)
@@ -301,7 +311,7 @@ describe('midnight split', () => {
     setActiveTab('https://github.com/')
     await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
 
-    at(new Date(2026, 2, 15, 0, 10, 0).getTime()) // 20 minutes later, next day
+    awake(new Date(2026, 2, 15, 0, 10, 0).getTime()) // 20 minutes later, next day
     await tracker.handleWindowFocusChanged(-1)
 
     const before = entriesOn('2026-03-14')
@@ -321,7 +331,7 @@ describe('midnight split', () => {
     setActiveTab('https://github.com/')
     await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
 
-    at(new Date(2026, 2, 15, 0, 10, 0).getTime())
+    awake(new Date(2026, 2, 15, 0, 10, 0).getTime())
     await tracker.handleWindowFocusChanged(-1)
 
     expect(aggregateOn('2026-03-14')?.totalSeconds).toBe(600)
@@ -348,7 +358,7 @@ describe('idle and lock transitions', () => {
     setActiveTab('https://github.com/')
     await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
 
-    at(BASE + 300_000)
+    awake(BASE + 300_000)
     await tracker.handleIdleStateChanged('idle')
 
     expect(allEntries()).toHaveLength(1)
@@ -401,7 +411,7 @@ describe('idle and lock transitions', () => {
     setActiveTab('https://youtube.com/watch', 'video', { audible: true })
     await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
 
-    at(BASE + 300_000)
+    awake(BASE + 300_000)
     await tracker.handleIdleStateChanged('locked')
 
     expect(allEntries()).toHaveLength(1)
@@ -599,20 +609,46 @@ describe('restoreState', () => {
     expect(allEntries()[0].duration).toBe(4 * 60 * 60)
   })
 
-  it('never credits time beyond now when the heartbeat is fresh', async () => {
+  // A gap within the grace window means the worker was cycled out from under a
+  // user who never stopped reading. Ending the session there would be
+  // permanent — no tab, window or idle event fires while someone stays put.
+  it('keeps the session running when the worker merely cycled', async () => {
     persistDangling(BASE)
     chromeStub.store['last_seen_at'] = BASE + 60_000
     at(BASE + 70_000)
+    setActiveTab('https://github.com/')
 
     const tracker = await loadTracker()
     await tracker.restoreState()
 
-    expect(allEntries()[0].duration).toBe(70)
+    expect(allEntries()).toEqual([])
+    expect(tracker.getCurrentSessionInfo()).toMatchObject({
+      domain: 'github.com',
+      elapsedSeconds: 70, // still counting from the ORIGINAL start
+    })
+    expect(storedState().sessionStartTime).toBe(BASE)
+  })
+
+  it('keeps counting across repeated worker cycles instead of restarting', async () => {
+    persistDangling(BASE)
+    chromeStub.store['last_seen_at'] = BASE + 60_000
+    setActiveTab('https://github.com/')
+
+    for (const now of [BASE + 70_000, BASE + 130_000, BASE + 190_000]) {
+      at(now)
+      const tracker = await loadTracker()
+      await tracker.restoreState()
+      expect(tracker.getCurrentSessionInfo().elapsedSeconds).toBe((now - BASE) / 1000)
+      // restoreState refreshes the heartbeat, so the next wake is a short gap too
+    }
+
+    expect(allEntries()).toEqual([])
   })
 
   it('drops a dangling session below the minimum duration', async () => {
+    // No heartbeat at all (first wake after an update) — the session is
+    // finalized at `now`, and 3 seconds is not worth an entry.
     persistDangling(BASE)
-    chromeStub.store['last_seen_at'] = BASE + 2_000
     at(BASE + 3_000)
 
     const tracker = await loadTracker()
@@ -680,6 +716,68 @@ describe('restoreState', () => {
     expect(chromeStub.store['last_seen_at']).toBe(BASE + 1_000)
   })
 
+  it('resumes on the tab in front after a long gap, starting from now', async () => {
+    persistDangling(BASE)
+    chromeStub.store['last_seen_at'] = BASE + 300_000
+    at(BASE + 10 * 60 * 60 * 1000) // machine slept overnight
+    setActiveTab('https://stackoverflow.com/questions/1')
+
+    const tracker = await loadTracker()
+    await tracker.restoreState()
+
+    // The slept-through hours go to nobody: the old session is banked at the
+    // heartbeat, the new one starts at wake-up.
+    expect(allEntries()).toHaveLength(1)
+    expect(allEntries()[0]).toMatchObject({ domain: 'github.com', duration: 390 })
+    expect(tracker.getCurrentSessionInfo()).toMatchObject({
+      domain: 'stackoverflow.com',
+      elapsedSeconds: 0,
+    })
+    expect(storedState().sessionStartTime).toBe(BASE + 10 * 60 * 60 * 1000)
+  })
+
+  it('does not resume while Chrome sits in the background', async () => {
+    persistDangling(BASE)
+    chromeStub.store['last_seen_at'] = BASE + 300_000
+    at(BASE + 10 * 60 * 60 * 1000)
+    setActiveTab('https://stackoverflow.com/questions/1')
+    chromeStub.lastFocusedWindow = { id: 1, focused: false }
+
+    const tracker = await loadTracker()
+    await tracker.restoreState()
+
+    // A session started here would accrue time no tab event can ever end —
+    // they all bail while another app has focus.
+    expect(allEntries()).toHaveLength(1)
+    expect(tracker.getCurrentSessionInfo().domain).toBeNull()
+    expect(storedState().sessionStartTime).toBeNull()
+  })
+
+  it('does not resume onto a browser-internal page', async () => {
+    persistDangling(BASE)
+    chromeStub.store['last_seen_at'] = BASE + 300_000
+    at(BASE + 10 * 60 * 60 * 1000)
+    setActiveTab('chrome://settings')
+
+    const tracker = await loadTracker()
+    await tracker.restoreState()
+
+    expect(tracker.getCurrentSessionInfo().domain).toBeNull()
+  })
+
+  it('does not resume while tracking is switched off', async () => {
+    persistDangling(BASE)
+    chromeStub.store['settings'] = { ...DEFAULT_SETTINGS, trackingEnabled: false }
+    chromeStub.store['last_seen_at'] = BASE + 300_000
+    at(BASE + 10 * 60 * 60 * 1000)
+    setActiveTab('https://stackoverflow.com/questions/1')
+
+    const tracker = await loadTracker()
+    await tracker.restoreState()
+
+    expect(tracker.getCurrentSessionInfo().domain).toBeNull()
+  })
+
   it('treats an unfocused last window as "not focused" for resume decisions', async () => {
     chromeStub.lastFocusedWindow = { id: 1, focused: false }
     setActiveTab('https://github.com/')
@@ -689,6 +787,34 @@ describe('restoreState', () => {
     await tracker.applyTrackingEnabled(true)
 
     expect(tracker.getCurrentSessionInfo().domain).toBeNull()
+  })
+})
+
+// The service worker can outlive a machine sleep — an open popup holds a port
+// that keeps it alive — so restoreState never runs and the stale heartbeat is
+// the only evidence the user was gone.
+describe('a machine that slept without killing the worker', () => {
+  it('banks only up to the last heartbeat, not the wall clock', async () => {
+    const tracker = await loadTracker()
+    setActiveTab('https://github.com/')
+    await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
+
+    at(BASE + 6 * 60 * 60 * 1000) // lid closed for six hours
+    await tracker.handleWindowFocusChanged(-1)
+
+    expect(allEntries()).toHaveLength(1)
+    expect(allEntries()[0].duration).toBe(90) // heartbeat at session start + grace
+  })
+
+  it('still caps a genuinely long session at 4 hours', async () => {
+    const tracker = await loadTracker()
+    setActiveTab('https://youtube.com/watch', 'video', { audible: true })
+    await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
+
+    awake(BASE + 9 * 60 * 60 * 1000)
+    await tracker.handleWindowFocusChanged(-1)
+
+    expect(allEntries()[0].duration).toBe(4 * 60 * 60)
   })
 })
 
@@ -707,7 +833,7 @@ describe('the master tracking switch', () => {
     setActiveTab('https://github.com/')
     await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
 
-    at(BASE + 120_000)
+    awake(BASE + 120_000)
     const nowEnabled = await tracker.toggleTracking()
 
     expect(nowEnabled).toBe(false)

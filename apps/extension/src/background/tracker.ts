@@ -115,8 +115,16 @@ export async function restoreState(): Promise<void> {
   const lastSeenAt = await getLastSeenAt()
   const now = Date.now()
 
-  // If there was an active session when the SW was killed, finalize it now.
-  if (_state.sessionStartTime !== null && _state.activeDomain) {
+  // A heartbeat inside the grace window means the SW was merely cycled out
+  // while the user stayed on the page — Chrome kills an idle worker after
+  // ~30s and the 1-minute alarm wakes it right back up. Banking the session
+  // here would end it for good: startSession is only reachable from tab,
+  // window and idle events, none of which fire while someone keeps reading,
+  // so a 20-minute article used to be credited ~90 seconds.
+  const workerMerelyCycled = lastSeenAt !== null && now - lastSeenAt <= LAST_SEEN_GRACE_MS
+
+  // A longer gap is sleep or shutdown: finalize the dangling session.
+  if (hasLiveSession() && !workerMerelyCycled) {
     const dangling = { ..._state }
     // Credit time only up to the last proof the SW was alive — never
     // wall-clock time that elapsed while the machine slept or was off.
@@ -134,9 +142,30 @@ export async function restoreState(): Promise<void> {
     if (cappedSec >= MIN_DURATION_SECONDS) {
       await saveFinalizedEntry(dangling, sessionStart + cappedSec * 1000)
     }
+
+    await resumeActiveTabSession()
   }
 
   await saveLastSeenAt(Date.now())
+}
+
+// Pick the session back up on whatever tab is in front right now. The session
+// we just finalized belongs to a browsing stretch that is over; this one
+// starts at NOW, so the sleep gap is never credited to either.
+async function resumeActiveTabSession(): Promise<void> {
+  // Same guards as the idle-active resume: a session started while Chrome is
+  // in the background would accrue time no tab event can ever end.
+  if (!_state.isTracking || _state.isIdle || !isChromeFocused()) return
+
+  try {
+    const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
+    if (activeTab?.id && activeTab.url) {
+      await startSession(activeTab.id, activeTab.url, activeTab.title ?? '')
+    }
+  } catch {
+    // Tabs may not be queryable this early after wake-up — the next tab or
+    // focus event resumes tracking instead.
+  }
 }
 
 // Build the entry for a finished session, split it at local midnight if it
@@ -187,7 +216,18 @@ async function endCurrentSession(): Promise<void> {
     // Audible tabs survive the idle check, so a session can run all night on
     // an autoplaying video. Cap it with the same 4-hour sanity limit used for
     // dangling sessions instead of writing a 9-hour entry.
-    const endTime = Math.min(Date.now(), sessionStart + MAX_DANGLING_SESSION_SECONDS * 1000)
+    let endTime = Math.min(Date.now(), sessionStart + MAX_DANGLING_SESSION_SECONDS * 1000)
+
+    // The SW can survive a machine sleep (an open popup port keeps it alive),
+    // in which case nothing was killed for restoreState to clean up and
+    // wall-clock "now" is hours past the last proof the user was there. The
+    // heartbeat stopped when the machine did, so clamp to it exactly as
+    // restoreState does.
+    const lastSeenAt = await getLastSeenAt()
+    if (lastSeenAt !== null) {
+      endTime = Math.min(endTime, lastSeenAt + LAST_SEEN_GRACE_MS)
+    }
+
     clearSessionFields()
     await persistState()
     await saveFinalizedEntry(snapshot, endTime)
