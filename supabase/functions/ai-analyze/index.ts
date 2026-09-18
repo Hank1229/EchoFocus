@@ -354,9 +354,22 @@ async function analyzeWeek(supabase: ServiceClient, userId: string, rawBody: unk
   }
 
   if (!quota.allowed) {
+    // Ship the stored summary's own score and timestamp with it — a client
+    // that stamps the cached text with TODAY's live numbers shows prose
+    // praising one score beside a numeral reporting another.
+    const { data: stored } = await supabase
+      .from('ai_analyses')
+      .select('focus_score, created_at')
+      .eq('user_id', userId)
+      .eq('type', 'weekly')
+      .order('date', { ascending: false })
+      .limit(1)
+      .maybeSingle<{ focus_score: number; created_at: string }>()
     return jsonResponse({
       error: `Weekly AI summary limit reached (${MAX_WEEKLY_GENERATIONS} per week). Try again next week.`,
       analysis_text: quota.analysis_text,
+      focus_score: stored?.focus_score ?? null,
+      analyzed_at: stored?.created_at ?? null,
     }, 429)
   }
 
@@ -465,9 +478,20 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!quota.allowed) {
+      // Same reasoning as the weekly 429: the cached text travels with its
+      // own score and timestamp, never the caller's live ones.
+      const { data: stored } = await supabase
+        .from('ai_analyses')
+        .select('focus_score, created_at')
+        .eq('user_id', user.id)
+        .eq('date', date)
+        .eq('type', 'daily')
+        .maybeSingle<{ focus_score: number; created_at: string }>()
       return jsonResponse({
         error: `Daily AI analysis limit reached (${MAX_GENERATIONS_PER_DAY} per day). Try again tomorrow.`,
         analysis_text: quota.analysis_text,
+        focus_score: stored?.focus_score ?? null,
+        analyzed_at: stored?.created_at ?? null,
       }, 429)
     }
 

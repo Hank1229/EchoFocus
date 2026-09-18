@@ -85,9 +85,13 @@ async function postAnalysis(
     const parsed = (typeof body === 'object' && body !== null ? body : {}) as {
       error?: unknown
       analysis_text?: unknown
+      focus_score?: unknown
     }
     if (res.status === 429 && typeof parsed.analysis_text === 'string' && parsed.analysis_text.length > 0) {
-      return { status: 'cached', analysisText: parsed.analysis_text, focusScore: cachedFocusScore }
+      // The stored analysis travels with its own score; the caller's live
+      // score is only the fallback for older function deployments.
+      const storedScore = typeof parsed.focus_score === 'number' ? parsed.focus_score : cachedFocusScore
+      return { status: 'cached', analysisText: parsed.analysis_text, focusScore: storedScore }
     }
     return {
       status: 'error',

@@ -53,9 +53,25 @@ function parseErrorMessage(body: string): string {
 }
 
 // Extract the already-stored analysis returned alongside a 429 response.
-function parseCachedAnalysis(body: string): string | null {
-  const text = parseJsonObject(body)?.analysis_text
-  return typeof text === 'string' && text.length > 0 ? text : null
+// A 429 body carries the stored analysis plus ITS OWN score and timestamp —
+// the prose was written about that score, so re-stamping it with today's live
+// numbers would show text praising a 78 beside a numeral reading 41.
+function parseCachedAnalysis(
+  body: string,
+): { text: string; focusScore: unknown; analyzedAt: number | null } | null {
+  const parsed = parseJsonObject(body) as {
+    analysis_text?: unknown
+    focus_score?: unknown
+    analyzed_at?: unknown
+  } | null
+  const text = parsed?.analysis_text
+  if (typeof text !== 'string' || text.length === 0) return null
+  const stamp = typeof parsed?.analyzed_at === 'string' ? Date.parse(parsed.analyzed_at) : NaN
+  return {
+    text,
+    focusScore: parsed?.focus_score,
+    analyzedAt: Number.isNaN(stamp) ? null : stamp,
+  }
 }
 
 export async function requestAiAnalysis(date: string, language = 'en'): Promise<AiAnalysisOutcome> {
@@ -102,10 +118,12 @@ export async function requestAiAnalysis(date: string, language = 'en'): Promise<
     if (res.status === 429) {
       const cached = parseCachedAnalysis(responseBody)
       if (cached !== null) {
+        // Older function deployments send only the text — fall back to the
+        // live score and now rather than refusing the analysis outright.
         const result = validateAiAnalysisResult({
-          analysisText: cached,
-          focusScore: payload.aggregate.focusScore,
-          analyzedAt: Date.now(),
+          analysisText: cached.text,
+          focusScore: cached.focusScore ?? payload.aggregate.focusScore,
+          analyzedAt: cached.analyzedAt ?? Date.now(),
         })
         if (result) return { ok: true, result }
       }
