@@ -11,7 +11,8 @@
     "saveSettings": "儲存設定",
     "privacyPolicy": "隱私政策",
     "termsOfService": "服務條款",
-    "home": "首頁"
+    "home": "首頁",
+    "loadFailed": "無法載入資料："
   },
   "landing": {
     "nav": {
@@ -256,7 +257,8 @@
     "settingsTitle": "設定",
     "settingsIntro": "語言、每日目標,以及擴充功能在這個帳戶上的行為。儲存後會在擴充功能下次同步時套用。",
     "linkProfile": "帳戶與資料 →",
-    "linkSettings": "設定 →"
+    "linkSettings": "設定 →",
+    "deleteFailed": "無法刪除雲端資料："
   },
   "rules": {
     "title": "網站規則",

@@ -18,7 +18,7 @@ export default async function SettingsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: prefs } = await supabase
+  const { data: prefs, error: loadError } = await supabase
     .from('user_preferences')
     .select('email_report_enabled, idle_timeout_minutes, data_retention_days, daily_goal_minutes')
     .eq('user_id', user.id)
@@ -36,16 +36,26 @@ export default async function SettingsPage() {
         <div className="max-w-3xl">
           <p className="max-w-[62ch] text-[0.9375rem] leading-relaxed text-slate-400">{t.settings.settingsIntro}</p>
 
-          <dl className="mt-8">
-            <SettingsForm userId={user.id} initialPrefs={prefs as UserPreference ?? null} />
-          </dl>
+          {/* Saving a form that silently fell back to defaults would push those
+              defaults to the cloud, and the extension pulls them from there. */}
+          {loadError ? (
+            <p role="alert" className="mt-8 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm leading-relaxed text-danger">
+              {t.common.loadFailed}{loadError.message}
+            </p>
+          ) : (
+            <>
+              <dl className="mt-8">
+                <SettingsForm userId={user.id} initialPrefs={prefs as UserPreference ?? null} />
+              </dl>
 
-          <Link
-            href="/dashboard/profile"
-            className="mt-6 inline-block text-sm text-brand transition-colors hover:text-brand-soft"
-          >
-            {t.settings.linkProfile}
-          </Link>
+              <Link
+                href="/dashboard/profile"
+                className="mt-6 inline-block text-sm text-brand transition-colors hover:text-brand-soft"
+              >
+                {t.settings.linkProfile}
+              </Link>
+            </>
+          )}
         </div>
       </main>
     </>

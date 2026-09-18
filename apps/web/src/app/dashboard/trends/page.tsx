@@ -48,7 +48,7 @@ export default async function TrendsPage({
 
   // Newest N days, then reverse so charts read left→right chronologically.
   // (ascending + limit would return the OLDEST rows and freeze the charts in the past)
-  const { data } = await supabase
+  const { data, error: loadError } = await supabase
     .from('synced_aggregates')
     .select('date, total_seconds, productive_seconds, distraction_seconds, neutral_seconds, uncategorized_seconds, focus_score, productive_by_hour')
     .eq('user_id', user.id)
@@ -118,7 +118,11 @@ export default async function TrendsPage({
       />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
-        {rows.length === 0 ? (
+        {loadError ? (
+          <p role="alert" className="max-w-xl rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm leading-relaxed text-danger">
+            {t.common.loadFailed}{loadError.message}
+          </p>
+        ) : rows.length === 0 ? (
           <div className="max-w-md border-t border-slate-800/80 pt-10">
             <LineChart size={28} strokeWidth={1.5} className="text-slate-600" />
             <h2 className="mt-4 font-display text-xl font-semibold tracking-tight text-slate-200">

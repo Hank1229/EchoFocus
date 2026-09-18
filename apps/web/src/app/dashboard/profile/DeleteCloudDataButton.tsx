@@ -10,15 +10,25 @@ export default function DeleteCloudDataButton({ userId }: { userId: string }) {
   const [showConfirm, setShowConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [done, setDone] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleDelete = async () => {
     setIsDeleting(true)
+    setError(null)
     const supabase = createClient()
-    await Promise.all([
+    const results = await Promise.all([
       supabase.from('synced_aggregates').delete().eq('user_id', userId),
       supabase.from('ai_analyses').delete().eq('user_id', userId),
     ])
     setIsDeleting(false)
+
+    // Telling someone their data is gone when it is not is the one mistake this
+    // button must never make.
+    const failed = results.find(r => r.error)
+    if (failed?.error) {
+      setError(failed.error.message)
+      return
+    }
     setShowConfirm(false)
     setDone(true)
   }
@@ -61,6 +71,11 @@ export default function DeleteCloudDataButton({ userId }: { userId: string }) {
           {t.settings.cancel}
         </button>
       </div>
+      {error && (
+        <p role="alert" className="mt-3 text-xs leading-relaxed text-danger">
+          {t.settings.deleteFailed}{error}
+        </p>
+      )}
     </div>
   )
 }

@@ -11,7 +11,8 @@
     "saveSettings": "Save settings",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
-    "home": "Home"
+    "home": "Home",
+    "loadFailed": "Couldn't load your data: "
   },
   "landing": {
     "nav": {
@@ -256,7 +257,8 @@
     "settingsTitle": "Settings",
     "settingsIntro": "Your language, your daily goal, and how the extension behaves on this account. Saved values reach the extension on its next sync.",
     "linkProfile": "Account and data →",
-    "linkSettings": "Settings →"
+    "linkSettings": "Settings →",
+    "deleteFailed": "Couldn't delete your cloud data: "
   },
   "rules": {
     "title": "Site rules",

@@ -21,6 +21,11 @@ function isValidDateString(value: string | undefined): value is string {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
 }
 
+// How far the date arrows can walk back. Wider than the streak window on
+// purpose: the streak only needs recent history, the nav should reach the whole
+// archive.
+const DATE_NAV_WINDOW_DAYS = 365
+
 interface SyncedRow {
   date: string
   total_seconds: number
@@ -54,13 +59,13 @@ export default async function TodayPage({
 
   // Available dates drive the prev/next nav; the newest one is also the
   // fallback "current" date when no (or an invalid) ?date= is given.
-  const [{ data: availableRows }, { data: prefs }] = await Promise.all([
+  const [{ data: availableRows, error: historyError }, { data: prefs }] = await Promise.all([
     supabase
       .from('synced_aggregates')
       .select('date, productive_seconds')
       .eq('user_id', user.id)
       .order('date', { ascending: false })
-      .limit(STREAK_WINDOW_DAYS),
+      .limit(DATE_NAV_WINDOW_DAYS),
     supabase
       .from('user_preferences')
       .select('daily_goal_minutes')
@@ -75,8 +80,10 @@ export default async function TodayPage({
   // Anchor the streak on the day being shown, never the server clock — this
   // server renders in UTC while the data is keyed to the user's local days.
   const goalMinutes = (prefs?.daily_goal_minutes as number | undefined) ?? 360
+  // Only the streak window feeds the streak — the date list above reaches
+  // further back so the nav arrows do not dead-end at 90 days.
   const streak = calculateStreak(
-    (availableRows ?? []).map(r => ({
+    (availableRows ?? []).slice(0, STREAK_WINDOW_DAYS).map(r => ({
       date: r.date as string,
       productiveSeconds: r.productive_seconds as number,
     })),
@@ -84,7 +91,7 @@ export default async function TodayPage({
     displayDate,
   )
 
-  const [{ data }, { data: aiData }] = await Promise.all([
+  const [{ data, error: dayError }, { data: aiData }] = await Promise.all([
     supabase
       .from('synced_aggregates')
       .select('*')
@@ -104,6 +111,9 @@ export default async function TodayPage({
 
   const row = data as SyncedRow | null
   const todaysAi = aiData as AiAnalysisRow | null
+  // A failed query and an empty account are not the same thing, and the empty
+  // state says "nothing synced yet" — which would be a lie about a 500.
+  const loadError = historyError ?? dayError
 
   // Dates are sorted newest-first: an older day sits at a higher index, a
   // newer one at a lower index. A date outside the available list (e.g. a
@@ -145,7 +155,11 @@ export default async function TodayPage({
       />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
-        {row ? (
+        {loadError ? (
+          <p role="alert" className="max-w-xl rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm leading-relaxed text-danger">
+            {t.common.loadFailed}{loadError.message}
+          </p>
+        ) : row ? (
           <div className="space-y-10">
             <VerdictBand
               userName={firstName}
@@ -168,9 +182,7 @@ export default async function TodayPage({
               heading={t.today.whereTimeWent}
               sites={row.top_domains ?? []}
               emptyLabel={t.today.noData}
-              total={formatDuration(
-                (row.top_domains ?? []).reduce((sum, d) => sum + d.seconds, 0),
-              )}
+              total={formatDuration(row.total_seconds)}
             />
           </div>
         ) : (

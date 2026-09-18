@@ -21,7 +21,7 @@ export default async function AiInsightsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data } = await supabase
+  const { data, error: loadError } = await supabase
     .from('ai_analyses')
     .select('id, date, type, analysis_text, focus_score, created_at')
     .eq('user_id', user!.id)
@@ -65,7 +65,11 @@ export default async function AiInsightsPage() {
         <AnalyzeButton />
 
         <div className="mt-10">
-          {snapshots.length === 0 ? (
+          {loadError ? (
+            <p role="alert" className="max-w-xl rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm leading-relaxed text-danger">
+              {t.common.loadFailed}{loadError.message}
+            </p>
+          ) : snapshots.length === 0 ? (
             <div className="max-w-md">
               <Lightbulb size={28} strokeWidth={1.5} className="text-slate-600" />
               <h2 className="mt-4 font-display text-xl font-semibold tracking-tight text-slate-200">

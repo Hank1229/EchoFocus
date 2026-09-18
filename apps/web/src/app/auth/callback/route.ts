@@ -4,7 +4,13 @@ import { createClient } from '@/lib/supabase/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/dashboard/today'
+  // Only an absolute path of our own. `origin` carries no trailing slash, so a
+  // next of "@evil.com" would concatenate into https://our.host@evil.com —
+  // userinfo, not a path, and the browser lands on evil.com.
+  const requested = searchParams.get('next')
+  const next = requested?.startsWith('/') && !requested.startsWith('//')
+    ? requested
+    : '/dashboard/today'
 
   if (code) {
     const supabase = await createClient()
