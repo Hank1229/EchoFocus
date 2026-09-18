@@ -404,6 +404,88 @@ describe('cleanupOldData', () => {
   })
 })
 
+describe('entry field bounds', () => {
+  it('truncates a runaway url and title so one page cannot eat the quota', async () => {
+    await saveEntry(entry({ url: `https://x.example/${'a'.repeat(5000)}`, title: 'b'.repeat(5000) }))
+
+    const [saved] = chromeStub.store['entries:2026-03-14'] as TrackingEntry[]
+    expect(saved.url).toHaveLength(512)
+    expect(saved.title).toHaveLength(256)
+    expect(saved.url.startsWith('https://x.example/aaa')).toBe(true)
+  })
+
+  it('leaves a normal url and title untouched', async () => {
+    await saveEntry(entry())
+
+    const [saved] = chromeStub.store['entries:2026-03-14'] as TrackingEntry[]
+    expect(saved.url).toBe('https://github.com/a/b')
+    expect(saved.title).toBe('repo')
+  })
+})
+
+describe('a full storage quota', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 5, 15, 12, 0, 0)) // 2026-06-15 local noon
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+  })
+
+  /** Shrink the quota to what the store already holds, plus room for the
+   *  storage_full_at flag but nowhere near enough for another entry. */
+  function fillQuota(headroom = 64): void {
+    const used = Object.entries(chromeStub.store)
+      .reduce((total, [key, value]) => total + key.length + JSON.stringify(value).length, 0)
+    chromeStub.quotaBytes = used + headroom
+  }
+
+  it('prunes beyond the user retention and retries, so the write lands', async () => {
+    // A year of retention makes the ordinary cleanup a no-op on a year of data.
+    chromeStub.store['settings'] = { ...DEFAULT_SETTINGS, dataRetentionDays: 365 }
+    chromeStub.store['entries:2026-01-01'] = [entry({ date: '2026-01-01' })] // ~165 days old
+    fillQuota()
+
+    await saveEntry(entry({ date: '2026-06-15' }))
+
+    expect(Object.keys(chromeStub.store)).not.toContain('entries:2026-01-01')
+    expect(chromeStub.store['entries:2026-06-15']).toHaveLength(1)
+    expect(chromeStub.store['storage_full_at']).toBeUndefined()
+    expect(chromeStub.badgeText).not.toBe('!')
+  })
+
+  it('flags the failure and badges the icon when even a prune cannot make room', async () => {
+    fillQuota()
+
+    await saveEntry(entry({ date: '2026-06-15' }))
+
+    expect(chromeStub.store['entries:2026-06-15']).toBeUndefined()
+    expect(chromeStub.store['storage_full_at']).toBe(Date.now())
+    expect(chromeStub.badgeText).toBe('!')
+  })
+
+  it('does not let the rejection escape and kill the caller', async () => {
+    fillQuota()
+    await expect(saveEntry(entry({ date: '2026-06-15' }))).resolves.toBeUndefined()
+    await expect(recomputeAndSaveAggregate('2026-06-15')).resolves.toMatchObject({ date: '2026-06-15' })
+  })
+
+  it('clears the badge and the flag on the next write that succeeds', async () => {
+    fillQuota()
+    await saveEntry(entry({ date: '2026-06-15' }))
+    expect(chromeStub.badgeText).toBe('!')
+
+    chromeStub.quotaBytes = 10_485_760
+    await saveEntry(entry({ date: '2026-06-15' }))
+
+    expect(chromeStub.store['storage_full_at']).toBeUndefined()
+    expect(chromeStub.badgeText).toBe('')
+  })
+
+  it('still reports a non-quota storage failure instead of swallowing it', async () => {
+    chromeStub.beforeSet = () => { throw new Error('disk on fire') }
+    await expect(saveEntry(entry({ date: '2026-06-15' }))).rejects.toThrow('disk on fire')
+  })
+})
+
 describe('getStorageInfo', () => {
   it('reports bytes in use and the quota', async () => {
     await saveEntry(entry())
