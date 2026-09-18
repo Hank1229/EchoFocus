@@ -11,20 +11,9 @@ import { mergeImportedRules } from './rules-import'
 import { getTodayDateString, getDateNDaysAgo } from '@echofocus/shared'
 import { useLocale, type Language } from '../lib/i18n'
 import { DASHBOARD_URL } from '../lib/config'
+import { sendMessage } from '../lib/messaging'
 
 const APP_VERSION = '1.0.0'
-
-// ─── Helpers ──────────────────────────────────────────────────────────────
-
-async function sendMessage<T>(type: string, payload?: unknown): Promise<T | null> {
-  try {
-    const response = await chrome.runtime.sendMessage({ type, payload })
-    if (response?.success) return response.data as T
-    return null
-  } catch {
-    return null
-  }
-}
 
 type Tab = 'general' | 'categories' | 'privacy' | 'account' | 'about'
 
@@ -58,6 +47,7 @@ function GeneralTab() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [savedAt, setSavedAt] = useState<number | null>(null)
+  const [saveFailed, setSaveFailed] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -65,7 +55,7 @@ function GeneralTab() {
         sendMessage<Settings>('GET_SETTINGS'),
         isDailySummaryEnabled(),
       ])
-      if (loaded) setSettings(loaded)
+      if (loaded?.data) setSettings(loaded.data)
       setDailySummary(summaryEnabled)
       setIsLoading(false)
     }
@@ -74,15 +64,18 @@ function GeneralTab() {
 
   const handleSave = async () => {
     setIsSaving(true)
-    await sendMessage('SAVE_SETTINGS', settings)
+    setSaveFailed(false)
+    const response = await sendMessage('SAVE_SETTINGS', settings)
     await setDailySummaryEnabled(dailySummary)
     setIsSaving(false)
-    setSavedAt(Date.now())
+    if (response?.success) setSavedAt(Date.now())
+    else setSaveFailed(true)
   }
 
   const update = <K extends keyof Settings>(key: K, value: Settings[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }))
     setSavedAt(null)
+    setSaveFailed(false)
   }
 
   if (isLoading) {
@@ -197,6 +190,10 @@ function GeneralTab() {
           <span className="flex items-center gap-1.5 text-xs text-brand">
             <Check size={13} strokeWidth={2.5} />{t.general.saved}
           </span>
+        ) : saveFailed ? (
+          <span role="alert" className="flex items-center gap-1.5 text-xs text-danger">
+            <X size={13} strokeWidth={2.5} />{t.common.saveFailed}
+          </span>
         ) : <span />}
         <button onClick={handleSave} disabled={isSaving}
           className="px-5 py-2 bg-brand hover:bg-brand-soft disabled:opacity-50 text-slate-950 text-sm font-semibold rounded-lg transition-colors">
@@ -215,6 +212,7 @@ function CategoriesTab() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [savedAt, setSavedAt] = useState<number | null>(null)
+  const [saveFailed, setSaveFailed] = useState(false)
 
   // New rule form state
   const [newPattern, setNewPattern] = useState('')
@@ -239,17 +237,28 @@ function CategoriesTab() {
 
   const load = useCallback(async () => {
     const loaded = await sendMessage<ClassificationRule[]>('GET_CUSTOM_RULES')
-    setRules(loaded ?? [])
+    setRules(loaded?.data ?? [])
     setIsLoading(false)
   }, [])
 
   useEffect(() => { void load() }, [load])
 
-  const saveRules = async (updated: ClassificationRule[]) => {
+  // Returns whether the worker confirmed the write, so the callers that show
+  // their own message don't claim success on top of a failed save.
+  const saveRules = async (updated: ClassificationRule[]): Promise<boolean> => {
     setIsSaving(true)
-    await sendMessage('SAVE_CUSTOM_RULES', updated)
+    setSaveFailed(false)
+    const response = await sendMessage('SAVE_CUSTOM_RULES', updated)
     setIsSaving(false)
+    if (!response?.success) {
+      setSaveFailed(true)
+      // The rules on screen are not the rules in storage any more — show what
+      // the worker actually has rather than a list the user cannot trust.
+      await load()
+      return false
+    }
     setSavedAt(Date.now())
+    return true
   }
 
   const addRule = async () => {
@@ -265,9 +274,7 @@ function CategoriesTab() {
     }
     const updated = [rule, ...rules]
     setRules(updated)
-    await saveRules(updated)
-    setNewPattern('')
-    setSavedAt(Date.now())
+    if (await saveRules(updated)) setNewPattern('')
   }
 
   const deleteRule = async (id: string) => {
@@ -307,7 +314,10 @@ function CategoriesTab() {
 
     if (merged.added > 0) {
       setRules(merged.rules)
-      await saveRules(merged.rules)
+      if (!await saveRules(merged.rules)) {
+        setImportMessage({ text: t.common.saveFailed, ok: false })
+        return
+      }
     }
     setImportMessage({
       text: t.categories.importResult
@@ -363,7 +373,11 @@ function CategoriesTab() {
           <h2 className="text-xs font-medium text-slate-400">
             {t.categories.customRules} ({rules.length})
           </h2>
-          {savedAt && (
+          {saveFailed ? (
+            <span role="alert" className="flex items-center gap-1.5 text-xs text-danger">
+              <X size={13} strokeWidth={2.5} />{t.common.saveFailed}
+            </span>
+          ) : savedAt && (
             <span className="flex items-center gap-1.5 text-xs text-brand">
               <Check size={13} strokeWidth={2.5} />{t.categories.saved}
             </span>
@@ -622,19 +636,19 @@ function PrivacyTab() {
   useEffect(() => {
     const load = async () => {
       const info = await sendMessage<{ usedBytes: number; quotaBytes: number }>('GET_STORAGE_INFO')
-      if (info) setStorageInfo(info)
+      if (info?.data) setStorageInfo(info.data)
     }
     void load()
   }, [])
 
   const refreshStorageInfo = async () => {
     const info = await sendMessage<{ usedBytes: number; quotaBytes: number }>('GET_STORAGE_INFO')
-    if (info) setStorageInfo(info)
+    if (info?.data) setStorageInfo(info.data)
   }
 
   const handleExportJSON = async () => {
     setIsExporting(true)
-    const data = await sendMessage<Record<string, unknown>>('EXPORT_DATA')
+    const data = (await sendMessage<Record<string, unknown>>('EXPORT_DATA'))?.data
     if (data) {
       const cutoff = getExportCutoff()
       const exportData = cutoff ? {
@@ -659,7 +673,7 @@ function PrivacyTab() {
 
   const handleExportCSV = async () => {
     setIsExporting(true)
-    const data = await sendMessage<{ aggregates: Record<string, DailyAggregate> }>('EXPORT_DATA')
+    const data = (await sendMessage<{ aggregates: Record<string, DailyAggregate> }>('EXPORT_DATA'))?.data
     if (data?.aggregates) {
       const cutoff = getExportCutoff()
       const rows = [
@@ -692,9 +706,11 @@ function PrivacyTab() {
 
   const handleDeleteAll = async () => {
     setIsDeleting(true)
-    await sendMessage('DELETE_ALL_DATA')
+    const response = await sendMessage('DELETE_ALL_DATA')
     setShowDeleteConfirm(false)
-    setStatusMessage({ text: t.privacy.deleted, ok: true })
+    setStatusMessage(response?.success
+      ? { text: t.privacy.deleted, ok: true }
+      : { text: t.common.deleteFailed, ok: false })
     await refreshStorageInfo()
     setIsDeleting(false)
   }

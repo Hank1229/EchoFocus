@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { DailyAggregate, TrackingState, Category } from '@echofocus/shared'
 import { getTodayDateString } from '@echofocus/shared'
+import { sendMessage } from '../../lib/messaging'
 
 interface CurrentSession {
   domain: string | null
@@ -15,17 +16,6 @@ interface TodayStatsResult {
   isLoading: boolean
   refreshAggregate: () => Promise<void>
   refreshTrackingState: () => Promise<void>
-}
-
-async function sendMessage<T>(type: string, payload?: unknown): Promise<T | null> {
-  try {
-    const response = await chrome.runtime.sendMessage({ type, payload })
-    if (response?.success) return response.data as T
-    return null
-  } catch {
-    // Service worker may not be running yet
-    return null
-  }
 }
 
 export function useTodayStats(): TodayStatsResult {
@@ -43,13 +33,13 @@ export function useTodayStats(): TodayStatsResult {
   }, [])
 
   const loadTrackingState = useCallback(async () => {
-    const state = await sendMessage<TrackingState>('GET_TRACKING_STATE')
-    setTrackingState(state)
+    const response = await sendMessage<TrackingState>('GET_TRACKING_STATE')
+    setTrackingState(response?.data ?? null)
   }, [])
 
   const loadCurrentSession = useCallback(async () => {
-    const session = await sendMessage<CurrentSession>('GET_CURRENT_SESSION')
-    setCurrentSession(session)
+    const response = await sendMessage<CurrentSession>('GET_CURRENT_SESSION')
+    setCurrentSession(response?.data ?? null)
   }, [])
 
   const refreshAggregate = useCallback(async () => {

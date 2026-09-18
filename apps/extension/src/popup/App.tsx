@@ -13,34 +13,10 @@ import type { AiAnalysisResult } from '@echofocus/shared'
 import { getTodayDateString } from '@echofocus/shared'
 import { useLocale, type Language } from '../lib/i18n'
 import { DASHBOARD_URL } from '../lib/config'
+import { sendMessage } from '../lib/messaging'
 
 // Gemini needs a meaningful sample before an insight is worth generating.
 const MIN_ANALYZE_SECONDS = 1800
-
-interface MessageResponse<T> {
-  success: boolean
-  data?: T
-  error?: string
-}
-
-async function sendMessage<T>(type: string, payload?: unknown): Promise<T | null> {
-  try {
-    const response = await chrome.runtime.sendMessage({ type, payload })
-    if (response?.success) return response.data as T
-    return null
-  } catch {
-    return null
-  }
-}
-
-async function sendMessageRaw<T>(type: string, payload?: unknown): Promise<MessageResponse<T>> {
-  try {
-    const response = await chrome.runtime.sendMessage({ type, payload }) as MessageResponse<T>
-    return response ?? { success: false, error: 'No response' }
-  } catch (err) {
-    return { success: false, error: String(err) }
-  }
-}
 
 export default function App() {
   const { t, language, setLanguage } = useLocale()
@@ -51,8 +27,8 @@ export default function App() {
   const today = getTodayDateString()
 
   useEffect(() => {
-    sendMessage<AiAnalysisResult | null>('GET_AI_ANALYSIS', today).then(result => {
-      if (result) setAiAnalysis(result)
+    void sendMessage<AiAnalysisResult | null>('GET_AI_ANALYSIS', today).then(response => {
+      if (response?.data) setAiAnalysis(response.data)
     })
   }, [today])
 
@@ -65,16 +41,16 @@ export default function App() {
     if (isAnalyzing) return
     setIsAnalyzing(true)
     setAiError(null)
-    const res = await sendMessageRaw<AiAnalysisResult>('REQUEST_AI_ANALYSIS', { date: today, language })
-    if (res.success && res.data) {
-      setAiAnalysis(res.data)
+    const response = await sendMessage<AiAnalysisResult>('REQUEST_AI_ANALYSIS', { date: today, language })
+    if (response?.success && response.data) {
+      setAiAnalysis(response.data)
     } else {
       const reasons: Record<string, string> = {
         'signed-out': t.popup.aiSignedOut,
         'session-expired': t.popup.aiSessionExpired,
         'no-data': t.popup.aiNoData,
       }
-      setAiError(reasons[res.error ?? ''] ?? t.popup.aiError)
+      setAiError(reasons[response?.error ?? ''] ?? t.popup.aiError)
     }
     setIsAnalyzing(false)
   }, [isAnalyzing, today, language, t.popup])

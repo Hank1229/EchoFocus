@@ -1,4 +1,8 @@
 {
+  "common": {
+    "saveFailed": "Couldn't save — please try again",
+    "deleteFailed": "Couldn't delete — please try again"
+  },
   "popup": {
     "loading": "Loading...",
     "now": "Now:",

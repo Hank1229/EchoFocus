@@ -1,4 +1,8 @@
 {
+  "common": {
+    "saveFailed": "儲存失敗 — 請再試一次",
+    "deleteFailed": "刪除失敗 — 請再試一次"
+  },
   "popup": {
     "loading": "載入中...",
     "now": "目前：",
