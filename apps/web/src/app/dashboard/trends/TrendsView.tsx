@@ -48,7 +48,7 @@ export default function TrendsView({
     <div className="space-y-10">
       {/* The trajectory leads: the average is the figure, the line is its
           shape. Neither works as a lonely stat card, so they share one band. */}
-      <section className="border-b border-slate-800/80 pb-9">
+      <section className="rise rise-1 border-b border-slate-800/80 pb-9">
         <div className="flex items-baseline justify-between gap-4">
           <h2 className="font-display text-base font-semibold tracking-tight text-slate-100">
             {copy.focusScoreTrend}
@@ -72,7 +72,7 @@ export default function TrendsView({
         </div>
       </section>
 
-      <section>
+      <section className="rise rise-2">
         <dl className="grid grid-cols-2 gap-y-7 sm:grid-cols-4">
           {stats.map((stat, i) => (
             <div
@@ -87,7 +87,7 @@ export default function TrendsView({
         </dl>
       </section>
 
-      <section className="border-t border-slate-800/80 pt-9">
+      <section className="rise rise-3 border-t border-slate-800/80 pt-9">
         <h2 className="font-display text-base font-semibold tracking-tight text-slate-100">
           {copy.dailyTimeBreakdown}
         </h2>

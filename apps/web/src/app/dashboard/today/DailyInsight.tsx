@@ -47,7 +47,7 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
   const [lead, ...rest] = paragraphs
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/70 px-7 py-7 sm:px-9 sm:py-8">
+    <section className="surface relative overflow-hidden px-7 py-7 sm:px-9 sm:py-8">
       <div className="flex items-center justify-between gap-4">
         <h2 className="flex items-center gap-2.5 font-display text-base font-semibold tracking-tight text-slate-100">
           <Sparkles size={15} strokeWidth={1.75} className="text-brand" />

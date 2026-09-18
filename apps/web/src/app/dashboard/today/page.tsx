@@ -35,6 +35,7 @@ interface SyncedRow {
   uncategorized_seconds: number
   focus_score: number
   top_domains: RankedSite[]
+  productive_by_hour: number[] | null
   synced_at: string
 }
 
@@ -161,7 +162,7 @@ export default async function TodayPage({
           </p>
         ) : row ? (
           <div className="space-y-10">
-            <VerdictBand
+            <div className="rise rise-1"><VerdictBand
               userName={firstName}
               streak={streak}
               focusScore={row.focus_score}
@@ -169,21 +170,22 @@ export default async function TodayPage({
               distractionSeconds={row.distraction_seconds}
               neutralSeconds={row.neutral_seconds}
               uncategorizedSeconds={row.uncategorized_seconds}
-            />
+              productiveByHour={row.productive_by_hour}
+            /></div>
 
-            <DailyInsight
+            <div className="rise rise-2"><DailyInsight
               analysisText={todaysAi?.analysis_text ?? null}
               date={displayDate}
               canGenerate={canGenerateDailyInsight(displayDate)}
               language={language}
-            />
+            /></div>
 
-            <SiteRanking
+            <div className="rise rise-3"><SiteRanking
               heading={t.today.whereTimeWent}
               sites={row.top_domains ?? []}
               emptyLabel={t.today.noData}
               total={formatDuration(row.total_seconds)}
-            />
+            /></div>
           </div>
         ) : (
           <div className="max-w-md border-t border-slate-800/80 pt-10">

@@ -106,7 +106,7 @@ export default async function TrendsPage({
                 key={p}
                 href={`/dashboard/trends?period=${p}`}
                 aria-current={days === p ? 'true' : undefined}
-                className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                className={`pressable rounded-md px-3 py-1 text-xs font-medium ${
                   days === p ? 'bg-slate-800 text-slate-100' : 'text-slate-500 hover:text-slate-300'
                 }`}
               >

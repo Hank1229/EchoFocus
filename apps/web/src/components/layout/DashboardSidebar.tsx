@@ -42,11 +42,13 @@ export default function DashboardSidebar() {
               href={href}
               title={label}
               aria-current={isActive ? 'page' : undefined}
-              className={`relative flex h-11 items-center justify-center gap-3 text-sm transition-colors md:justify-start md:px-5 ${
-                isActive ? 'text-slate-100' : 'text-slate-500 hover:text-slate-300'
+              className={`pressable relative flex h-11 items-center justify-center gap-3 text-sm md:justify-start md:px-5 ${
+                isActive
+                  ? 'bg-gradient-to-r from-brand/[0.08] to-transparent text-slate-100'
+                  : 'text-slate-500 hover:bg-slate-900/60 hover:text-slate-300'
               }`}
             >
-              {isActive && <span aria-hidden className="absolute left-0 top-1.5 h-8 w-[2px] rounded-r bg-brand" />}
+              {isActive && <span aria-hidden className="absolute left-0 top-1.5 h-8 w-[2px] rounded-r bg-brand shadow-[0_0_8px_rgba(45,212,191,0.5)]" />}
               <Icon size={17} strokeWidth={1.75} className={isActive ? 'text-brand' : ''} />
               <span className="hidden truncate md:inline">{label}</span>
             </Link>
@@ -65,7 +67,7 @@ export default function DashboardSidebar() {
               key={lang}
               onClick={() => setLanguage(lang)}
               aria-pressed={language === lang}
-              className={`px-1.5 text-xs transition-colors md:px-0 md:pr-3 ${
+              className={`pressable px-1.5 text-xs md:px-0 md:pr-3 ${
                 language === lang ? 'text-slate-300' : 'text-slate-600 hover:text-slate-400'
               }`}
             >

@@ -4,6 +4,8 @@
 
 :root {
   color-scheme: dark;
+  /* The one easing the whole product moves on. */
+  --ease-silk: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 * {
@@ -12,17 +14,76 @@
 
 body {
   -webkit-font-smoothing: antialiased;
-  background: #0f172a;
-  color: #f1f5f9;
+  background: #070c0a;
+  color: #ecf3ef;
+}
+
+::selection {
+  background: rgba(45, 212, 191, 0.25);
 }
 
 ::-webkit-scrollbar {
   width: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: #2e3b36;
   border-radius: 2px;
+}
+
+@layer components {
+  /* Raised surfaces are lit from above: a hairline top highlight over a
+     one-step-lighter panel is what separates "surface" from "hole" on a
+     near-black ground. */
+  .surface {
+    @apply rounded-2xl border border-slate-800 bg-slate-900;
+    box-shadow: inset 0 1px 0 rgba(236, 243, 239, 0.04);
+  }
+
+  /* Anything pressable answers the hand: quick, on the silk curve, and it
+     gives slightly under the press. */
+  .pressable {
+    transition: color 150ms var(--ease-silk), background-color 150ms var(--ease-silk),
+      border-color 150ms var(--ease-silk), transform 150ms var(--ease-silk),
+      opacity 150ms var(--ease-silk);
+  }
+  .pressable:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Entrance choreography — used once per page load, staggered by .rise-N.
+   Static under prefers-reduced-motion: the keyframes simply never attach. */
+@media (prefers-reduced-motion: no-preference) {
+  .rise {
+    animation: rise 0.55s var(--ease-silk) both;
+  }
+  .rise-1 { animation-delay: 0.05s; }
+  .rise-2 { animation-delay: 0.12s; }
+  .rise-3 { animation-delay: 0.19s; }
+  .rise-4 { animation-delay: 0.26s; }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* The day-waveform bars grow out of the baseline; each bar sets its own
+     delay inline so the wave sweeps left to right. */
+  .wave-grow {
+    transform-origin: bottom;
+    animation: wave-grow 0.6s var(--ease-silk) both;
+  }
+  @keyframes wave-grow {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+  }
 }

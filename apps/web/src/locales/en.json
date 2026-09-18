@@ -141,6 +141,7 @@
     "focusedFor": "You've been focused for",
     "todayTotalSuffix": " tracked today.",
     "focusTimeline": "Focus Timeline",
+    "focusByHour": "Focus by hour",
     "timelineTooltipDomains": "Top sites",
     "timelineUntracked": "Untracked",
     "regenerate": "Regenerate",

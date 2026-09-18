@@ -141,6 +141,7 @@
     "focusedFor": "今天您已專注",
     "todayTotalSuffix": "。",
     "focusTimeline": "專注時間軸",
+    "focusByHour": "每小時專注",
     "timelineTooltipDomains": "熱門網站",
     "timelineUntracked": "未追蹤",
     "regenerate": "重新分析",

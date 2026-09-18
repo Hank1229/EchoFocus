@@ -4,6 +4,7 @@ import { Flame } from 'lucide-react'
 import { formatDuration } from '@echofocus/shared'
 import { useLocale } from '@/lib/i18n'
 import ScoreDial from '@/components/dashboard/ScoreDial'
+import DayWaveform from '@/components/dashboard/DayWaveform'
 
 interface Props {
   userName: string
@@ -13,6 +14,8 @@ interface Props {
   distractionSeconds: number
   neutralSeconds: number
   uncategorizedSeconds: number
+  /** 24 local-hour buckets of productive seconds; null on pre-waveform rows. */
+  productiveByHour: number[] | null
 }
 
 function greetingFor(hour: number, t: { goodMorning: string; goodAfternoon: string; goodEvening: string; goodNight: string }) {
@@ -30,6 +33,7 @@ export default function VerdictBand({
   distractionSeconds,
   neutralSeconds,
   uncategorizedSeconds,
+  productiveByHour,
 }: Props) {
   const { t } = useLocale()
   const greeting = greetingFor(new Date().getHours(), t.today)
@@ -54,7 +58,7 @@ export default function VerdictBand({
           <ScoreDial score={focusScore} label={t.today.focusScore} />
 
           <div className="relative z-10 min-w-0">
-            <h2 className="font-display text-[1.75rem] font-semibold leading-tight tracking-tight text-slate-100 sm:text-[2rem]">
+            <h2 className="font-display text-[1.875rem] font-semibold leading-tight tracking-tight text-slate-100 sm:text-[2.25rem]">
               {greeting}{userName ? `, ${userName}` : ''}
             </h2>
             <p className="mt-3 max-w-md text-[0.9375rem] leading-relaxed text-slate-400">
@@ -102,11 +106,19 @@ export default function VerdictBand({
         </dl>
       </div>
 
-      {/* The rule under the band is the day itself. */}
-      <div className="relative z-10 mt-9 flex h-1.5 overflow-hidden rounded-full bg-slate-800">
-        {parts.map(p => (
-          <div key={p.key} className={p.bar} style={{ width: `${share(p.seconds)}%` }} />
-        ))}
+      {/* The rule under the band is the day itself: 24 hours of focus drawn
+          as a waveform — the echo motif made of real data. Rows synced before
+          the hourly buckets existed fall back to the flat composition bar. */}
+      <div className="relative z-10 mt-9">
+        {productiveByHour ? (
+          <DayWaveform hours={productiveByHour} label={t.today.focusByHour} />
+        ) : (
+          <div className="flex h-1.5 overflow-hidden rounded-full bg-slate-800">
+            {parts.map(p => (
+              <div key={p.key} className={p.bar} style={{ width: `${share(p.seconds)}%` }} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )
