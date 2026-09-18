@@ -65,6 +65,26 @@ let _focusedWindowId: number | null = null
 // even if both the module-level init and onStartup reach it.
 let _restored = false
 
+// Session transitions run one at a time. withStorageLock only serializes the
+// individual storage writes, not the end-then-start pair that makes up a
+// transition, and Chrome delivers tab/window/idle events concurrently. Two
+// quick tab switches used to interleave like this: handler A has an entry to
+// finalize (slow), handler B has nothing (fast); B starts tab B's session, then
+// A's startSession lands last and overwrites it with tab A. Everything after
+// that was credited to the wrong domain — and the handler with work to do is
+// always the slow one, so fast switching hit it every time.
+//
+// Every exported entry point that can change the session goes through here.
+// Nothing inside a locked section may await this lock again, or it deadlocks.
+let sessionQueue: Promise<unknown> = Promise.resolve()
+
+function withSessionLock<T>(fn: () => Promise<T>): Promise<T> {
+  const next = sessionQueue.then(fn, fn)
+  // Keep the chain alive even if fn rejects
+  sessionQueue = next.catch(() => undefined)
+  return next
+}
+
 export function getInMemoryState(): TrackingState {
   return { ..._state }
 }
@@ -91,7 +111,11 @@ function clearSessionFields(): void {
 
 // Restore state from chrome.storage on service worker startup.
 // Idempotent: awaited via the single `ready` promise in index.ts.
-export async function restoreState(): Promise<void> {
+export function restoreState(): Promise<void> {
+  return withSessionLock(restore)
+}
+
+async function restore(): Promise<void> {
   if (_restored) return
   _restored = true
 
@@ -280,7 +304,11 @@ async function startSession(tabId: number, url: string, title: string): Promise<
 // ─── Chrome Event Handlers ─────────────────────────────────────────────────
 
 // Called when the user switches to a different tab.
-export async function handleTabActivated(activeInfo: chrome.tabs.TabActiveInfo): Promise<void> {
+export function handleTabActivated(activeInfo: chrome.tabs.TabActiveInfo): Promise<void> {
+  return withSessionLock(() => switchToTab(activeInfo))
+}
+
+async function switchToTab(activeInfo: chrome.tabs.TabActiveInfo): Promise<void> {
   // Ignore tab switches in unfocused windows
   if (_focusedWindowId !== null && activeInfo.windowId !== _focusedWindowId) return
 
@@ -295,7 +323,15 @@ export async function handleTabActivated(activeInfo: chrome.tabs.TabActiveInfo):
 }
 
 // Called when a tab's URL or title changes.
-export async function handleTabUpdated(
+export function handleTabUpdated(
+  tabId: number,
+  changeInfo: chrome.tabs.TabChangeInfo,
+  tab: chrome.tabs.Tab,
+): Promise<void> {
+  return withSessionLock(() => applyTabUpdate(tabId, changeInfo, tab))
+}
+
+async function applyTabUpdate(
   tabId: number,
   changeInfo: chrome.tabs.TabChangeInfo,
   tab: chrome.tabs.Tab,
@@ -317,7 +353,11 @@ export async function handleTabUpdated(
 }
 
 // Called when browser window focus changes.
-export async function handleWindowFocusChanged(windowId: number): Promise<void> {
+export function handleWindowFocusChanged(windowId: number): Promise<void> {
+  return withSessionLock(() => applyWindowFocus(windowId))
+}
+
+async function applyWindowFocus(windowId: number): Promise<void> {
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
     // All Chrome windows lost focus — pause tracking and block tab events
     _focusedWindowId = chrome.windows.WINDOW_ID_NONE
@@ -340,9 +380,11 @@ export async function handleWindowFocusChanged(windowId: number): Promise<void> 
 }
 
 // Called when the user's idle state changes.
-export async function handleIdleStateChanged(
-  newState: chrome.idle.IdleState,
-): Promise<void> {
+export function handleIdleStateChanged(newState: chrome.idle.IdleState): Promise<void> {
+  return withSessionLock(() => applyIdleState(newState))
+}
+
+async function applyIdleState(newState: chrome.idle.IdleState): Promise<void> {
   if (newState === 'idle') {
     // Watching a video counts: if the active tab is playing audio, the user
     // is likely consuming media — keep the session alive.
@@ -383,16 +425,22 @@ export async function handleIdleStateChanged(
 
 // Toggle tracking on/off. settings.trackingEnabled is the persistent master
 // switch; _state.isTracking mirrors it for the popup display.
-export async function toggleTracking(): Promise<boolean> {
-  const settings = await getSettings()
-  const enabled = !settings.trackingEnabled
-  await applyTrackingEnabled(enabled)
-  return enabled
+export function toggleTracking(): Promise<boolean> {
+  return withSessionLock(async () => {
+    const settings = await getSettings()
+    const enabled = !settings.trackingEnabled
+    await setTrackingEnabled(enabled)
+    return enabled
+  })
 }
 
 // Apply a new value of the master switch (from the toggle or the options
 // page). Ends the live session when turning off; starts one when turning on.
-export async function applyTrackingEnabled(enabled: boolean): Promise<void> {
+export function applyTrackingEnabled(enabled: boolean): Promise<void> {
+  return withSessionLock(() => setTrackingEnabled(enabled))
+}
+
+async function setTrackingEnabled(enabled: boolean): Promise<void> {
   const settings = await getSettings()
   if (settings.trackingEnabled !== enabled) {
     await saveSettings({ trackingEnabled: enabled })
@@ -425,9 +473,11 @@ export async function applyTrackingEnabled(enabled: boolean): Promise<void> {
 
 // Discard the in-flight session WITHOUT saving an entry. Used by
 // DELETE_ALL_DATA so no new entry materializes right after a wipe.
-export async function discardCurrentSession(): Promise<void> {
-  clearSessionFields()
-  await persistState()
+export function discardCurrentSession(): Promise<void> {
+  return withSessionLock(async () => {
+    clearSessionFields()
+    await persistState()
+  })
 }
 
 // Get live current session info (for popup display).

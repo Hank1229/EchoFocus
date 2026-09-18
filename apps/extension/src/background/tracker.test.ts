@@ -888,6 +888,59 @@ describe('the master tracking switch', () => {
   })
 })
 
+// Chrome delivers tab, window and idle events concurrently, and the handler
+// that has an entry to bank is always the slow one — so the fast handler used
+// to finish first and then get overwritten by the slow one's startSession.
+describe('overlapping event handlers', () => {
+  /** Let every already-queued microtask AND macrotask run. Only Date is faked. */
+  function settle(): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, 0))
+  }
+
+  function stallFirstEntryWrite(): { release: () => void } {
+    let release = (): void => undefined
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    let seen = 0
+    chromeStub.beforeSet = (items) => {
+      if (Object.keys(items).some((key) => key.startsWith('entries:')) && seen++ === 0) return gate
+    }
+    return { release }
+  }
+
+  it('credits the tab the user actually landed on when two switches overlap', async () => {
+    const tracker = await loadTracker()
+    chromeStub.tabs = [
+      { id: 1, windowId: 1, active: true, url: 'https://github.com/echofocus', title: 'A' },
+      { id: 2, windowId: 1, active: false, url: 'https://youtube.com/watch?v=x', title: 'B' },
+      { id: 3, windowId: 1, active: false, url: 'https://docs.google.com/document/d/1', title: 'C' },
+    ]
+    await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
+    awake(BASE + 60_000)
+
+    const stall = stallFirstEntryWrite()
+    const slow = tracker.handleTabActivated({ tabId: 2, windowId: 1 })
+    const fast = tracker.handleTabActivated({ tabId: 3, windowId: 1 })
+    await settle()
+    stall.release()
+    await Promise.all([slow, fast])
+
+    expect(tracker.getInMemoryState().activeTabId).toBe(3)
+    expect(tracker.getInMemoryState().activeDomain).toBe('docs.google.com')
+    expect(allEntries().map((e) => [e.domain, e.duration])).toEqual([['github.com', 60]])
+  })
+
+  it('does not lose a toggle when two of them arrive at once', async () => {
+    const tracker = await loadTracker()
+    setActiveTab('https://github.com/echofocus')
+    await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
+
+    const results = await Promise.all([tracker.toggleTracking(), tracker.toggleTracking()])
+
+    expect(results).toEqual([false, true])
+    expect((chromeStub.store['settings'] as { trackingEnabled: boolean }).trackingEnabled).toBe(true)
+  })
+})
+
 describe('discardCurrentSession', () => {
   it('throws the in-flight session away without saving an entry', async () => {
     const tracker = await loadTracker()

@@ -38,7 +38,14 @@ export interface ChromeStub {
   idleDetectionIntervalSeconds: number | null
   createdTabUrls: string[]
   removedKeys: string[][]
+  /** Enforced: a set() that would push the store past this rejects the way
+   *  Chrome's does. Generous by default so existing tests never hit it. */
   quotaBytes: number
+  /** Awaited before every storage.local.set — a test stalls a specific write
+   *  here to interleave two handlers deterministically. */
+  beforeSet: ((items: Record<string, unknown>) => Promise<void> | void) | null
+  /** Latest chrome.action badge text, or null if it was never set. */
+  badgeText: string | null
   /** Notifications currently on screen, in creation order. */
   notifications: StubNotification[]
   clearedNotificationIds: string[]
@@ -60,6 +67,8 @@ export function installChromeStub(): ChromeStub {
     createdTabUrls: [],
     removedKeys: [],
     quotaBytes: 10485760,
+    beforeSet: null,
+    badgeText: null,
     notifications: [],
     clearedNotificationIds: [],
   }
@@ -69,6 +78,19 @@ export function installChromeStub(): ChromeStub {
     if (typeof keys === 'string') return [keys]
     if (Array.isArray(keys)) return keys
     return Object.keys(keys)
+  }
+
+  function sizeOf(key: string, value: unknown): number {
+    return key.length + JSON.stringify(value ?? null).length
+  }
+
+  function totalBytes(pending: Record<string, unknown>): number {
+    const keys = new Set([...Object.keys(stub.store), ...Object.keys(pending)])
+    let bytes = 0
+    for (const key of keys) {
+      bytes += sizeOf(key, key in pending ? pending[key] : stub.store[key])
+    }
+    return bytes
   }
 
   const local = {
@@ -81,6 +103,11 @@ export function installChromeStub(): ChromeStub {
       return out
     },
     async set(items: Record<string, unknown>): Promise<void> {
+      await stub.beforeSet?.(items)
+      if (totalBytes(items) > stub.quotaBytes) {
+        // Chrome's own wording, which is what the production guard matches on.
+        throw new Error('QUOTA_BYTES quota exceeded')
+      }
       for (const [key, value] of Object.entries(items)) {
         stub.store[key] = clone(value)
       }
@@ -99,7 +126,7 @@ export function installChromeStub(): ChromeStub {
     ): Promise<number> | void {
       let bytes = 0
       for (const key of keyList(keys)) {
-        bytes += key.length + JSON.stringify(stub.store[key] ?? null).length
+        bytes += sizeOf(key, stub.store[key])
       }
       if (callback) {
         callback(bytes)
@@ -183,10 +210,18 @@ export function installChromeStub(): ChromeStub {
     onClicked: { addListener: () => undefined },
   }
 
+  const action = {
+    async setBadgeText(details: { text: string }): Promise<void> {
+      stub.badgeText = details.text
+    },
+    async setBadgeBackgroundColor(_details: { color: string }): Promise<void> {},
+  }
+
   const chromeStub = {
     storage: { local },
     alarms,
     tabs,
+    action,
     notifications,
     idle: {
       setDetectionInterval(seconds: number): void {
