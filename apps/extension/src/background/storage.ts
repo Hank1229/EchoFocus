@@ -298,30 +298,24 @@ export async function cleanupOldData(maxDays = Infinity): Promise<void> {
   const allData = await chrome.storage.local.get(null)
   const keysToRemove: string[] = []
 
-  const now = new Date()
+  // Cutoffs as YYYY-MM-DD strings, compared lexicographically against the key's
+  // date — not `new Date(dateStr).getTime()` diffed against `Date.now()`.
+  // `new Date('YYYY-MM-DD')` parses as UTC midnight, so diffing it against the
+  // local "now" instant drifted the retention boundary by the local UTC offset
+  // (up to half a day) depending on both the timezone and the time of day
+  // cleanup happened to run. String keys and getCutoffDate are both local-date
+  // based, so the comparison is exact everywhere.
+  const entriesCutoff = getCutoffDate(retentionDays)
+  const aggregatesCutoff = getCutoffDate(aggregateDays)
+  const aiAnalysisCutoff = getCutoffDate(aiAnalysisDays)
 
   for (const key of Object.keys(allData)) {
     if (key.startsWith('entries:')) {
-      const dateStr = key.slice('entries:'.length)
-      const entryDate = new Date(dateStr)
-      const ageInDays = Math.floor((now.getTime() - entryDate.getTime()) / (1000 * 60 * 60 * 24))
-      if (ageInDays > retentionDays) {
-        keysToRemove.push(key)
-      }
+      if (key.slice('entries:'.length) < entriesCutoff) keysToRemove.push(key)
     } else if (key.startsWith('aggregates:')) {
-      const dateStr = key.slice('aggregates:'.length)
-      const aggDate = new Date(dateStr)
-      const ageInDays = Math.floor((now.getTime() - aggDate.getTime()) / (1000 * 60 * 60 * 24))
-      if (ageInDays > aggregateDays) {
-        keysToRemove.push(key)
-      }
+      if (key.slice('aggregates:'.length) < aggregatesCutoff) keysToRemove.push(key)
     } else if (key.startsWith('ai_analysis:')) {
-      const dateStr = key.slice('ai_analysis:'.length)
-      const aiDate = new Date(dateStr)
-      const ageInDays = Math.floor((now.getTime() - aiDate.getTime()) / (1000 * 60 * 60 * 24))
-      if (ageInDays > aiAnalysisDays) {
-        keysToRemove.push(key)
-      }
+      if (key.slice('ai_analysis:'.length) < aiAnalysisCutoff) keysToRemove.push(key)
     }
   }
 

@@ -37,6 +37,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks()
   vi.useRealTimers()
+  vi.unstubAllEnvs()
 })
 
 function entry(overrides: Partial<TrackingEntry> = {}): TrackingEntry {
@@ -401,6 +402,20 @@ describe('cleanupOldData', () => {
     chromeStub.store['entries:2026-06-14'] = []
     await cleanupOldData()
     expect(chromeStub.removedKeys).toEqual([])
+  })
+
+  it('keeps the oldest retained day regardless of the local timezone', async () => {
+    // `new Date('YYYY-MM-DD')` parses as UTC midnight; diffed against a local
+    // "now" late in the day west of UTC, that read the boundary day as one
+    // calendar day older than it locally was and deleted it half a day early.
+    vi.stubEnv('TZ', 'America/Los_Angeles')
+    vi.setSystemTime(new Date(2026, 5, 15, 23, 30, 0)) // 2026-06-15 23:30 local (PDT, UTC-7)
+    chromeStub.store['settings'] = { ...DEFAULT_SETTINGS, dataRetentionDays: 30 }
+    chromeStub.store['entries:2026-05-16'] = [] // exactly 30 local days old — must be kept
+
+    await cleanupOldData()
+
+    expect(Object.keys(chromeStub.store)).toContain('entries:2026-05-16')
   })
 })
 
