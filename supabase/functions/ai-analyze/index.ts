@@ -249,9 +249,12 @@ async function callGemini(prompt: string): Promise<string> {
   const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS)
 
   try {
-    const res = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+    // The key travels as a header, never in the URL: Deno surfaces a transport
+    // failure as "error sending request for url (<full url>)", which would
+    // write the key verbatim into the function log.
+    const res = await fetch(GEMINI_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
@@ -271,7 +274,7 @@ async function callGemini(prompt: string): Promise<string> {
       // Log server-side only; the caller gets a generic 502.
       const err = await res.text()
       console.error(`Gemini API error ${res.status}: ${err}`)
-      throw new GeminiError()
+      throw new GeminiError(false)
     }
 
     const data = await res.json()
@@ -283,28 +286,37 @@ async function callGemini(prompt: string): Promise<string> {
 
     if (!text) {
       console.error('Empty response from Gemini, finishReason:', candidate?.finishReason ?? 'UNKNOWN')
-      throw new GeminiError()
+      throw new GeminiError(true)
     }
 
     // A truncated snapshot reads as a bug to the user, so treat it as a failed
     // generation rather than storing half an analysis.
     if (candidate?.finishReason === 'MAX_TOKENS') {
       console.error(`Gemini hit the ${GEMINI_MAX_OUTPUT_TOKENS}-token cap; ${text.length} chars discarded`)
-      throw new GeminiError()
+      throw new GeminiError(true)
     }
     return text.trim()
   } catch (err) {
     if (err instanceof GeminiError) throw err
+    // An abort means the 20s timeout fired mid-generation, which Google has
+    // already charged for; any other transport error happened before that.
+    const timedOut = err instanceof Error && err.name === 'AbortError'
     console.error('Gemini fetch failed:', err instanceof Error ? err.message : err)
-    throw new GeminiError()
+    throw new GeminiError(timedOut)
   } finally {
     clearTimeout(timeout)
   }
 }
 
 class GeminiError extends Error {
-  constructor() {
+  // True when Google generated (and charged for) output before the call failed
+  // — a truncated answer or a timeout mid-stream. A refund is only fair when
+  // nothing was produced.
+  readonly billed: boolean
+
+  constructor(billed: boolean) {
     super('Gemini call failed')
+    this.billed = billed
   }
 }
 
@@ -351,14 +363,17 @@ async function analyzeWeek(supabase: ServiceClient, userId: string, rawBody: unk
   let analysisText: string
   try {
     analysisText = await callGemini(buildWeeklyPrompt(days, parsed.data.language))
-  } catch {
+  } catch (err) {
     // One slot per week is too scarce to spend on an upstream failure, so give
-    // it back. Worst case the counter drifts low and the user gets a retry.
-    await supabase
-      .from('ai_weekly_quota')
-      .update({ generation_count: Math.max(0, quota.generation_count - 1) })
-      .eq('user_id', userId)
-      .eq('week_start', quota.week_start)
+    // it back — but only when Google produced nothing. Refunding a timeout or a
+    // truncated answer would let a client buy unlimited generations by making
+    // every request fail late.
+    if (!(err instanceof GeminiError) || !err.billed) {
+      await supabase.rpc('refund_ai_weekly_generation', {
+        p_user_id: userId,
+        p_week_start: quota.week_start,
+      })
+    }
     return jsonResponse({ error: 'AI analysis is temporarily unavailable. Please try again later.' }, 502)
   }
 
