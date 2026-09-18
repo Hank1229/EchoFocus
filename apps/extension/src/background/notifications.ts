@@ -1,5 +1,5 @@
 import type { DailyAggregate, StreakDay } from '@echofocus/shared'
-import { calculateStreak, formatDuration, getDateNDaysAgo } from '@echofocus/shared'
+import { calculateStreak, formatDuration, getDateNDaysAgo, STREAK_WINDOW_DAYS } from '@echofocus/shared'
 import { getSettings } from './storage'
 import { DASHBOARD_URL } from '../lib/config'
 import en from '../locales/en.json'
@@ -14,8 +14,6 @@ const LAST_SENT_KEY = 'daily_summary_sent_on'
 const NOTIFICATION_ID = 'echofocus-daily-summary'
 const ICON_PATH = 'src/assets/icon-128.png'
 
-// Two months is plenty of history for a streak worth mentioning.
-const STREAK_WINDOW_DAYS = 60
 // A one-day streak is just "today" — not worth a sentence.
 const MIN_STREAK_TO_MENTION = 2
 

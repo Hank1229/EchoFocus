@@ -43,6 +43,13 @@ function seedGoalMetDays(...dates: string[]) {
   }
 }
 
+// Mirrors streak.ts's local-day-stepping, independent of getDateNDaysAgo.
+function daysBefore(date: string, n: number): string {
+  const [y, m, d] = date.split('-').map(Number)
+  const stepped = new Date(y, m - 1, d - n)
+  return `${stepped.getFullYear()}-${String(stepped.getMonth() + 1).padStart(2, '0')}-${String(stepped.getDate()).padStart(2, '0')}`
+}
+
 let chromeStub: ChromeStub
 
 beforeEach(() => {
@@ -161,6 +168,18 @@ describe('notification content', () => {
     await notifyDailySummary(TODAY, aggregate({ productiveSeconds: GOAL_SECONDS }))
 
     expect(chromeStub.notifications[0].options.message).toBe('6h of productive time today.')
+  })
+
+  it('reads a streak run past 60 days — must not disagree with the popup/dashboard 90-day window', async () => {
+    // 64 consecutive prior days + today = 65. A 60-day window (i=0..59) would
+    // stop the count at 60 since day 60+ back isn't fetched at all.
+    const priorDays = Array.from({ length: 64 }, (_, i) => daysBefore(TODAY, i + 1))
+    seedGoalMetDays(...priorDays)
+    await notifyDailySummary(TODAY, aggregate({ productiveSeconds: GOAL_SECONDS }))
+
+    expect(chromeStub.notifications[0].options.message).toBe(
+      '6h of productive time today — 65 days in a row.',
+    )
   })
 
   it('drops the streak line once a day below goal breaks the run', async () => {
