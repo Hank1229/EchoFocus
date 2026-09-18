@@ -13,7 +13,10 @@ export function extractDomain(input: string): string {
     // Add protocol if missing so URL parsing works
     const withProtocol = input.startsWith('http') ? input : `https://${input}`
     const { hostname } = new URL(withProtocol)
-    return hostname.replace(/^www\./, '')
+    // A trailing dot ("github.com.") is a valid absolute-DNS hostname that
+    // resolves identically to "github.com" — without stripping it, it escapes
+    // DEFAULT_CATEGORIES and every custom rule as an unrecognized domain.
+    return hostname.replace(/^www\./, '').replace(/\.$/, '')
   } catch {
     return ''
   }

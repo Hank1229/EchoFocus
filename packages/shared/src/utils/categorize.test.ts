@@ -14,6 +14,11 @@ describe('extractDomain', () => {
     expect(extractDomain('chrome://extensions')).toBe('')
     expect(extractDomain('chrome-extension://abc123/popup.html')).toBe('')
   })
+
+  it('strips a trailing dot — "github.com." resolves to the same site as "github.com"', () => {
+    expect(extractDomain('https://github.com./user/repo')).toBe('github.com')
+    expect(extractDomain('https://www.github.com./user/repo')).toBe('github.com')
+  })
 })
 
 describe('categorizeDomain', () => {
