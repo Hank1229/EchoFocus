@@ -57,4 +57,55 @@ describe('categorizeUrl', () => {
   it('falls back to domain categorization when no path rule matches', () => {
     expect(categorizeUrl('https://youtube.com/watch?v=abc')).toBe('distraction')
   })
+
+  it('ignores the scheme and the query string when matching the path prefix', () => {
+    const rules: ClassificationRule[] = [
+      { id: '1', pattern: 'youtube.com/playlist', matchType: 'path', category: 'productive', isDefault: false, createdAt: 0 },
+    ]
+    expect(categorizeUrl('https://www.youtube.com/playlist', rules)).toBe('productive')
+    expect(categorizeUrl('http://youtube.com/playlist?list=x&t=2', rules)).toBe('productive')
+    expect(categorizeUrl('https://youtube.com/playlists-of-mine', rules)).toBe('productive')
+    expect(categorizeUrl('https://youtube.com/watch?v=abc', rules)).toBe('distraction')
+  })
+
+  it('is case insensitive on both host and path', () => {
+    const rules: ClassificationRule[] = [
+      { id: '1', pattern: 'youtube.com/playlist', matchType: 'path', category: 'productive', isDefault: false, createdAt: 0 },
+    ]
+    expect(categorizeUrl('https://YouTube.COM/PlayList?list=X', rules)).toBe('productive')
+  })
+
+  it('does not let a bare-substring pattern classify every site', () => {
+    const rules: ClassificationRule[] = [
+      { id: '1', pattern: 'com', matchType: 'path', category: 'productive', isDefault: false, createdAt: 0 },
+      { id: '2', pattern: 's/', matchType: 'path', category: 'productive', isDefault: false, createdAt: 0 },
+    ]
+    expect(categorizeUrl('https://youtube.com/watch?v=abc', rules)).toBe('distraction')
+    expect(categorizeUrl('https://facebook.com/feed', rules)).toBe('distraction')
+  })
+
+  it('does not match the pattern inside the scheme or the host', () => {
+    const rules: ClassificationRule[] = [
+      // "https" appears in every URL's scheme; "tube.com/watch" is a host suffix
+      { id: '1', pattern: 'https', matchType: 'path', category: 'neutral', isDefault: false, createdAt: 0 },
+      { id: '2', pattern: 'tube.com/watch', matchType: 'path', category: 'neutral', isDefault: false, createdAt: 0 },
+    ]
+    expect(categorizeUrl('https://youtube.com/watch?v=abc', rules)).toBe('distraction')
+  })
+
+  it('matches the host exactly, so a subdomain is not covered by its parent', () => {
+    const rules: ClassificationRule[] = [
+      { id: '1', pattern: 'github.com/foo', matchType: 'path', category: 'distraction', isDefault: false, createdAt: 0 },
+    ]
+    expect(categorizeUrl('https://github.com/foo/bar', rules)).toBe('distraction')
+    expect(categorizeUrl('https://gist.github.com/foo/bar', rules)).toBe('productive')
+  })
+
+  it('does not throw on a URL with no scheme or a malformed one', () => {
+    const rules: ClassificationRule[] = [
+      { id: '1', pattern: 'github.com/foo', matchType: 'path', category: 'distraction', isDefault: false, createdAt: 0 },
+    ]
+    expect(categorizeUrl('github.com/foo/bar', rules)).toBe('distraction')
+    expect(categorizeUrl('h ttp://%%%', rules)).toBe('uncategorized')
+  })
 })

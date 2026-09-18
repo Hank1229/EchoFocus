@@ -83,6 +83,33 @@ export function categorizeDomain(
   return 'uncategorized'
 }
 
+// A path rule reads "host/path-prefix". The host half is matched EXACTLY
+// (leading www. stripped from both sides), the same semantic as an 'exact'
+// domain rule, and the path half is a prefix of pathname+search — so
+// "youtube.com/playlist" still catches "/playlist?list=123" while
+// "github.com/foo" never catches gist.github.com.
+//
+// This used to be url.includes(pattern) against the raw URL, which matched
+// inside the scheme and the host: a pattern of "com" or "s/" classified every
+// site on the internet, and path rules are checked before everything else.
+function matchesPathRule(url: string, pattern: string): boolean {
+  const slash = pattern.indexOf('/')
+  // No slash means no path half — the pattern is a bare host, so it can only
+  // match that exact host rather than any URL containing the text.
+  const patternHost = (slash === -1 ? pattern : pattern.slice(0, slash)).replace(/^www\./, '')
+  const patternPath = slash === -1 ? '' : pattern.slice(slash)
+
+  let parsed: URL
+  try {
+    parsed = new URL(url.startsWith('http') ? url : `https://${url}`)
+  } catch {
+    return false
+  }
+
+  if (parsed.hostname.toLowerCase().replace(/^www\./, '') !== patternHost) return false
+  return `${parsed.pathname}${parsed.search}`.toLowerCase().startsWith(patternPath)
+}
+
 // Categorize by full URL (handles path-based rules)
 export function categorizeUrl(
   url: string,
@@ -90,13 +117,11 @@ export function categorizeUrl(
 ): Category {
   if (!url) return 'uncategorized'
 
-  // Check path-based custom rules first
-  const lowerUrl = url.toLowerCase()
+  // Path rules win over domain rules — the more specific rule should beat the
+  // general one, whichever order the user happened to create them in.
   for (const rule of customRules) {
-    if (rule.matchType === 'path') {
-      const pattern = rule.pattern.toLowerCase()
-      if (lowerUrl.includes(pattern)) return rule.category
-    }
+    if (rule.matchType !== 'path' || typeof rule.pattern !== 'string') continue
+    if (matchesPathRule(url, rule.pattern.toLowerCase())) return rule.category
   }
 
   // Fall back to domain-based categorization
