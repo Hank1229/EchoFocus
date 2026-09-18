@@ -34,6 +34,6 @@
     "128": "src/assets/icon-128.png"
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://fnrzeeocityhfunfrlmh.supabase.co wss://fnrzeeocityhfunfrlmh.supabase.co"
+    "extension_pages": "default-src 'self'; script-src 'self'; object-src 'self'; connect-src 'self' https://fnrzeeocityhfunfrlmh.supabase.co wss://fnrzeeocityhfunfrlmh.supabase.co"
   }
 }

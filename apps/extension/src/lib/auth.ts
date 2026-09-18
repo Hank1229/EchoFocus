@@ -41,6 +41,14 @@ export async function signInWithGoogle(): Promise<Session | null> {
     return null
   }
 
+  // Chrome only resolves launchWebAuthFlow at the extension's own
+  // chromiumapp.org origin, but that guarantee lives in the browser — assert
+  // it here too so token parsing never runs on an unexpected URL.
+  if (!responseUrl.startsWith(redirectTo)) {
+    console.error('[EchoFocus] OAuth: response URL origin mismatch')
+    return null
+  }
+
   const url = new URL(responseUrl)
 
   // Implicit flow: tokens are in the hash fragment (#access_token=...&refresh_token=...)
