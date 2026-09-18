@@ -1,15 +1,14 @@
 import type { DailyAggregate } from '@echofocus/shared'
-import { emptyProductiveByHour, formatLocalDate, getDateNDaysAgo } from '@echofocus/shared'
+import { emptyProductiveByHour, formatLocalDate, getDateNDaysAgo, getTodayDateString } from '@echofocus/shared'
 import { getSupabaseClient } from './supabase'
 import { getSession } from './auth'
-import { getAggregateForDate, withStorageLock } from '../background/storage'
+import { getAggregateForDate, recomputeAndSaveAggregate } from '../background/storage'
 import { reconcileWithCloud } from './prefs-sync'
+import { getPendingSyncDates, enqueueSyncDate, removePendingSyncDate } from './sync-queue'
+
+export { enqueueSyncDate } from './sync-queue'
 
 const LAST_SYNC_KEY = 'last_sync_at'
-const PENDING_SYNC_KEY = 'pending_sync_dates'
-
-// Never let the retry queue grow unbounded — keep the most recent dates.
-const MAX_PENDING_DATES = 60
 
 // How far back a startup catch-up looks for unsynced days. Bounded so a fresh
 // install (no last_sync_at at all) probes a month of keys, not a year.
@@ -53,30 +52,8 @@ async function upsertAggregate(aggregate: DailyAggregate, userId: string): Promi
 // Durable retry queue: a date stays in `pending_sync_dates` until its
 // aggregate has been CONFIRMED upserted. Failed days are retried on the
 // next drain (nightly alarm or browser startup) instead of being lost.
-
-async function getPendingSyncDates(): Promise<string[]> {
-  const result = await chrome.storage.local.get(PENDING_SYNC_KEY)
-  const raw = result[PENDING_SYNC_KEY]
-  if (!Array.isArray(raw)) return []
-  return raw.filter((d): d is string => typeof d === 'string')
-}
-
-export async function enqueueSyncDate(date: string): Promise<void> {
-  await withStorageLock(async () => {
-    const pending = await getPendingSyncDates()
-    if (!pending.includes(date)) pending.push(date)
-    // Cap the queue — drop the oldest dates beyond the limit
-    const capped = pending.sort().slice(-MAX_PENDING_DATES)
-    await chrome.storage.local.set({ [PENDING_SYNC_KEY]: capped })
-  })
-}
-
-async function removePendingSyncDate(date: string): Promise<void> {
-  await withStorageLock(async () => {
-    const pending = await getPendingSyncDates()
-    await chrome.storage.local.set({ [PENDING_SYNC_KEY]: pending.filter((d) => d !== date) })
-  })
-}
+// enqueueSyncDate/removePendingSyncDate/getPendingSyncDates live in
+// ./sync-queue — see that file for why.
 
 // Try to sync every queued date. A date is removed only after a confirmed
 // upsert (or when no local aggregate exists for it at all).
@@ -159,6 +136,15 @@ export async function syncAggregateForDate(date: string): Promise<{ ok: boolean;
   // "Sync now" is a user asking for everything to line up, not just today's
   // numbers — same reconcile the nightly alarm runs.
   await reconcileWithCloud()
+
+  // The stored aggregate only reflects the last hourly alarm; today's live
+  // session isn't folded in until something recomputes it. Only today,
+  // though — entries outside the retention window are pruned while
+  // aggregates are kept 365 days, so recomputing any other date would
+  // rebuild it from zero entries and overwrite the real numbers with zeros.
+  if (date === getTodayDateString()) {
+    await recomputeAndSaveAggregate(date)
+  }
 
   const aggregate = await getAggregateForDate(date)
   if (!aggregate) {

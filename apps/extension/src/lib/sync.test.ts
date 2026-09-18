@@ -397,6 +397,37 @@ describe('syncAggregateForDate (the manual "Sync now" button)', () => {
     expect(pending()).toEqual(['2026-03-14'])
     expect(chromeStub.store['last_sync_at']).toBeUndefined()
   })
+
+  it("recomputes TODAY before reading, so browsing since the last hourly alarm isn't left out", async () => {
+    vi.setSystemTime(new Date(2026, 2, 14, 18, 0, 0)) // today is 2026-03-14, matching the synced date
+    chromeStub.store['entries:2026-03-14'] = [{
+      id: 'e1',
+      domain: 'github.com',
+      url: 'https://github.com',
+      title: '',
+      category: 'productive',
+      startTime: Date.now() - 600_000,
+      duration: 600,
+      date: '2026-03-14',
+    }]
+    // Deliberately no pre-stored aggregate — recompute has to build it first,
+    // or the old getAggregateForDate() read finds nothing at all.
+
+    const result = await syncAggregateForDate('2026-03-14')
+
+    expect(result.ok).toBe(true)
+    expect(upsertCalls[0]?.payload.total_seconds).toBe(600)
+  })
+
+  it('does not recompute a past date — recomputing from zero pruned entries would zero out the real numbers', async () => {
+    storeAggregate('2026-03-13', { totalSeconds: 5000, productiveSeconds: 4000 })
+    // No entries for 2026-03-13 — as if retention already pruned them.
+
+    const result = await syncAggregateForDate('2026-03-13')
+
+    expect(result.ok).toBe(true)
+    expect(upsertCalls[0]?.payload.total_seconds).toBe(5000)
+  })
 })
 
 describe('getLastSyncTime', () => {

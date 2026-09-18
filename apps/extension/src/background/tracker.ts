@@ -1,5 +1,5 @@
 import type { TrackingEntry, TrackingState, Category } from '@echofocus/shared'
-import { extractDomain, categorizeUrl, splitEntryAtMidnight, formatLocalDate } from '@echofocus/shared'
+import { extractDomain, categorizeUrl, splitEntryAtMidnight, formatLocalDate, getTodayDateString } from '@echofocus/shared'
 import {
   getTrackingState,
   saveTrackingState,
@@ -11,6 +11,10 @@ import {
   getLastSeenAt,
   saveLastSeenAt,
 } from './storage'
+// lib/sync-queue, not lib/sync: sync.ts pulls in prefs-sync.ts, which imports
+// this module's applyTrackingEnabled via ./settings — importing sync.ts here
+// would close that loop into a circular import.
+import { enqueueSyncDate } from '../lib/sync-queue'
 
 // Minimum time to consider a visit worth recording (seconds)
 const MIN_DURATION_SECONDS = 5
@@ -216,8 +220,17 @@ async function saveFinalizedEntry(state: TrackingState, endTime: number): Promis
   }
   // Refresh the aggregate of every day the session touched
   const dirtyDates = [...new Set(parts.map((p) => p.date))]
+  const today = getTodayDateString()
   for (const date of dirtyDates) {
     await recomputeAndSaveAggregate(date)
+    // A midnight-crossing session can correct a PAST day's aggregate after
+    // the 00:05 alarm already uploaded it without this tail — nothing else
+    // re-enqueues that date, so the cloud row would under-report forever.
+    // Today needs no nudge: it syncs tonight (or via manual "Sync now") like
+    // any other live day.
+    if (date < today) {
+      await enqueueSyncDate(date)
+    }
   }
 }
 

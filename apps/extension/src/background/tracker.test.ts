@@ -338,6 +338,22 @@ describe('midnight split', () => {
     expect(aggregateOn('2026-03-15')?.totalSeconds).toBe(600)
   })
 
+  it("enqueues the OLDER day for re-sync — the 00:05 alarm may have already uploaded it without this tail", async () => {
+    at(new Date(2026, 2, 14, 23, 50, 0).getTime())
+    const tracker = await loadTracker()
+    setActiveTab('https://github.com/')
+    await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
+
+    awake(new Date(2026, 2, 15, 0, 10, 0).getTime())
+    await tracker.handleWindowFocusChanged(-1)
+
+    const pending = (chromeStub.store['pending_sync_dates'] as string[] | undefined) ?? []
+    expect(pending).toContain('2026-03-14')
+    // Today needs no nudge — it syncs tonight or via manual "Sync now" like
+    // any other live day.
+    expect(pending).not.toContain('2026-03-15')
+  })
+
   it('keeps a session inside one day as a single entry', async () => {
     at(new Date(2026, 2, 14, 23, 50, 0).getTime())
     const tracker = await loadTracker()
