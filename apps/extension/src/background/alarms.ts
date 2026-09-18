@@ -18,25 +18,25 @@ export async function setupAlarms(): Promise<void> {
   await ensureHeartbeatAlarm()
 
   // Daily cleanup — runs every 24 hours
-  await chrome.alarms.create(CLEANUP_ALARM, {
+  await ensureAlarm(CLEANUP_ALARM, {
     delayInMinutes: 1,          // First run 1 min after install
     periodInMinutes: 24 * 60,   // Then every 24 hours
   })
 
   // Hourly aggregate refresh — keeps today's aggregate fresh
-  await chrome.alarms.create(AGGREGATE_ALARM, {
+  await ensureAlarm(AGGREGATE_ALARM, {
     delayInMinutes: 5,
     periodInMinutes: 60,
   })
 
   // Daily sync at 00:05 — posts yesterday's aggregate to Supabase
-  await chrome.alarms.create(SYNC_ALARM, {
+  await ensureAlarm(SYNC_ALARM, {
     when: nextMidnightPlus5Minutes(),
     periodInMinutes: 24 * 60,
   })
 
   // 21:00 — daily summary notification plus the AI analysis of today's browsing
-  await chrome.alarms.create(AI_ALARM, {
+  await ensureAlarm(AI_ALARM, {
     when: next9PM(),
     periodInMinutes: 24 * 60,
   })
@@ -44,14 +44,23 @@ export async function setupAlarms(): Promise<void> {
   console.log('[EchoFocus] Alarms set up')
 }
 
+// chrome.alarms.create() CANCELS any pending alarm of the same name and
+// reschedules it from scratch. Alarms already survive browser restarts, so
+// re-creating them on every onStartup only ever pushes them further out: a
+// user who quits Chrome every evening moved the 00:05 sync to "tomorrow"
+// every single morning, and it never fired once. Create only what is missing.
+async function ensureAlarm(name: string, info: chrome.alarms.AlarmCreateInfo): Promise<void> {
+  const existing = await chrome.alarms.get(name)
+  if (!existing) {
+    await chrome.alarms.create(name, info)
+  }
+}
+
 // Make sure the heartbeat alarm exists. Called from setupAlarms and from the
 // module-level init on every SW wake (alarms persist, but this covers users
 // who installed before the heartbeat existed).
 export async function ensureHeartbeatAlarm(): Promise<void> {
-  const existing = await chrome.alarms.get(HEARTBEAT_ALARM)
-  if (!existing) {
-    await chrome.alarms.create(HEARTBEAT_ALARM, { periodInMinutes: 1 })
-  }
+  await ensureAlarm(HEARTBEAT_ALARM, { periodInMinutes: 1 })
 }
 
 // Returns the timestamp (ms) for the next 00:05 local time.

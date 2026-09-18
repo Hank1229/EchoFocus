@@ -99,6 +99,50 @@ describe('setupAlarms', () => {
       periodInMinutes: 60,
     })
   })
+
+  // create() cancels and reschedules, and setupAlarms runs on every browser
+  // start: rescheduling here pushed the 00:05 sync to "tomorrow" every single
+  // morning for anyone who quits Chrome at night, so it never fired.
+  it('leaves already-scheduled alarms alone on a second run', async () => {
+    await setupAlarms()
+    vi.setSystemTime(new Date(2026, 2, 15, 9, 0, 0)) // next morning
+    await setupAlarms()
+
+    for (const name of [
+      'echofocus-sync',
+      'echofocus-ai-daily',
+      'echofocus-cleanup',
+      'echofocus-aggregate',
+      'echofocus-heartbeat',
+    ]) {
+      expect(chromeStub.alarmCreateCounts.get(name), name).toBe(1)
+    }
+  })
+
+  // The overdue alarm is the whole point: Chrome fires a past-due alarm as
+  // soon as it starts. Rescheduling it to the NEXT 00:05 is what made the
+  // nightly sync of an evening-shutdown user never run.
+  it('leaves an overdue 00:05 alarm overdue instead of pushing it to tomorrow', async () => {
+    await setupAlarms() // 2026-03-14 10:00 → fires 2026-03-15 00:05
+    const scheduled = chromeStub.alarms.get('echofocus-sync')?.when
+
+    // Browser was shut down overnight and reopens after 00:05 has passed
+    vi.setSystemTime(new Date(2026, 2, 15, 9, 0, 0))
+    await setupAlarms()
+
+    expect(chromeStub.alarms.get('echofocus-sync')?.when).toBe(scheduled)
+    expect(scheduled).toBeLessThan(Date.now())
+  })
+
+  it('recreates an alarm that Chrome dropped', async () => {
+    await setupAlarms()
+    await chrome.alarms.clear('echofocus-sync')
+
+    await setupAlarms()
+
+    expect(chromeStub.alarms.has('echofocus-sync')).toBe(true)
+    expect(chromeStub.alarmCreateCounts.get('echofocus-sync')).toBe(2)
+  })
 })
 
 describe('daily sync scheduling (local time, not UTC)', () => {
