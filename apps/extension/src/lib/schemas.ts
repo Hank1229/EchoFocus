@@ -89,6 +89,18 @@ export const classificationRuleSchema: z.ZodType<ClassificationRule> = z.object(
 
 export const classificationRuleArraySchema = z.array(classificationRuleSchema)
 
+export const dateStringSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+
+// GET_AI_ANALYSIS/REQUEST_AI_ANALYSIS payloads — both message types accept a
+// bare date string, and REQUEST_AI_ANALYSIS also accepts { date, language }.
+// Unvalidated, a malformed payload used to reach recomputeAndSaveAggregate(),
+// which writes under `aggregates:${date}` — for a non-string payload that
+// produces the literal key "aggregates:undefined".
+export const aiAnalysisRequestSchema = z.union([
+  dateStringSchema,
+  z.object({ date: dateStringSchema, language: z.string().optional() }),
+])
+
 export const aiAnalysisResultSchema: z.ZodType<AiAnalysisResult> = z.object({
   analysisText: z.string(),
   focusScore: z.number(),

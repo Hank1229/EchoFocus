@@ -13,8 +13,9 @@ import {
 import { applySettings } from './settings'
 import { setupAlarms, ensureHeartbeatAlarm, handleAlarm } from './alarms'
 import { openDailySummary } from './notifications'
-import { partialSettingsSchema, classificationRuleArraySchema } from '../lib/schemas'
+import { partialSettingsSchema, classificationRuleArraySchema, dateStringSchema, aiAnalysisRequestSchema } from '../lib/schemas'
 import { requestAiAnalysis } from '../lib/ai'
+import { getTodayDateString } from '@echofocus/shared'
 import { drainSyncQueue, enqueueMissedSyncDates } from '../lib/sync'
 import { pushRules, pushSettings, reconcileWithCloud } from '../lib/prefs-sync'
 
@@ -137,7 +138,9 @@ chrome.runtime.onMessage.addListener(
   },
 )
 
-async function handleMessage(
+// Exported for tests — background/index.test.ts calls it directly instead of
+// going through chrome.runtime.onMessage.
+export async function handleMessage(
   message: IncomingMessage,
 ): Promise<{ success: boolean; data?: unknown; error?: string }> {
   // Never answer from pre-restore in-memory state
@@ -190,18 +193,29 @@ async function handleMessage(
     }
 
     case 'GET_AI_ANALYSIS': {
-      const date = message.payload as string
-      const analysis = await getAiAnalysis(date)
+      const parsed = dateStringSchema.safeParse(message.payload)
+      if (!parsed.success) {
+        return { success: false, error: 'Invalid date' }
+      }
+      const analysis = await getAiAnalysis(parsed.data)
       return { success: true, data: analysis }
     }
 
     case 'REQUEST_AI_ANALYSIS': {
-      const payload = message.payload as string | { date: string; language?: string }
-      const date = typeof payload === 'string' ? payload : payload.date
-      const language = typeof payload === 'string' ? 'en' : (payload.language ?? 'en')
+      const parsed = aiAnalysisRequestSchema.safeParse(message.payload)
+      if (!parsed.success) {
+        return { success: false, error: 'Invalid request — a date (YYYY-MM-DD) is required' }
+      }
+      const date = typeof parsed.data === 'string' ? parsed.data : parsed.data.date
+      const language = typeof parsed.data === 'string' ? 'en' : (parsed.data.language ?? 'en')
 
-      // Recompute first so the request sees the session currently in progress.
-      await recomputeAndSaveAggregate(date)
+      // Recompute first so a request for TODAY sees the session currently in
+      // progress. Entries are pruned by retention but aggregates are kept 365
+      // days, so recomputing any other date would rebuild it from zero
+      // entries and overwrite the preserved aggregate with zeros.
+      if (date === getTodayDateString()) {
+        await recomputeAndSaveAggregate(date)
+      }
 
       // The reason travels as a code; the popup owns the wording so the user
       // reads it in their own language.
