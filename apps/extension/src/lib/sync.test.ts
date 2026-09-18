@@ -11,6 +11,7 @@ import { getSupabaseClient } from './supabase'
 import { getSession } from './auth'
 import {
   enqueueSyncDate,
+  enqueueMissedSyncDates,
   drainSyncQueue,
   syncYesterdayAggregate,
   syncAggregateForDate,
@@ -123,6 +124,70 @@ describe('the pending sync queue', () => {
     chromeStub.store['pending_sync_dates'] = ['2026-03-14', 42, null]
     await enqueueSyncDate('2026-03-15')
     expect(pending()).toEqual(['2026-03-14', '2026-03-15'])
+  })
+})
+
+// The 00:05 alarm only fires if Chrome happens to be running at 00:05, and it
+// enqueues yesterday alone. Days the browser slept through were lost silently.
+describe('enqueueMissedSyncDates', () => {
+  it('queues every day back to the last successful sync', async () => {
+    chromeStub.store['last_sync_at'] = new Date(2026, 2, 12, 0, 5, 0).toISOString()
+    storeAggregate('2026-03-13')
+    storeAggregate('2026-03-14')
+
+    await enqueueMissedSyncDates()
+
+    expect(pending()).toEqual(['2026-03-13', '2026-03-14'])
+  })
+
+  it('drains the days it queued', async () => {
+    chromeStub.store['last_sync_at'] = new Date(2026, 2, 12, 0, 5, 0).toISOString()
+    storeAggregate('2026-03-13')
+    storeAggregate('2026-03-14')
+
+    await enqueueMissedSyncDates()
+    await drainSyncQueue()
+
+    expect(upsertCalls.map((c) => c.payload.date)).toEqual(['2026-03-13', '2026-03-14'])
+    expect(pending()).toEqual([])
+  })
+
+  it('skips days with nothing recorded', async () => {
+    chromeStub.store['last_sync_at'] = new Date(2026, 2, 10, 0, 5, 0).toISOString()
+    storeAggregate('2026-03-14')
+
+    await enqueueMissedSyncDates()
+
+    expect(pending()).toEqual(['2026-03-14'])
+  })
+
+  it('stops at the last synced day instead of re-sending older ones', async () => {
+    chromeStub.store['last_sync_at'] = new Date(2026, 2, 14, 0, 5, 0).toISOString()
+    storeAggregate('2026-03-10')
+    storeAggregate('2026-03-11')
+    storeAggregate('2026-03-14')
+
+    await enqueueMissedSyncDates()
+
+    expect(pending()).toEqual(['2026-03-14'])
+  })
+
+  it('looks no further back than 30 days when nothing was ever synced', async () => {
+    storeAggregate('2026-03-14')
+    storeAggregate('2026-02-13') // 30 days back
+    storeAggregate('2026-02-12') // 31 days back — out of reach
+
+    await enqueueMissedSyncDates()
+
+    expect(pending()).toEqual(['2026-02-13', '2026-03-14'])
+  })
+
+  it('never queues today, which is still being recorded', async () => {
+    storeAggregate('2026-03-15')
+
+    await enqueueMissedSyncDates()
+
+    expect(pending()).toEqual([])
   })
 })
 

@@ -1,5 +1,5 @@
 import type { DailyAggregate } from '@echofocus/shared'
-import { emptyProductiveByHour, getDateNDaysAgo } from '@echofocus/shared'
+import { emptyProductiveByHour, formatLocalDate, getDateNDaysAgo } from '@echofocus/shared'
 import { getSupabaseClient } from './supabase'
 import { getSession } from './auth'
 import { getAggregateForDate, withStorageLock } from '../background/storage'
@@ -10,6 +10,10 @@ const PENDING_SYNC_KEY = 'pending_sync_dates'
 
 // Never let the retry queue grow unbounded — keep the most recent dates.
 const MAX_PENDING_DATES = 60
+
+// How far back a startup catch-up looks for unsynced days. Bounded so a fresh
+// install (no last_sync_at at all) probes a month of keys, not a year.
+const MAX_BACKFILL_DAYS = 30
 
 // Upsert a DailyAggregate into Supabase synced_aggregates.
 // Only anonymized data is sent: domain names + durations + categories.
@@ -111,6 +115,28 @@ export async function drainSyncQueue(): Promise<void> {
 
   if (anySuccess) {
     await chrome.storage.local.set({ [LAST_SYNC_KEY]: new Date().toISOString() })
+  }
+}
+
+// Catch up on days the nightly alarm never got to run for: the 00:05 alarm
+// only fires if Chrome happens to be running at 00:05, and even when it does
+// it enqueues yesterday alone. Someone who keeps the browser closed overnight
+// would otherwise lose every one of those days silently.
+export async function enqueueMissedSyncDates(): Promise<void> {
+  const lastSync = await getLastSyncTime()
+  // ISO dates compare lexicographically. The day of the last successful sync
+  // is re-enqueued on purpose — it may have been synced mid-day, and the
+  // upsert is idempotent.
+  const earliest = lastSync ? formatLocalDate(new Date(lastSync)) : null
+
+  for (let daysAgo = 1; daysAgo <= MAX_BACKFILL_DAYS; daysAgo++) {
+    const date = getDateNDaysAgo(daysAgo)
+    if (earliest !== null && date < earliest) break
+    // Only days with something recorded — a fresh install has nothing to send
+    // and an empty queue beats 30 dates the drain has to reject one by one.
+    if (await getAggregateForDate(date)) {
+      await enqueueSyncDate(date)
+    }
   }
 }
 

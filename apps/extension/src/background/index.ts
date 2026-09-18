@@ -15,7 +15,7 @@ import { setupAlarms, ensureHeartbeatAlarm, handleAlarm } from './alarms'
 import { openDailySummary } from './notifications'
 import { partialSettingsSchema, classificationRuleArraySchema } from '../lib/schemas'
 import { requestAiAnalysis } from '../lib/ai'
-import { drainSyncQueue } from '../lib/sync'
+import { drainSyncQueue, enqueueMissedSyncDates } from '../lib/sync'
 import { pushRules, pushSettings, reconcileWithCloud } from '../lib/prefs-sync'
 
 // ─── Message Types ─────────────────────────────────────────────────────────
@@ -74,9 +74,11 @@ chrome.runtime.onStartup.addListener(async () => {
   const settings = await getSettings()
   chrome.idle.setDetectionInterval(settings.idleTimeoutMinutes * 60)
   // Pick up rule and preference edits made elsewhere, then retry any sync days
-  // that failed on previous nights
+  // that failed on previous nights — plus the ones whose nightly alarm never
+  // fired because the browser was closed at 00:05
   try {
     await reconcileWithCloud()
+    await enqueueMissedSyncDates()
     await drainSyncQueue()
   } catch (err) {
     console.error('[EchoFocus] Startup sync drain failed:', err)
