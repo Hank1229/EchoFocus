@@ -148,7 +148,11 @@ async function fetchCloudRules(userId: string): Promise<ClassificationRule[] | n
     supabase
       .from('custom_rules')
       .select('id, pattern, match_type, category, created_at')
-      .eq('user_id', userId),
+      .eq('user_id', userId)
+      // Rule precedence IS array order — first match wins — and both editors
+      // prepend new rules. Without this the cloud hands them back in whatever
+      // order Postgres felt like, silently reshuffling precedence on every pull.
+      .order('created_at', { ascending: false }),
   )
   return result.ok ? cloudRules(result.data ?? []) : null
 }

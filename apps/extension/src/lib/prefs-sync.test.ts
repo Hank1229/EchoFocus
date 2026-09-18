@@ -190,6 +190,17 @@ describe('reconcile — the cloud is authoritative', () => {
     expect(patterns(await getCustomRules())).toEqual(['figma.com'])
   })
 
+  it('pulls rules newest-first, because precedence is array order', async () => {
+    supabase.rows.custom_rules = [
+      cloudRow({ id: UUID_CLOUD, pattern: 'oldest.example', created_at: '2026-01-01T00:00:00.000Z' }),
+      cloudRow({ id: UUID_OTHER, pattern: 'newest.example', created_at: '2026-03-01T00:00:00.000Z' }),
+    ]
+
+    await reconcileWithCloud()
+
+    expect((await getCustomRules()).map((r) => r.pattern)).toEqual(['newest.example', 'oldest.example'])
+  })
+
   it('leaves built-in rules alone, since they have no cloud row', async () => {
     await saveCustomRules([rule({ id: UUID_OTHER, pattern: 'github.com', isDefault: true }), rule()])
     supabase.rows.custom_rules = [cloudRow()]

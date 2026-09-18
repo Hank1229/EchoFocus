@@ -60,6 +60,7 @@ export function installSupabaseStub(): SupabaseStub {
   function builder(name: string, op: StubRequest['op'], rows?: Row[], options?: Record<string, unknown>) {
     const filters: Filter[] = []
     let single = false
+    let sort: { column: string; ascending: boolean } | null = null
 
     function execute() {
       const status = stub.statuses.shift() ?? 200
@@ -75,6 +76,12 @@ export function installSupabaseStub(): SupabaseStub {
 
       if (op === 'select') {
         const found = table(name).filter((row) => matches(row, filters))
+        // Unordered rows come back in insertion order, which is NOT what
+        // Postgres promises — a caller that needs an order has to ask.
+        if (sort) {
+          const { column, ascending } = sort
+          found.sort((a, b) => (String(a[column]) < String(b[column]) ? -1 : 1) * (ascending ? 1 : -1))
+        }
         return { data: single ? (found[0] ?? null) : found, error: null, status }
       }
 
@@ -101,6 +108,10 @@ export function installSupabaseStub(): SupabaseStub {
       not(column: string, _operator: string, list: string) {
         const values = list.replace(/^\(|\)$/g, '').split(',')
         filters.push({ column, kind: 'notIn', value: new Set(values) })
+        return query
+      },
+      order(column: string, options?: { ascending?: boolean }) {
+        sort = { column, ascending: options?.ascending ?? true }
         return query
       },
       maybeSingle() {
