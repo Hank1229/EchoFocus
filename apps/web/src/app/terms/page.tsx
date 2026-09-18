@@ -8,8 +8,6 @@ export const metadata: Metadata = {
   description: 'EchoFocus Terms of Service: please read these terms before using our productivity tracking tool.',
 }
 
-const LAST_UPDATED = 'January 1, 2025'
-
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
@@ -43,7 +41,7 @@ export default async function TermsPage() {
       <main className="max-w-3xl mx-auto px-6 py-12 space-y-10">
         <div className="space-y-2">
           <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-tight text-slate-100">{t.common.termsOfService}</h1>
-          <p className="text-sm text-slate-500">{t.terms.lastUpdated} {LAST_UPDATED}</p>
+          <p className="text-sm text-slate-500">{t.terms.lastUpdated} {t.common.legalLastUpdated}</p>
         </div>
 
         <div className="bg-slate-800 rounded-xl px-5 py-4">
@@ -53,97 +51,67 @@ export default async function TermsPage() {
         </div>
 
         <Section title={t.terms.section1Title}>
-          <p>
-            EchoFocus is a Chrome browser extension that provides automatic browsing behavior tracking, AI productivity analysis,
-            a visual dashboard, and daily email reports — designed to help you improve your personal productivity.
-          </p>
+          <p>{t.terms.s1Body}</p>
         </Section>
 
         <Section title={t.terms.section2Title}>
-          <p>To use EchoFocus you must:</p>
+          <p>{t.terms.s2Intro}</p>
           <ul className="space-y-1 list-disc list-inside">
-            <li>Be at least 13 years old (or the minimum age required in your jurisdiction)</li>
-            <li>Use Chrome 116 or later</li>
-            <li>Agree to these terms and our Privacy Policy</li>
+            {t.terms.s2Items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
         </Section>
 
         <Section title={t.terms.section3Title}>
-          <p>
-            Basic tracking features work without an account. To access the dashboard, AI analysis, and email reports,
-            you must sign in with a Google account. You are responsible for maintaining the security of your account
-            and all activity that occurs under it.
-          </p>
+          <p>{t.terms.s3Body}</p>
         </Section>
 
         <Section title={t.terms.section4Title}>
-          <p>You agree not to:</p>
+          <p>{t.terms.s4Intro}</p>
           <ul className="space-y-1 list-disc list-inside">
-            <li>Attempt to reverse-engineer or circumvent any part of EchoFocus</li>
-            <li>Use EchoFocus to track other people without their consent</li>
-            <li>Use EchoFocus in any way that could harm the service or other users</li>
-            <li>Bypass or interfere with EchoFocus's security features</li>
+            {t.terms.s4Items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
         </Section>
 
         <Section title={t.terms.section5Title}>
           <p>
-            Your browsing data belongs to you. EchoFocus uses a local-first design —
-            raw browsing records are always stored only on your device.
-            See our <Link href="/privacy" className="text-brand hover:text-brand-soft underline underline-offset-2">{t.common.privacyPolicy}</Link> for full details.
+            {t.terms.s5Body}{' '}
+            {t.terms.s5SeeLead}
+            <Link href="/privacy" className="text-brand hover:text-brand-soft underline underline-offset-2">{t.common.privacyPolicy}</Link>
+            {t.terms.s5SeeTail}
           </p>
         </Section>
 
         <Section title={t.terms.section6Title}>
-          <p>
-            EchoFocus is provided "as is" without any express or implied warranties.
-            We do not guarantee that the service will be uninterrupted, error-free, or meet your specific requirements.
-            Productivity improvements vary by individual and cannot be guaranteed.
-          </p>
+          <p>{t.terms.s6Body}</p>
         </Section>
 
         <Section title={t.terms.section7Title}>
-          <p>
-            To the fullest extent permitted by law, the developers of EchoFocus shall not be liable for any indirect,
-            incidental, special, or consequential damages arising from your use or inability to use the service,
-            even if advised of the possibility of such damages.
-          </p>
+          <p>{t.terms.s7Body}</p>
         </Section>
 
         <Section title={t.terms.section8Title}>
-          <p>
-            EchoFocus uses Supabase, Google Gemini API, and Resend. Use of these services is subject to their respective terms.
-            EchoFocus is not responsible for the availability or content of third-party services.
-          </p>
+          <p>{t.terms.s8Body}</p>
         </Section>
 
         <Section title={t.terms.section9Title}>
-          <p>
-            We reserve the right to modify, suspend, or terminate EchoFocus (or any part of it) at any time without notice.
-            We are not liable for any modification, suspension, or termination of the service.
-          </p>
-          <p>
-            You may terminate your use of EchoFocus at any time by removing the extension from Chrome and deleting your account.
-          </p>
+          <p>{t.terms.s9Body1}</p>
+          <p>{t.terms.s9Body2}</p>
         </Section>
 
         <Section title={t.terms.section10Title}>
-          <p>
-            We may revise these terms from time to time. Significant changes will be communicated through the extension or by email.
-            Continued use of EchoFocus after notification constitutes acceptance of the updated terms.
-          </p>
+          <p>{t.terms.s10Body}</p>
         </Section>
 
         <Section title={t.terms.section11Title}>
-          <p>
-            These terms are governed by and construed in accordance with applicable law, without regard to conflict of law principles.
-          </p>
+          <p>{t.terms.s11Body}</p>
         </Section>
 
         <Section title={t.terms.section12Title}>
-          <p>
-            For any questions about these terms, please reach out via GitHub Issues.
-          </p>
+          <p>{t.terms.s12Body}</p>
         </Section>
 
         {/* Footer links */}

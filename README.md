@@ -25,7 +25,7 @@ Unlike RescueTime or Toggl Track, EchoFocus uses a **local-first architecture**.
 - **Auto tracking** — silently records time spent on every domain, zero manual input
 - **Smart categorization** — 100+ pre-classified domains (productive / distraction / neutral), fully customizable
 - **AI analysis** — Gemini AI reads anonymized stats and gives specific, actionable suggestions
-- **Daily email reports** — focus score, top domains, AI insight, sent via Resend
+- **Daily email reports** *(shelved — returns once a verified sending domain exists)*
 - **Web dashboard** — charts, trends (7/30 day), AI history, settings
 - **Data export** — download everything as JSON or CSV at any time
 - **Onboarding flow** — guided first-install experience
@@ -227,6 +227,7 @@ EchoFocus requests **minimal permissions** — only what is strictly necessary:
 | `alarms` | Schedule hourly aggregation and daily sync |
 | `idle` | Pause tracking when you step away |
 | `identity` | Google OAuth sign-in |
+| `notifications` | Optional daily summary notification (off by default) |
 
 No `<all_urls>` host permission. No access to page content.
 

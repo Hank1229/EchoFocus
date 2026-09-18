@@ -8,8 +8,6 @@ export const metadata: Metadata = {
   description: 'EchoFocus Privacy Policy: learn how we protect your browsing data and personal information.',
 }
 
-const LAST_UPDATED = 'January 1, 2025'
-
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
@@ -43,7 +41,7 @@ export default async function PrivacyPage() {
       <main className="max-w-3xl mx-auto px-6 py-12 space-y-10">
         <div className="space-y-2">
           <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-tight text-slate-100">{t.common.privacyPolicy}</h1>
-          <p className="text-sm text-slate-500">{t.privacy.lastUpdated} {LAST_UPDATED}</p>
+          <p className="text-sm text-slate-500">{t.privacy.lastUpdated} {t.common.legalLastUpdated}</p>
         </div>
 
         <div className="rounded-xl border-l-2 border-brand bg-brand/[0.06] px-5 py-4">
@@ -54,25 +52,18 @@ export default async function PrivacyPage() {
         </div>
 
         <Section title={t.privacy.section1Title}>
-          <p>EchoFocus manages data at two levels:</p>
+          <p>{t.privacy.intro}</p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="border-b border-slate-700">
-                  <th className="text-left py-2 pr-4 text-slate-300 font-semibold">Data Type</th>
-                  <th className="text-left py-2 pr-4 text-slate-300 font-semibold">Stored Where</th>
-                  <th className="text-left py-2 text-slate-300 font-semibold">Uploaded to Server?</th>
+                  <th className="text-left py-2 pr-4 text-slate-300 font-semibold">{t.privacy.tableHeadType}</th>
+                  <th className="text-left py-2 pr-4 text-slate-300 font-semibold">{t.privacy.tableHeadWhere}</th>
+                  <th className="text-left py-2 text-slate-300 font-semibold">{t.privacy.tableHeadUploaded}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
-                {[
-                  ['Browsing URLs & page titles', 'Your device (chrome.storage.local)', 'Never'],
-                  ['Time spent per site', 'Your device (chrome.storage.local)', 'Never'],
-                  ['Site category results', 'Your device (chrome.storage.local)', 'Never'],
-                  ['Daily aggregate stats (domain + duration only)', 'Your device; optional cloud sync', 'Anonymous aggregates only (opt-in)'],
-                  ['AI analysis results', 'chrome.storage.local + Supabase', 'Analysis text only — no raw browsing data'],
-                  ['Account info (email, preferences)', 'Supabase (encrypted)', 'Used for authentication & reports'],
-                ].map(([type, location, uploaded]) => (
+                {t.privacy.tableRows.map(([type, location, uploaded]) => (
                   <tr key={type}>
                     <td className="py-2.5 pr-4 text-slate-300">{type}</td>
                     <td className="py-2.5 pr-4 text-slate-400">{location}</td>
@@ -86,67 +77,52 @@ export default async function PrivacyPage() {
 
         <Section title={t.privacy.section2Title}>
           <ul className="space-y-2 list-disc list-inside">
-            <li><strong className="text-slate-300">Productivity tracking:</strong> Browsing behavior is analyzed locally on your device to generate daily stats and a focus score.</li>
-            <li><strong className="text-slate-300">AI analysis:</strong> Anonymous aggregate summaries (domain names + durations, no URLs) are sent to the Google Gemini API for personalized suggestions.</li>
-            <li><strong className="text-slate-300">Email reports:</strong> Daily productivity reports are sent via Resend (you can disable this at any time).</li>
-            <li><strong className="text-slate-300">Cross-device sync:</strong> Supabase is used to sync your preferences if you choose to enable it.</li>
+            {t.privacy.section2Items.map((item) => (
+              <li key={item.label}><strong className="text-slate-300">{item.label}</strong> {item.text}</li>
+            ))}
           </ul>
         </Section>
 
         <Section title={t.privacy.section3Title}>
-          <p>EchoFocus uses the following third-party services, each with their own privacy policies:</p>
+          <p>{t.privacy.section3Intro}</p>
           <ul className="space-y-2 list-disc list-inside">
-            <li><strong className="text-slate-300">Supabase:</strong> Used for user authentication, preferences, and AI analysis storage. Data is encrypted and stored on AWS servers.</li>
-            <li><strong className="text-slate-300">Google Gemini API:</strong> Used for AI productivity analysis. Receives only anonymous aggregate data — no URLs or personal identifiers.</li>
-            <li><strong className="text-slate-300">Resend:</strong> Used to send daily email reports. Only your email address is used.</li>
-            <li><strong className="text-slate-300">Google OAuth:</strong> Used for account sign-in (via Supabase Auth).</li>
+            {t.privacy.section3Items.map((item) => (
+              <li key={item.label}><strong className="text-slate-300">{item.label}</strong> {item.text}</li>
+            ))}
           </ul>
         </Section>
 
         <Section title={t.privacy.section4Title}>
           <ul className="space-y-2 list-disc list-inside">
-            <li>Raw browsing records: automatically deleted after the retention period you configure (default: 30 days)</li>
-            <li>Daily aggregate stats: retained locally for up to 365 days</li>
-            <li>AI analysis results: retained locally and in Supabase until you delete them</li>
-            <li>Account data: retained until you delete your account</li>
+            {t.privacy.section4Items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
         </Section>
 
         <Section title={t.privacy.section5Title}>
-          <p>You can at any time:</p>
+          <p>{t.privacy.section5Intro}</p>
           <ul className="space-y-2 list-disc list-inside">
-            <li>Download or delete all local data from the Privacy tab of the extension options page</li>
-            <li>Disable email reports in account settings</li>
-            <li>Delete your Supabase account and all cloud data from account settings</li>
-            <li>Disable tracking entirely from the options page</li>
+            {t.privacy.section5Items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
         </Section>
 
         <Section title={t.privacy.section6Title}>
-          <p>
-            Local data is protected by Chrome's security model — no other website or app can access it.
-            Cloud data (Supabase) is transmitted over HTTPS and stored with encryption at rest.
-            Row-level security (RLS) ensures each user can only access their own data.
-          </p>
+          <p>{t.privacy.section6Body}</p>
         </Section>
 
         <Section title={t.privacy.section7Title}>
-          <p>
-            EchoFocus is not designed for children under 13, and we do not intentionally collect personal information from that age group.
-          </p>
+          <p>{t.privacy.section7Body}</p>
         </Section>
 
         <Section title={t.privacy.section8Title}>
-          <p>
-            We may update this privacy policy from time to time. Significant changes will be communicated through the extension.
-            Continued use of EchoFocus after notification constitutes acceptance of the updated policy.
-          </p>
+          <p>{t.privacy.section8Body}</p>
         </Section>
 
         <Section title={t.privacy.section9Title}>
-          <p>
-            For any privacy-related questions, please reach out via GitHub Issues.
-          </p>
+          <p>{t.privacy.section9Body}</p>
         </Section>
 
         {/* Footer links */}

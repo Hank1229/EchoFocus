@@ -12,7 +12,8 @@
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "home": "Home",
-    "loadFailed": "Couldn't load your data: "
+    "loadFailed": "Couldn't load your data: ",
+    "legalLastUpdated": "September 18, 2026"
   },
   "landing": {
     "nav": {
@@ -75,7 +76,7 @@
       "f3Title": "Focus score",
       "f3Desc": "One 0–100 number weighing productive time against breaks & browsing, so today compares against your own baseline rather than someone else's.",
       "f4Title": "Rules you control",
-      "f4Desc": "Disagree with where youtube.com landed? Reclassify any site with domain, contains or regex rules on top of 100+ sensible defaults.",
+      "f4Desc": "Disagree with where youtube.com landed? Reclassify any site with exact-domain, subdomain-wildcard or URL-path rules on top of 100+ sensible defaults.",
       "f5Title": "Dashboard trends",
       "f5Desc": "Sign in to keep daily summaries across devices and watch 7- and 30-day trends build up.",
       "f6Title": "Yours to take or erase",
@@ -320,7 +321,89 @@
     "section6Title": "6. Data Security",
     "section7Title": "7. Children's Privacy",
     "section8Title": "8. Policy Changes",
-    "section9Title": "9. Contact Us"
+    "section9Title": "9. Contact Us",
+    "intro": "EchoFocus handles your data at two levels:",
+    "tableHeadType": "Data type",
+    "tableHeadWhere": "Stored where",
+    "tableHeadUploaded": "Uploaded to a server?",
+    "tableRows": [
+      [
+        "Browsing URLs & page titles",
+        "Your device (chrome.storage.local)",
+        "Never"
+      ],
+      [
+        "Time spent per site",
+        "Your device (chrome.storage.local)",
+        "Never"
+      ],
+      [
+        "Site category results",
+        "Your device (chrome.storage.local)",
+        "Never"
+      ],
+      [
+        "Daily aggregate stats (domain + duration only)",
+        "Your device; optional cloud sync",
+        "Aggregates only, when you sign in"
+      ],
+      [
+        "AI analysis results",
+        "Your device + Supabase",
+        "Analysis text only — no raw browsing data"
+      ],
+      [
+        "Account info (email, preferences)",
+        "Supabase (encrypted)",
+        "Used for authentication only"
+      ]
+    ],
+    "section2Items": [
+      {
+        "label": "Productivity tracking:",
+        "text": "Browsing behavior is analyzed locally on your device to produce daily stats and a focus score."
+      },
+      {
+        "label": "AI analysis:",
+        "text": "Anonymized daily summaries (domain names + durations, never URLs) are sent to the Google Gemini API to generate personalized suggestions."
+      },
+      {
+        "label": "Cross-device sync:",
+        "text": "When you sign in, your preferences, site rules and daily aggregates sync through Supabase so the dashboard works on any device."
+      }
+    ],
+    "section3Intro": "EchoFocus relies on the following third-party services, each governed by its own privacy policy:",
+    "section3Items": [
+      {
+        "label": "Supabase:",
+        "text": "User authentication, preferences, and storage of synced aggregates and AI analyses. Data is encrypted and stored on AWS servers."
+      },
+      {
+        "label": "Google Gemini API:",
+        "text": "AI productivity analysis. Receives only anonymized aggregate data — no URLs and no personal identifiers."
+      },
+      {
+        "label": "Google OAuth:",
+        "text": "Account sign-in, via Supabase Auth."
+      }
+    ],
+    "section4Items": [
+      "Raw browsing records: automatically deleted after the retention period you configure (default: 30 days)",
+      "Daily aggregate stats: kept locally for up to 365 days",
+      "AI analysis results: kept locally and in Supabase until you delete them",
+      "Account data: kept until you delete your account"
+    ],
+    "section5Intro": "You can, at any time:",
+    "section5Items": [
+      "Export or delete all local data from the Privacy tab of the extension's options page",
+      "Export or delete all cloud data from the dashboard's Profile page",
+      "Pause or disable tracking entirely from the extension",
+      "Sign out and keep using every local feature — an account is never required for tracking"
+    ],
+    "section6Body": "Local data is protected by Chrome's extension security model — no website or other app can read it. Cloud data is transmitted over HTTPS and encrypted at rest, and row-level security ensures each user can only ever access their own rows.",
+    "section7Body": "EchoFocus is not designed for children under 13, and we do not knowingly collect personal information from that age group.",
+    "section8Body": "We may update this policy from time to time. Significant changes will be announced through the extension; continued use after notice constitutes acceptance.",
+    "section9Body": "For any privacy question, reach out via GitHub Issues."
   },
   "terms": {
     "backToHome": "Back to home",
@@ -337,7 +420,33 @@
     "section9Title": "9. Changes & Termination",
     "section10Title": "10. Changes to These Terms",
     "section11Title": "11. Governing Law",
-    "section12Title": "12. Contact Us"
+    "section12Title": "12. Contact Us",
+    "s1Body": "EchoFocus is a Chrome extension that provides automatic browsing-time tracking, AI productivity analysis, and a visual dashboard — built to help you improve your personal productivity.",
+    "s2Intro": "To use EchoFocus you must:",
+    "s2Items": [
+      "Be at least 13 years old (or the minimum age required in your jurisdiction)",
+      "Use Chrome 116 or later",
+      "Agree to these terms and our Privacy Policy"
+    ],
+    "s3Body": "Basic tracking works without an account. To use the dashboard and AI analysis you must sign in with a Google account, and you are responsible for the security of that account and all activity under it.",
+    "s4Intro": "You agree not to:",
+    "s4Items": [
+      "Reverse-engineer or attempt to circumvent any part of EchoFocus",
+      "Use EchoFocus to track other people without their consent",
+      "Use EchoFocus in any way that could harm the service or other users",
+      "Bypass or interfere with EchoFocus's security features"
+    ],
+    "s5Body": "Your browsing data belongs to you. EchoFocus is local-first — raw browsing records are stored only on your device.",
+    "s5SeeLead": "See our ",
+    "s5SeeTail": " for full details.",
+    "s6Body": "EchoFocus is provided \"as is\" without any express or implied warranties. We do not guarantee that the service will be uninterrupted, error-free, or meet your specific requirements; productivity improvements vary by individual and cannot be guaranteed.",
+    "s7Body": "To the fullest extent permitted by law, the developers of EchoFocus shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of, or inability to use, the service — even if advised of the possibility of such damages.",
+    "s8Body": "EchoFocus uses Supabase and the Google Gemini API. Use of these services is subject to their respective terms, and EchoFocus is not responsible for their availability or content.",
+    "s9Body1": "We reserve the right to modify, suspend, or terminate EchoFocus (or any part of it) at any time without notice, and are not liable for doing so.",
+    "s9Body2": "You may stop using EchoFocus at any time by removing the extension and deleting your account.",
+    "s10Body": "We may revise these terms from time to time. Significant changes will be announced through the extension; continued use after notice constitutes acceptance.",
+    "s11Body": "These terms are governed by and construed in accordance with applicable law, without regard to conflict-of-law principles.",
+    "s12Body": "For any question about these terms, reach out via GitHub Issues."
   },
   "guide": {
     "title": "Guide",
