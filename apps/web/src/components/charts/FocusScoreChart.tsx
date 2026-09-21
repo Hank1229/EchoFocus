@@ -45,7 +45,7 @@ export default function FocusScoreChart({ data }: FocusScoreChartProps) {
             <stop offset="100%" stopColor={palette.brand.DEFAULT} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" vertical={false} />
+        <CartesianGrid stroke="#1b2622" strokeDasharray="2 4" vertical={false} />
         <XAxis
           dataKey="date"
           tick={{ fill: palette.neutral.deep, fontSize: 11 }}
@@ -61,7 +61,7 @@ export default function FocusScoreChart({ data }: FocusScoreChartProps) {
           axisLine={false}
           tickLine={false}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#334155', strokeDasharray: '2 4' }} />
+        <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#2e3b36', strokeDasharray: '2 4' }} />
         <ReferenceLine y={70} stroke={palette.neutral.deep} strokeDasharray="3 5" strokeOpacity={0.55} />
         <Area
           type="monotone"
@@ -71,7 +71,7 @@ export default function FocusScoreChart({ data }: FocusScoreChartProps) {
           fill="url(#scoreFill)"
           dot={false}
           isAnimationActive={false}
-          activeDot={{ r: 4, fill: palette.brand.DEFAULT, stroke: '#020617', strokeWidth: 2 }}
+          activeDot={{ r: 4, fill: palette.brand.DEFAULT, stroke: '#070c0a', strokeWidth: 2 }}
         />
       </AreaChart>
     </ResponsiveContainer>

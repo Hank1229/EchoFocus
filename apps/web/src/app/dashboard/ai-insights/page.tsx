@@ -62,9 +62,9 @@ export default async function AiInsightsPage() {
       />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
-        <AnalyzeButton />
+        <div className="rise rise-1"><AnalyzeButton /></div>
 
-        <div className="mt-10">
+        <div className="rise rise-2 mt-10">
           {loadError ? (
             <p role="alert" className="max-w-xl rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm leading-relaxed text-danger">
               {t.common.loadFailed}{loadError.message}

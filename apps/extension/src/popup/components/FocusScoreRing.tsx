@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { palette } from '@echofocus/shared'
 import { useLocale } from '../../lib/i18n'
 
@@ -20,7 +20,22 @@ export default function FocusScoreRing({ score, size = 104 }: FocusScoreRingProp
   const center = size / 2
   const radius = center - 14
   const circumference = 2 * Math.PI * radius
-  const offset = circumference - (score / 100) * circumference
+
+  // The arc draws itself in on open: first paint at empty, next frame at the
+  // score, and the CSS .arc-draw transition sweeps between them. Reduced
+  // motion never leaves the initial-render-at-target path.
+  const [drawn, setDrawn] = useState(false)
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setDrawn(true)
+      return
+    }
+    const frame = requestAnimationFrame(() => setDrawn(true))
+    return () => cancelAnimationFrame(frame)
+  }, [])
+  const offset = drawn
+    ? circumference - (score / 100) * circumference
+    : circumference
 
   // High scores should feel like a reward: green for great days, teal for
   // steady ones, muted slate when there's room to grow. Never red.
@@ -70,7 +85,7 @@ export default function FocusScoreRing({ score, size = 104 }: FocusScoreRingProp
             cy={center}
             r={radius}
             fill="none"
-            stroke="#1e293b"
+            stroke="#1b2622"
             strokeWidth={strokeWidth}
           />
           <circle
@@ -83,6 +98,7 @@ export default function FocusScoreRing({ score, size = 104 }: FocusScoreRingProp
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
+            className="arc-draw"
           />
         </svg>
 

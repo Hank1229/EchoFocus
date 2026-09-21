@@ -4,6 +4,8 @@
 
 :root {
   color-scheme: dark;
+  /* The one easing the whole product moves on — same curve as the dashboard. */
+  --ease-silk: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 * {
@@ -12,16 +14,69 @@
 
 body {
   -webkit-font-smoothing: antialiased;
+  background: #0c1210;
 }
 
-/* Scrollbar styling for dark theme */
+::selection {
+  background: rgba(45, 212, 191, 0.25);
+}
+
 ::-webkit-scrollbar {
   width: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: #2e3b36;
   border-radius: 2px;
+}
+
+@layer components {
+  .pressable {
+    transition: color 150ms var(--ease-silk), background-color 150ms var(--ease-silk),
+      border-color 150ms var(--ease-silk), transform 150ms var(--ease-silk),
+      opacity 150ms var(--ease-silk);
+  }
+  .pressable:active {
+    transform: scale(0.98);
+  }
+}
+
+/* One entrance per popup open, staggered by .rise-N. Static under
+   prefers-reduced-motion: the keyframes simply never attach. */
+@media (prefers-reduced-motion: no-preference) {
+  .rise {
+    animation: rise 0.4s var(--ease-silk) both;
+  }
+  .rise-1 { animation-delay: 0.03s; }
+  .rise-2 { animation-delay: 0.08s; }
+  .rise-3 { animation-delay: 0.13s; }
+  .rise-4 { animation-delay: 0.18s; }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .wave-grow {
+    transform-origin: bottom;
+    animation: wave-grow 0.5s var(--ease-silk) both;
+  }
+  @keyframes wave-grow {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+  }
+
+  /* The score arc draws itself in: stroke-dashoffset starts at "empty" via a
+     CSS custom property the component sets, then transitions to the target. */
+  .arc-draw {
+    transition: stroke-dashoffset 0.7s var(--ease-silk);
+  }
 }

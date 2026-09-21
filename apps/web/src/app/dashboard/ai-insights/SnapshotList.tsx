@@ -37,7 +37,7 @@ export default function SnapshotList({ snapshots }: { snapshots: Snapshot[] }) {
         <h2 className="text-xs text-slate-500">{t.aiInsights.latestSnapshot}</h2>
         {/* Text left at a reading measure, meta in a rail on the right — the
             card carries its own margin note instead of trailing off empty. */}
-        <article className="mt-3 grid gap-6 rounded-2xl border border-slate-800 bg-slate-900/70 px-7 py-7 sm:px-9 lg:grid-cols-[1fr_10rem] lg:gap-12">
+        <article className="surface mt-3 grid gap-6 px-7 py-7 sm:px-9 lg:grid-cols-[1fr_10rem] lg:gap-12">
           <div className="flex items-baseline gap-5 lg:col-start-2 lg:row-start-1 lg:flex-col lg:items-start lg:gap-2">
             <p className={`font-display text-4xl font-semibold leading-none tabular-nums ${scoreNumeralClass(latest.score)}`}>
               {latest.score}

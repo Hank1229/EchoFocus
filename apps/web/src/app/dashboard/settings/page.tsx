@@ -33,7 +33,7 @@ export default async function SettingsPage() {
       />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
-        <div className="max-w-3xl">
+        <div className="rise rise-1 max-w-3xl">
           <p className="max-w-[62ch] text-[0.9375rem] leading-relaxed text-slate-400">{t.settings.settingsIntro}</p>
 
           {/* Saving a form that silently fell back to defaults would push those

@@ -22,7 +22,7 @@ export default async function ProfilePage() {
     <>
       <DashboardHeader title={t.settings.profile} userEmail={user.email ?? undefined} avatarUrl={avatarUrl} />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
+      <main className="mx-auto w-full max-w-5xl flex-1 rise rise-1 px-6 pb-16 pt-8">
         <div className="max-w-3xl">
           {/* Identity sits on the page ground, not in a card — it is who you are,
               not a setting you change. */}

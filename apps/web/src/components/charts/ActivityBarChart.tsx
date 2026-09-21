@@ -49,7 +49,7 @@ export default function ActivityBarChart({ data, labels }: ActivityBarChartProps
     <div>
       <ResponsiveContainer width="100%" height={230}>
         <BarChart data={data} margin={{ top: 8, right: 8, left: -22, bottom: 0 }} barCategoryGap="20%">
-          <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" vertical={false} />
+          <CartesianGrid stroke="#1b2622" strokeDasharray="2 4" vertical={false} />
           <XAxis
             dataKey="date"
             tick={{ fill: palette.neutral.deep, fontSize: 11 }}

@@ -9,6 +9,7 @@ import StreakChip from './components/StreakChip'
 import DomainList from './components/DomainList'
 import TrackingToggle from './components/TrackingToggle'
 import AiInsightCard from './components/AiInsightCard'
+import PopupWaveform from './components/PopupWaveform'
 import type { AiAnalysisResult } from '@echofocus/shared'
 import { getTodayDateString } from '@echofocus/shared'
 import { useLocale, type Language } from '../lib/i18n'
@@ -112,7 +113,7 @@ export default function App() {
 
       <div className="flex flex-col gap-3 px-4 py-4">
         {currentSession?.domain && (
-          <div className="flex items-center gap-2 rounded-lg bg-slate-800/60 px-3 py-2">
+          <div className="rise rise-1 flex items-center gap-2 rounded-lg bg-slate-800/60 px-3 py-2">
             <span className="h-1.5 w-1.5 flex-shrink-0 animate-pulse rounded-full bg-brand" />
             <span className="truncate text-xs text-slate-400">
               {t.popup.now} <span className="font-medium text-slate-200">{currentSession.domain}</span>
@@ -123,7 +124,10 @@ export default function App() {
           </div>
         )}
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-800/30 p-4">
+        <section
+          className="rise rise-1 rounded-2xl border border-slate-800 bg-slate-800/30 p-4"
+          style={{ boxShadow: 'inset 0 1px 0 rgba(236, 243, 239, 0.04)' }}
+        >
           <div className="flex items-center gap-4">
             <div className="flex-shrink-0">
               <FocusScoreRing score={focusScore} />
@@ -139,6 +143,12 @@ export default function App() {
             </div>
           </div>
 
+          {aggregate?.productiveByHour && (
+            <div className="mt-4 border-t border-slate-800 pt-3">
+              <PopupWaveform hours={aggregate.productiveByHour} label={t.popup.focusByHour} />
+            </div>
+          )}
+
           <div className="mt-4 border-t border-slate-800 pt-3">
             <CategoryRows
               productiveSeconds={productiveSeconds}
@@ -149,17 +159,17 @@ export default function App() {
           </div>
         </section>
 
-        {streak && <StreakChip current={streak.current} best={streak.best} />}
+        {streak && <div className="rise rise-2"><StreakChip current={streak.current} best={streak.best} /></div>}
 
-        <AiInsightCard
+        <div className="rise rise-3"><AiInsightCard
           analysis={aiAnalysis}
           isAnalyzing={isAnalyzing}
           error={aiError}
           canAnalyze={totalSeconds >= MIN_ANALYZE_SECONDS}
           onAnalyze={analyze}
-        />
+        /></div>
 
-        <section>
+        <section className="rise rise-4">
           <h2 className="mb-2 text-xs font-medium text-slate-400">{t.popup.todaysSites}</h2>
           <DomainList
             domains={topDomains}
@@ -176,7 +186,7 @@ export default function App() {
           </span>
           <button
             onClick={toggleLanguage}
-            className="text-xs font-medium text-slate-500 transition-colors hover:text-brand"
+            className="pressable text-xs font-medium text-slate-500 hover:text-brand"
             title={language === 'en' ? '切換至繁體中文' : 'Switch to English'}
           >
             {language === 'en' ? 'EN' : '繁'}
@@ -190,14 +200,14 @@ export default function App() {
           )}
           <button
             onClick={() => chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/profile` })}
-            className="text-slate-500 transition-colors hover:text-brand"
+            className="pressable text-slate-500 hover:text-brand"
             title={t.popup.openProfile}
           >
             <User size={17} strokeWidth={1.75} />
           </button>
           <button
             onClick={() => chrome.runtime.openOptionsPage?.()}
-            className="text-slate-500 transition-colors hover:text-brand"
+            className="pressable text-slate-500 hover:text-brand"
             title={t.popup.openSettings}
           >
             <SettingsIcon size={17} strokeWidth={1.75} />

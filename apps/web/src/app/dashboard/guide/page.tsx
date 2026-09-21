@@ -28,7 +28,7 @@ export default async function GuidePage() {
         avatarUrl={user.user_metadata?.avatar_url as string | undefined}
       />
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 pb-20 pt-8">
+      <main className="mx-auto w-full max-w-3xl flex-1 rise rise-1 px-6 pb-20 pt-8">
         <p className="max-w-[62ch] text-[0.9375rem] leading-relaxed text-slate-400">{g.intro}</p>
 
         <section className="mt-12 border-t border-slate-800/80 pt-8">

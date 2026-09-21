@@ -7,6 +7,7 @@
     "loading": "Loading...",
     "now": "Now:",
     "todaysSites": "Today's sites",
+    "focusByHour": "Focus by hour",
     "generateSnapshot": "Get an AI read on where today's focus went.",
     "needAtLeast30Min": "Need at least 30 min of browsing data",
     "idle": "Idle",

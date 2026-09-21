@@ -1,0 +1,141 @@
+- generic [ref=f10e2]:
+  - complementary [ref=f10e3]:
+    - link "EchoFocus logo EchoFocus" [ref=f10e5] [cursor=pointer]:
+      - /url: /dashboard/today
+      - img "EchoFocus logo" [ref=f10e6]
+      - generic [ref=f10e7]: EchoFocus
+    - navigation [ref=f10e8]:
+      - link "Today's Overview" [ref=f10e9] [cursor=pointer]:
+        - /url: /dashboard/today
+      - link "Trends" [ref=f10e17] [cursor=pointer]:
+        - /url: /dashboard/trends
+      - link "Daily Snapshots" [ref=f10e22] [cursor=pointer]:
+        - /url: /dashboard/ai-insights
+      - link "Site rules" [ref=f10e26] [cursor=pointer]:
+        - /url: /dashboard/rules
+      - link "Guide" [ref=f10e32] [cursor=pointer]:
+        - /url: /dashboard/guide
+      - link "Settings" [ref=f10e37] [cursor=pointer]:
+        - /url: /dashboard/settings
+      - link "Profile" [ref=f10e40] [cursor=pointer]:
+        - /url: /dashboard/profile
+    - generic [ref=f10e45]:
+      - paragraph [ref=f10e46]:
+        - generic [ref=f10e50]: Browsing data stays on your device
+      - generic [ref=f10e51]:
+        - button "EN" [pressed] [ref=f10e52] [cursor=pointer]
+        - button "繁" [ref=f10e53] [cursor=pointer]
+  - generic [ref=f10e54]:
+    - banner [ref=f10e55]:
+      - generic [ref=f10e56]:
+        - heading "Today's Overview" [level=1] [ref=f10e57]
+        - generic [ref=f10e59]:
+          - link "Previous day" [ref=f10e60] [cursor=pointer]:
+            - /url: "#"
+          - paragraph [ref=f10e63]: Thursday, September 18/Synced 21:02
+        - link "preview@echofocus.dev" [ref=f10e67] [cursor=pointer]:
+          - /url: /dashboard/profile
+          - generic [ref=f10e68]: P
+    - main [ref=f10e69]:
+      - generic [ref=f10e70]:
+        - generic [ref=f10e72]:
+          - generic [ref=f10e73]:
+            - generic [ref=f10e74]:
+              - generic [ref=f10e75]:
+                - generic "76" [ref=f10e77]
+                - paragraph [ref=f10e78]: Focus score
+              - generic [ref=f10e79]:
+                - heading "Good afternoon, Hank" [level=2] [ref=f10e80]
+                - paragraph [ref=f10e81]: You've been focused for 6h 18m out of 8h 37m tracked today.
+                - paragraph [ref=f10e82]:
+                  - text: 6-day streak
+                  - generic [ref=f10e86]: best 11
+            - generic [ref=f10e87]:
+              - generic [ref=f10e88]:
+                - term [ref=f10e90]: Productive
+                - definition [ref=f10e91]: 6h 18m
+                - generic [ref=f10e92]: 73%
+              - generic [ref=f10e93]:
+                - term [ref=f10e95]: Breaks & Browsing
+                - definition [ref=f10e96]: 1h 39m
+                - generic [ref=f10e97]: 19%
+              - generic [ref=f10e98]:
+                - term [ref=f10e100]: Neutral
+                - definition [ref=f10e101]: 40m
+                - generic [ref=f10e102]: 8%
+          - img "Focus by hour" [ref=f10e104]:
+            - generic [ref=f10e105]:
+              - generic "00:00 — 0 min" [ref=f10e107]
+              - generic "01:00 — 0 min" [ref=f10e109]
+              - generic "02:00 — 0 min" [ref=f10e111]
+              - generic "03:00 — 0 min" [ref=f10e113]
+              - generic "04:00 — 0 min" [ref=f10e115]
+              - generic "05:00 — 0 min" [ref=f10e117]
+              - generic "06:00 — 0 min" [ref=f10e119]
+              - generic "07:00 — 7 min" [ref=f10e121]
+              - generic "08:00 — 39 min" [ref=f10e123]
+              - generic "09:00 — 52 min" [ref=f10e125]
+              - generic "10:00 — 46 min" [ref=f10e127]
+              - generic "11:00 — 33 min" [ref=f10e129]
+              - generic "12:00 — 9 min" [ref=f10e131]
+              - generic "13:00 — 21 min" [ref=f10e133]
+              - generic "14:00 — 48 min" [ref=f10e135]
+              - generic "15:00 — 59 min" [ref=f10e137]
+              - generic "16:00 — 51 min" [ref=f10e139]
+              - generic "17:00 — 29 min" [ref=f10e141]
+              - generic "18:00 — 11 min" [ref=f10e143]
+              - generic "19:00 — 0 min" [ref=f10e145]
+              - generic "20:00 — 15 min" [ref=f10e147]
+              - generic "21:00 — 8 min" [ref=f10e149]
+              - generic "22:00 — 0 min" [ref=f10e151]
+              - generic "23:00 — 0 min" [ref=f10e153]
+            - generic [ref=f10e154]:
+              - generic [ref=f10e155]: "00"
+              - generic [ref=f10e156]: "06"
+              - generic [ref=f10e157]: "12"
+              - generic [ref=f10e158]: "18"
+              - generic [ref=f10e159]: "24"
+        - generic [ref=f10e161]:
+          - generic [ref=f10e162]:
+            - heading "Daily insight" [level=2] [ref=f10e163]
+            - button "Regenerate" [ref=f10e167] [cursor=pointer]
+          - generic [ref=f10e173]:
+            - paragraph [ref=f10e174]: You put together a genuinely strong day — 4 hours of focused work against a 6-and-a-half hour total, and your longest unbroken stretch landed between 14:00 and 16:00, right where your energy usually peaks.
+            - generic [ref=f10e175]:
+              - paragraph [ref=f10e176]: "The morning started slower: the first deep-work block didn't arrive until after 8, and a scattering of short visits before it suggests warm-up drift. Your breaks were well-shaped — most stayed under ten minutes and none derailed the block that followed."
+              - paragraph [ref=f10e177]: "One thing to try tomorrow: protect the 9-to-11 window the way you naturally protect mid-afternoon. If the morning matched the afternoon, days like this would be your baseline rather than your best."
+        - generic [ref=f10e179]:
+          - generic [ref=f10e180]:
+            - heading "Where the time went" [level=2] [ref=f10e181]
+            - paragraph [ref=f10e182]: 8h 39m
+          - list [ref=f10e183]:
+            - listitem [ref=f10e184]:
+              - generic [ref=f10e185]: github.com
+              - generic [ref=f10e188]: 2h 34m
+            - listitem [ref=f10e189]:
+              - generic [ref=f10e190]: claude.ai
+              - generic [ref=f10e193]: 1h 43m
+            - listitem [ref=f10e194]:
+              - generic [ref=f10e195]: youtube.com
+              - generic [ref=f10e198]: 57m
+            - listitem [ref=f10e199]:
+              - generic [ref=f10e200]: docs.google.com
+              - generic [ref=f10e203]: 46m
+            - listitem [ref=f10e204]:
+              - generic [ref=f10e205]: news.ycombinator.com
+              - generic [ref=f10e208]: 33m
+            - listitem [ref=f10e209]:
+              - generic [ref=f10e210]: gmail.com
+              - generic [ref=f10e213]: 26m
+            - listitem [ref=f10e214]:
+              - generic [ref=f10e215]: stackoverflow.com
+              - generic [ref=f10e218]: 22m
+            - listitem [ref=f10e219]:
+              - generic [ref=f10e220]: wikipedia.org
+              - generic [ref=f10e223]: 14m
+            - listitem [ref=f10e224]:
+              - generic [ref=f10e225]: figma.com
+              - generic [ref=f10e228]: 13m
+            - listitem [ref=f10e229]:
+              - generic [ref=f10e230]: reddit.com
+              - generic [ref=f10e233]: 9m

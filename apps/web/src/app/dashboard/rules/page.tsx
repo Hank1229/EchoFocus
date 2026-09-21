@@ -25,7 +25,7 @@ export default async function RulesPage() {
       />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
-        <div className="max-w-3xl">
+        <div className="rise rise-1 max-w-3xl">
           <p className="max-w-[62ch] text-[0.9375rem] leading-relaxed text-slate-400">{t.rules.intro}</p>
           <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-slate-500">{t.rules.syncNote}</p>
 
