@@ -199,14 +199,14 @@ export default function App() {
             </span>
           )}
           <button
-            onClick={() => chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/profile` })}
+            onClick={() => chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/settings?tab=account` })}
             className="pressable text-slate-500 hover:text-brand"
             title={t.popup.openProfile}
           >
             <User size={17} strokeWidth={1.75} />
           </button>
           <button
-            onClick={() => chrome.runtime.openOptionsPage?.()}
+            onClick={() => chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/settings` })}
             className="pressable text-slate-500 hover:text-brand"
             title={t.popup.openSettings}
           >

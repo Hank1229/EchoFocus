@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Sun, TrendingUp, BookOpen, Tags, Compass, SlidersHorizontal, User, Lock } from 'lucide-react'
+import { Sun, TrendingUp, BookOpen, Compass, SlidersHorizontal, Lock } from 'lucide-react'
 import { useLocale, type Language } from '@/lib/i18n'
 
 export default function DashboardSidebar() {
@@ -14,10 +14,8 @@ export default function DashboardSidebar() {
     { href: '/dashboard/today', label: t.sidebar.todaysOverview, Icon: Sun },
     { href: '/dashboard/trends', label: t.sidebar.trends, Icon: TrendingUp },
     { href: '/dashboard/ai-insights', label: t.sidebar.dailySnapshots, Icon: BookOpen },
-    { href: '/dashboard/rules', label: t.sidebar.rules, Icon: Tags },
     { href: '/dashboard/guide', label: t.sidebar.guide, Icon: Compass },
     { href: '/dashboard/settings', label: t.sidebar.settings, Icon: SlidersHorizontal },
-    { href: '/dashboard/profile', label: t.sidebar.profile, Icon: User },
   ]
 
   return (

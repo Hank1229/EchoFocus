@@ -1,0 +1,82 @@
+- generic [ref=f16e2]:
+  - complementary [ref=f16e3]:
+    - link "EchoFocus logo EchoFocus" [ref=f16e5] [cursor=pointer]:
+      - /url: /dashboard/today
+      - img "EchoFocus logo" [ref=f16e6]
+      - generic [ref=f16e7]: EchoFocus
+    - navigation [ref=f16e8]:
+      - link "Today's Overview" [ref=f16e9] [cursor=pointer]:
+        - /url: /dashboard/today
+      - link "Trends" [ref=f16e17] [cursor=pointer]:
+        - /url: /dashboard/trends
+      - link "Daily Snapshots" [ref=f16e22] [cursor=pointer]:
+        - /url: /dashboard/ai-insights
+      - link "Guide" [ref=f16e26] [cursor=pointer]:
+        - /url: /dashboard/guide
+      - link "Settings" [ref=f16e31] [cursor=pointer]:
+        - /url: /dashboard/settings
+    - generic [ref=f16e34]:
+      - paragraph [ref=f16e35]:
+        - generic [ref=f16e39]: Browsing data stays on your device
+      - generic [ref=f16e40]:
+        - button "EN" [pressed] [ref=f16e41] [cursor=pointer]
+        - button "繁" [ref=f16e42] [cursor=pointer]
+  - generic [ref=f16e43]:
+    - banner [ref=f16e44]:
+      - generic [ref=f16e45]:
+        - heading "Guide" [level=1] [ref=f16e46]
+        - link "preview@echofocus.dev" [ref=f16e47] [cursor=pointer]:
+          - /url: /dashboard/settings?tab=account
+          - generic [ref=f16e48]: P
+    - main [ref=f16e49]:
+      - generic [ref=f16e50]:
+        - generic [ref=f16e51]:
+          - tablist "Guide" [ref=f16e52]:
+            - tab "Step 1 of 5" [selected] [ref=f16e53] [cursor=pointer]
+            - tab "Step 2 of 5" [ref=f16e54] [cursor=pointer]
+            - tab "Step 3 of 5" [ref=f16e55] [cursor=pointer]
+            - tab "Step 4 of 5" [ref=f16e56] [cursor=pointer]
+            - tab "Step 5 of 5" [ref=f16e57] [cursor=pointer]
+          - paragraph [ref=f16e58]: Step 1 of 5
+        - generic [ref=f16e60]:
+          - generic [ref=f16e61]:
+            - heading "How tracking works" [level=2] [ref=f16e62]
+            - paragraph [ref=f16e63]: The extension watches which tab is in front and how long it stays there, then writes the domain and the duration straight into your browser's local storage. It pauses when your machine goes idle or locks, and resumes when you come back. Visits shorter than five seconds are discarded, and a visit that crosses midnight is split across both days.
+          - generic [ref=f16e64]:
+            - paragraph [ref=f16e65]: A sample day, drawn as sound
+            - img "Focus by hour" [ref=f16e67]:
+              - generic [ref=f16e68]:
+                - generic "00:00 — 0 min" [ref=f16e70]
+                - generic "01:00 — 0 min" [ref=f16e72]
+                - generic "02:00 — 0 min" [ref=f16e74]
+                - generic "03:00 — 0 min" [ref=f16e76]
+                - generic "04:00 — 0 min" [ref=f16e78]
+                - generic "05:00 — 0 min" [ref=f16e80]
+                - generic "06:00 — 0 min" [ref=f16e82]
+                - generic "07:00 — 7 min" [ref=f16e84]
+                - generic "08:00 — 39 min" [ref=f16e86]
+                - generic "09:00 — 52 min" [ref=f16e88]
+                - generic "10:00 — 46 min" [ref=f16e90]
+                - generic "11:00 — 33 min" [ref=f16e92]
+                - generic "12:00 — 9 min" [ref=f16e94]
+                - generic "13:00 — 21 min" [ref=f16e96]
+                - generic "14:00 — 48 min" [ref=f16e98]
+                - generic "15:00 — 59 min" [ref=f16e100]
+                - generic "16:00 — 51 min" [ref=f16e102]
+                - generic "17:00 — 29 min" [ref=f16e104]
+                - generic "18:00 — 11 min" [ref=f16e106]
+                - generic "19:00 — 0 min" [ref=f16e108]
+                - generic "20:00 — 15 min" [ref=f16e110]
+                - generic [ref=f16e111]:
+                  - generic "21:00 — 8 min"
+                - generic [ref=f16e112]:
+                  - generic "22:00 — 0 min"
+                - generic [ref=f16e113]:
+                  - generic "23:00 — 0 min"
+              - generic [ref=f16e114]:
+                - generic [ref=f16e115]: "00"
+                - generic [ref=f16e116]: "06"
+                - generic [ref=f16e117]: "12"
+                - generic [ref=f16e118]: "18"
+                - generic [ref=f16e119]: "24"
+        - button "Next" [ref=f16e121] [cursor=pointer]

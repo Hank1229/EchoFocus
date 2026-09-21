@@ -260,7 +260,15 @@
     "settingsIntro": "語言、每日目標,以及擴充功能在這個帳戶上的行為。儲存後會在擴充功能下次同步時套用。",
     "linkProfile": "帳戶與資料 →",
     "linkSettings": "設定 →",
-    "deleteFailed": "無法刪除雲端資料："
+    "deleteFailed": "無法刪除雲端資料：",
+    "tabGeneral": "一般",
+    "tabCategories": "類別",
+    "tabPrivacy": "隱私",
+    "tabAccount": "帳戶",
+    "tabAbout": "關於",
+    "privacyIntro": "原始瀏覽資料——每個網址、標題與每次造訪——只存在這個瀏覽器的擴充功能儲存空間。您的帳戶只保存偏好設定、網站規則、每日彙總與 AI 分析文字。",
+    "localDataNote": "匯出或刪除原始本機資料要在擴充功能內操作（右鍵點擊 EchoFocus 圖示 → 選項 → 隱私），因為本網站無法存取那些資料——這是刻意的設計。",
+    "aboutBlurb": "隱私優先的生產力追蹤器。所有瀏覽資料都留在您的裝置上。"
   },
   "rules": {
     "title": "網站規則",
@@ -474,6 +482,24 @@
     "whereNote": "本機瀏覽資料只有擴充功能碰得到 —— 這是隱私架構的設計,不是疏漏。從工具列的擴充功能圖示進入選項頁即可。",
     "linkPrivacy": "完整隱私政策",
     "linkRules": "管理網站規則",
-    "linkSettings": "前往設定"
+    "linkSettings": "前往設定",
+    "next": "下一頁",
+    "prev": "上一頁",
+    "stepOf": "第 {n} 頁，共 {total} 頁",
+    "startSetup": "前往設定",
+    "demoDay": "把一天畫成聲波的樣子",
+    "scoreChipProductive": "生產力",
+    "scoreChipBreaks": "休息與瀏覽",
+    "formulaReads": "分數就是生產力時間在計分時間中的占比：",
+    "ruleExampleLabel": "規則範例",
+    "ruleExamplePattern": "youtube.com/playlist",
+    "ruleExampleMatch": "網址路徑",
+    "ruleExampleCategory": "生產力",
+    "localColumn": "留在這台裝置",
+    "cloudColumn": "同步到您的帳戶",
+    "localItems": "每個網址與頁面標題;每一次造訪與其時間戳;您的原始瀏覽紀錄",
+    "cloudItems": "偏好設定與網站規則;每日各類別總時數（僅網域＋分鐘）;AI 分析文字",
+    "setupChecklist": "設定每日目標與閒置判定;把預設分錯的網站重新分類;登入以同步並啟用 AI 快照",
+    "checklistLinks": "一般設定;類別規則;帳戶"
   }
 }

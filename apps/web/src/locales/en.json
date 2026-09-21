@@ -260,7 +260,15 @@
     "settingsIntro": "Your language, your daily goal, and how the extension behaves on this account. Saved values reach the extension on its next sync.",
     "linkProfile": "Account and data →",
     "linkSettings": "Settings →",
-    "deleteFailed": "Couldn't delete your cloud data: "
+    "deleteFailed": "Couldn't delete your cloud data: ",
+    "tabGeneral": "General",
+    "tabCategories": "Categories",
+    "tabPrivacy": "Privacy",
+    "tabAccount": "Account",
+    "tabAbout": "About",
+    "privacyIntro": "Raw browsing data — every URL, title and visit — lives only in this browser’s extension storage. Your account holds just preferences, site rules, daily aggregates and AI analysis text.",
+    "localDataNote": "Exporting or deleting the raw local data happens inside the extension (right-click the EchoFocus icon → Options → Privacy), because this website has no access to it — by design.",
+    "aboutBlurb": "A privacy-first productivity tracker. All browsing data stays on your device."
   },
   "rules": {
     "title": "Site rules",
@@ -474,6 +482,24 @@
     "whereNote": "Local browsing data can only be reached by the extension — that is the privacy architecture, not an oversight. Open the extension's options from its toolbar icon.",
     "linkPrivacy": "Full privacy policy",
     "linkRules": "Manage site rules",
-    "linkSettings": "Open settings"
+    "linkSettings": "Open settings",
+    "next": "Next",
+    "prev": "Back",
+    "stepOf": "Step {n} of {total}",
+    "startSetup": "Open settings",
+    "demoDay": "A sample day, drawn as sound",
+    "scoreChipProductive": "productive",
+    "scoreChipBreaks": "breaks & browsing",
+    "formulaReads": "The score is simply the productive share of your scored time:",
+    "ruleExampleLabel": "An example rule",
+    "ruleExamplePattern": "youtube.com/playlist",
+    "ruleExampleMatch": "URL path",
+    "ruleExampleCategory": "Productive",
+    "localColumn": "Stays on this device",
+    "cloudColumn": "Synced to your account",
+    "localItems": "Every URL and page title;Every individual visit and its timestamps;Your raw browsing history",
+    "cloudItems": "Preferences and site rules;Daily totals per category (domains + minutes only);AI analysis text",
+    "setupChecklist": "Set your daily goal and idle timeout;Reclassify any site the defaults got wrong;Sign in to sync and unlock AI snapshots",
+    "checklistLinks": "General settings;Category rules;Account"
   }
 }

@@ -16,14 +16,14 @@ export default function DashboardHeader({ title, context, userEmail, avatarUrl }
   return (
     <header className="sticky top-0 z-10 border-b border-slate-800/80 bg-slate-950/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-5xl items-center gap-4 px-6 sm:gap-6">
-        <h1 className="flex-shrink-0 font-display text-lg font-semibold tracking-tight text-slate-100">{title}</h1>
+        <h1 className="flex-shrink-0 font-display text-[1.375rem] font-semibold tracking-tight text-slate-100">{title}</h1>
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-4">
           {context}
         </div>
 
         <Link
-          href="/dashboard/profile"
+          href="/dashboard/settings?tab=account"
           title={userEmail}
           className="flex-shrink-0"
           aria-label={userEmail ?? 'Profile'}

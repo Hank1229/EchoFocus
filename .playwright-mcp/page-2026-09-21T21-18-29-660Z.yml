@@ -1,0 +1,65 @@
+- generic [ref=f11e2]:
+  - complementary [ref=f11e3]:
+    - link "EchoFocus logo EchoFocus" [ref=f11e5] [cursor=pointer]:
+      - /url: /dashboard/today
+      - img "EchoFocus logo" [ref=f11e6]
+      - generic [ref=f11e7]: EchoFocus
+    - navigation [ref=f11e8]:
+      - link "Today's Overview" [ref=f11e9] [cursor=pointer]:
+        - /url: /dashboard/today
+      - link "Trends" [ref=f11e17] [cursor=pointer]:
+        - /url: /dashboard/trends
+      - link "Daily Snapshots" [ref=f11e22] [cursor=pointer]:
+        - /url: /dashboard/ai-insights
+      - link "Site rules" [ref=f11e26] [cursor=pointer]:
+        - /url: /dashboard/rules
+      - link "Guide" [ref=f11e32] [cursor=pointer]:
+        - /url: /dashboard/guide
+      - link "Settings" [ref=f11e37] [cursor=pointer]:
+        - /url: /dashboard/settings
+      - link "Profile" [ref=f11e40] [cursor=pointer]:
+        - /url: /dashboard/profile
+    - generic [ref=f11e45]:
+      - paragraph [ref=f11e46]:
+        - generic [ref=f11e50]: Browsing data stays on your device
+      - generic [ref=f11e51]:
+        - button "EN" [pressed] [ref=f11e52] [cursor=pointer]
+        - button "繁" [ref=f11e53] [cursor=pointer]
+  - generic [ref=f11e54]:
+    - banner [ref=f11e55]:
+      - generic [ref=f11e56]:
+        - heading "Daily Snapshots" [level=1] [ref=f11e57]
+        - link "preview@echofocus.dev" [ref=f11e58] [cursor=pointer]:
+          - /url: /dashboard/profile
+          - generic [ref=f11e59]: P
+    - main [ref=f11e60]:
+      - generic [ref=f11e62]:
+        - generic [ref=f11e63]:
+          - heading "Latest snapshot" [level=2] [ref=f11e64]
+          - article [ref=f11e65]:
+            - generic [ref=f11e66]:
+              - paragraph [ref=f11e67]: "65"
+              - generic [ref=f11e68]:
+                - paragraph [ref=f11e69]:
+                  - text: Sep 12 – Sep 18
+                  - generic [ref=f11e70]: Weekly
+                - paragraph [ref=f11e71]: Analyzed Sep 18, 21:04
+            - paragraph [ref=f11e72]: "A week of two halves: Tuesday and Thursday carried you, with almost five focused hours each and your strongest single block landing Thursday afternoon. Sunday was the outlier — heavy browsing, a 39 score — but notably you recovered the very next day instead of letting it slide into Monday. Across the week your breaks stayed short and well-placed, which is exactly the pattern that makes long productive stretches sustainable. One thing to try next week: your mornings consistently start slow, with the first real block arriving after 9:30. Anchoring one fixed task at 9:00 — even a small one — would likely pull the whole day forward."
+        - generic [ref=f11e73]:
+          - heading "Earlier snapshots" [level=2] [ref=f11e74]
+          - list [ref=f11e75]:
+            - listitem [ref=f11e76]:
+              - button "Thursday, September 18 76 You put together a genuinely strong day — over four hours of focused work, with your longest unbroken stretch landing mid-afternoon right where your energy usually peaks." [ref=f11e77] [cursor=pointer]:
+                - generic [ref=f11e78]: Thursday, September 18
+                - generic [ref=f11e79]: "76"
+                - generic [ref=f11e80]: You put together a genuinely strong day — over four hours of focused work, with your longest unbroken stretch landing mid-afternoon right where your energy usually peaks.
+            - listitem [ref=f11e83]:
+              - button "Wednesday, September 17 69 A steady day held back only by a scattered first hour. Once the morning settled, your blocks ran long and clean." [ref=f11e84] [cursor=pointer]:
+                - generic [ref=f11e85]: Wednesday, September 17
+                - generic [ref=f11e86]: "69"
+                - generic [ref=f11e87]: A steady day held back only by a scattered first hour. Once the morning settled, your blocks ran long and clean.
+            - listitem [ref=f11e90]:
+              - button "Sunday, September 14 39 A browsing-heavy day — and that is fine. Rest days show up in the data too; what matters is the pattern across the week, not one quiet Sunday." [ref=f11e91] [cursor=pointer]:
+                - generic [ref=f11e92]: Sunday, September 14
+                - generic [ref=f11e93]: "39"
+                - generic [ref=f11e94]: A browsing-heavy day — and that is fine. Rest days show up in the data too; what matters is the pattern across the week, not one quiet Sunday.
