@@ -16,7 +16,7 @@ function entriesKey(date: string): string {
   return `entries:${date}`
 }
 
-function aggregateKey(date: string): string {
+export function aggregateKey(date: string): string {
   return `aggregates:${date}`
 }
 
@@ -115,8 +115,8 @@ async function setGuarded(items: Record<string, unknown>): Promise<void> {
 // url and title exist only for the local export — they never leave the device
 // — so clamping them costs the user nothing and keeps one pathological URL
 // (data: links, tracking params by the thousand) from eating the quota.
-const MAX_URL_LENGTH = 512
-const MAX_TITLE_LENGTH = 256
+export const MAX_URL_LENGTH = 512
+export const MAX_TITLE_LENGTH = 256
 
 export async function getEntriesForDate(date: string): Promise<TrackingEntry[]> {
   const key = entriesKey(date)
@@ -192,9 +192,12 @@ export async function getTrackingState(): Promise<TrackingState> {
 
 // Persists the state AND refreshes the heartbeat timestamp in one write —
 // every state change proves the service worker was alive at this moment.
+// Guarded: this runs on every tab/window/idle event, so on a full quota an
+// unguarded rejection here would kill tracking through the exact hole the
+// entry-path guard was built to close.
 export async function saveTrackingState(state: TrackingState): Promise<void> {
   await withStorageLock(async () => {
-    await chrome.storage.local.set({
+    await setGuarded({
       [TRACKING_STATE_KEY]: state,
       [LAST_SEEN_AT_KEY]: Date.now(),
     })
@@ -213,7 +216,7 @@ export async function getLastSeenAt(): Promise<number | null> {
 }
 
 export async function saveLastSeenAt(timestamp: number): Promise<void> {
-  await chrome.storage.local.set({ [LAST_SEEN_AT_KEY]: timestamp })
+  await setGuarded({ [LAST_SEEN_AT_KEY]: timestamp })
 }
 
 // ─── Settings Operations ───────────────────────────────────────────────────
@@ -235,7 +238,7 @@ export async function getSettings(): Promise<Settings> {
 export async function saveSettings(settings: Partial<Settings>): Promise<void> {
   await withStorageLock(async () => {
     const current = await getSettings()
-    await chrome.storage.local.set({ [SETTINGS_KEY]: { ...current, ...settings } })
+    await setGuarded({ [SETTINGS_KEY]: { ...current, ...settings } })
   })
 }
 
@@ -263,7 +266,7 @@ export async function getCustomRules(): Promise<ClassificationRule[]> {
 }
 
 export async function saveCustomRules(rules: ClassificationRule[]): Promise<void> {
-  await chrome.storage.local.set({ [CUSTOM_RULES_KEY]: rules })
+  await setGuarded({ [CUSTOM_RULES_KEY]: rules })
 }
 
 // ─── AI Analysis Operations ───────────────────────────────────────────────
@@ -282,7 +285,7 @@ export async function getAiAnalysis(date: string): Promise<AiAnalysisResult | nu
 
 export async function saveAiAnalysis(date: string, result: AiAnalysisResult): Promise<void> {
   const key = `${AI_ANALYSIS_KEY_PREFIX}${date}`
-  await chrome.storage.local.set({ [key]: result })
+  await setGuarded({ [key]: result })
 }
 
 // ─── Data Retention Cleanup ────────────────────────────────────────────────

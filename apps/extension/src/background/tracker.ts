@@ -10,6 +10,8 @@ import {
   getCustomRules,
   getLastSeenAt,
   saveLastSeenAt,
+  MAX_URL_LENGTH,
+  MAX_TITLE_LENGTH,
 } from './storage'
 // lib/sync-queue, not lib/sync: sync.ts pulls in prefs-sync.ts, which imports
 // this module's applyTrackingEnabled via ./settings — importing sync.ts here
@@ -23,6 +25,11 @@ const MIN_DURATION_SECONDS = 5
 // up to lastSeenAt + this grace window (the heartbeat runs every minute,
 // so 90s covers one missed beat). Anything beyond it is sleep/shutdown time.
 const LAST_SEEN_GRACE_MS = 90 * 1000
+// A heartbeat gap smaller than this is alarm jitter on an awake machine; a
+// larger one means the machine slept. Worst case a real sleep just under the
+// threshold credits five phantom minutes — bounded, and far better than
+// truncating live sessions whenever Chrome throttles the alarm.
+const SLEEP_GAP_MS = 5 * 60 * 1000
 
 // Residual sanity cap for a dangling session when no heartbeat exists
 // (e.g. first run after update) — never credit more than 4 hours.
@@ -257,11 +264,14 @@ async function endCurrentSession(): Promise<void> {
 
     // The SW can survive a machine sleep (an open popup port keeps it alive),
     // in which case nothing was killed for restoreState to clean up and
-    // wall-clock "now" is hours past the last proof the user was there. The
-    // heartbeat stopped when the machine did, so clamp to it exactly as
-    // restoreState does.
+    // wall-clock "now" is hours past the last proof the user was there. Only
+    // a LARGE heartbeat gap means sleep, though — Chrome may throttle the
+    // 1-minute alarm past the 90s grace on a perfectly awake machine, and an
+    // unconditional clamp would truncate a live event-free session (a long
+    // audible video) every time that happens. Past the sleep threshold, clamp
+    // to the last proof of life exactly as restoreState does.
     const lastSeenAt = await getLastSeenAt()
-    if (lastSeenAt !== null) {
+    if (lastSeenAt !== null && Date.now() - lastSeenAt > SLEEP_GAP_MS) {
       endTime = Math.min(endTime, lastSeenAt + LAST_SEEN_GRACE_MS)
     }
 
@@ -307,8 +317,10 @@ async function startSession(tabId: number, url: string, title: string): Promise<
 
   _state.activeTabId = tabId
   _state.activeDomain = domain
-  _state.activeUrl = url
-  _state.activeTitle = title
+  // Clamped here too, not only in saveEntry: this state is persisted verbatim
+  // on every event, so an unclamped multi-KB URL would ride every write.
+  _state.activeUrl = url.slice(0, MAX_URL_LENGTH)
+  _state.activeTitle = title.slice(0, MAX_TITLE_LENGTH)
   _state.activeCategory = category
   _state.sessionStartTime = Date.now()
   await persistState()

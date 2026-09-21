@@ -495,6 +495,27 @@ describe('a full storage quota', () => {
     expect(chromeStub.badgeText).toBe('')
   })
 
+  it('keeps the per-event state write from killing its listener on a full store', async () => {
+    // saveTrackingState runs on every tab/window/idle event; before it went
+    // through the guard, a full store rejected here and the rejection escaped
+    // the chrome event listener unhandled — tracking died silently.
+    chromeStub.store['settings'] = { ...DEFAULT_SETTINGS, dataRetentionDays: 365 }
+    chromeStub.quotaBytes = 1 // every write fails, prune included
+
+    await expect(saveTrackingState({
+      isTracking: true,
+      isIdle: false,
+      activeTabId: 1,
+      activeDomain: 'github.com',
+      activeUrl: 'https://github.com/',
+      activeTitle: 'GitHub',
+      activeCategory: 'productive',
+      sessionStartTime: Date.now(),
+    })).resolves.toBeUndefined()
+
+    expect(chromeStub.badgeText).toBe('!')
+  })
+
   it('still reports a non-quota storage failure instead of swallowing it', async () => {
     chromeStub.beforeSet = () => { throw new Error('disk on fire') }
     await expect(saveEntry(entry({ date: '2026-06-15' }))).rejects.toThrow('disk on fire')

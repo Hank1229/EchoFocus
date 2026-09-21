@@ -1,0 +1,4 @@
+- generic [ref=f9e3]:
+  - generic [ref=f9e4]: X1-0
+  - link "go" [ref=f9e5] [cursor=pointer]:
+    - /url: /remounttest/a?d=X2

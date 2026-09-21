@@ -16,17 +16,24 @@ const RINGS: [diameter: number, opacity: number][] = [
 
 const COUNT_MS = 700
 
-// The numeral counts up once on mount — the page's single orchestrated
-// moment, timed to land as the waveform finishes its sweep. Skipped (renders
-// the final value immediately) under prefers-reduced-motion.
+// The numeral counts to its target — from zero on first paint, and from the
+// value currently shown whenever the target changes. Date navigation changes
+// only searchParams, which re-renders this SAME mounted instance, so a
+// mount-once latch would freeze the number on the previous day's score while
+// the ring color moved on. Reduced motion renders the final value directly.
 function useCountUp(target: number): number {
   const [value, setValue] = useState(target)
-  const ran = useRef(false)
+  const shown = useRef<number | null>(null)
 
   useEffect(() => {
-    if (ran.current) return
-    ran.current = true
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      shown.current = target
+      setValue(target)
+      return
+    }
+
+    const from = shown.current ?? 0
+    if (from === target) return
 
     let frame: number
     const start = performance.now()
@@ -34,10 +41,12 @@ function useCountUp(target: number): number {
       const progress = Math.min((now - start) / COUNT_MS, 1)
       // easeOutQuint — the numeral sprints then settles, like a meter.
       const eased = 1 - Math.pow(1 - progress, 5)
-      setValue(Math.round(target * eased))
+      const next = Math.round(from + (target - from) * eased)
+      shown.current = next
+      setValue(next)
       if (progress < 1) frame = requestAnimationFrame(tick)
     }
-    setValue(0)
+    setValue(from)
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
   }, [target])

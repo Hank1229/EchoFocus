@@ -323,6 +323,26 @@ class GeminiError extends Error {
 // ── Weekly retrospective ───────────────────────────────────────────────────
 type ServiceClient = ReturnType<typeof createClient>
 
+// The stored analysis a 429 hands back travels with its own score and
+// timestamp — both quota paths need the same lookup.
+async function storedAnalysisMeta(
+  supabase: ServiceClient,
+  userId: string,
+  kind: 'daily' | 'weekly',
+  date?: string,
+): Promise<{ focus_score: number | null; analyzed_at: string | null }> {
+  let query = supabase
+    .from('ai_analyses')
+    .select('focus_score, created_at')
+    .eq('user_id', userId)
+    .eq('type', kind)
+  query = kind === 'daily'
+    ? query.eq('date', date)
+    : query.order('date', { ascending: false }).limit(1)
+  const { data } = await query.maybeSingle<{ focus_score: number; created_at: string }>()
+  return { focus_score: data?.focus_score ?? null, analyzed_at: data?.created_at ?? null }
+}
+
 async function analyzeWeek(supabase: ServiceClient, userId: string, rawBody: unknown): Promise<Response> {
   const parsed = weeklyRequestSchema.safeParse(rawBody)
   if (!parsed.success) return invalidRequest(parsed.error)
@@ -357,19 +377,11 @@ async function analyzeWeek(supabase: ServiceClient, userId: string, rawBody: unk
     // Ship the stored summary's own score and timestamp with it — a client
     // that stamps the cached text with TODAY's live numbers shows prose
     // praising one score beside a numeral reporting another.
-    const { data: stored } = await supabase
-      .from('ai_analyses')
-      .select('focus_score, created_at')
-      .eq('user_id', userId)
-      .eq('type', 'weekly')
-      .order('date', { ascending: false })
-      .limit(1)
-      .maybeSingle<{ focus_score: number; created_at: string }>()
+    const stored = await storedAnalysisMeta(supabase, userId, 'weekly')
     return jsonResponse({
       error: `Weekly AI summary limit reached (${MAX_WEEKLY_GENERATIONS} per week). Try again next week.`,
       analysis_text: quota.analysis_text,
-      focus_score: stored?.focus_score ?? null,
-      analyzed_at: stored?.created_at ?? null,
+      ...stored,
     }, 429)
   }
 
@@ -480,18 +492,11 @@ Deno.serve(async (req: Request) => {
     if (!quota.allowed) {
       // Same reasoning as the weekly 429: the cached text travels with its
       // own score and timestamp, never the caller's live ones.
-      const { data: stored } = await supabase
-        .from('ai_analyses')
-        .select('focus_score, created_at')
-        .eq('user_id', user.id)
-        .eq('date', date)
-        .eq('type', 'daily')
-        .maybeSingle<{ focus_score: number; created_at: string }>()
+      const stored = await storedAnalysisMeta(supabase, user.id, 'daily', date)
       return jsonResponse({
         error: `Daily AI analysis limit reached (${MAX_GENERATIONS_PER_DAY} per day). Try again tomorrow.`,
         analysis_text: quota.analysis_text,
-        focus_score: stored?.focus_score ?? null,
-        analyzed_at: stored?.created_at ?? null,
+        ...stored,
       }, 429)
     }
 

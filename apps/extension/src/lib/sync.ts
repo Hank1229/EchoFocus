@@ -2,7 +2,7 @@ import type { DailyAggregate } from '@echofocus/shared'
 import { emptyProductiveByHour, formatLocalDate, getDateNDaysAgo, getTodayDateString } from '@echofocus/shared'
 import { getSupabaseClient } from './supabase'
 import { getSession } from './auth'
-import { getAggregateForDate, recomputeAndSaveAggregate } from '../background/storage'
+import { aggregateKey, getAggregateForDate, recomputeAndSaveAggregate } from '../background/storage'
 import { reconcileWithCloud } from './prefs-sync'
 import { getPendingSyncDates, enqueueSyncDate, removePendingSyncDate } from './sync-queue'
 
@@ -106,12 +106,20 @@ export async function enqueueMissedSyncDates(): Promise<void> {
   // upsert is idempotent.
   const earliest = lastSync ? formatLocalDate(new Date(lastSync)) : null
 
+  const candidates: string[] = []
   for (let daysAgo = 1; daysAgo <= MAX_BACKFILL_DAYS; daysAgo++) {
     const date = getDateNDaysAgo(daysAgo)
     if (earliest !== null && date < earliest) break
-    // Only days with something recorded — a fresh install has nothing to send
-    // and an empty queue beats 30 dates the drain has to reject one by one.
-    if (await getAggregateForDate(date)) {
+    candidates.push(date)
+  }
+  if (candidates.length === 0) return
+
+  // One batched read for the whole window instead of up to 30 sequential IPC
+  // round-trips on every browser start. Presence is enough to enqueue — the
+  // drain re-reads and validates each aggregate before uploading anyway.
+  const stored = await chrome.storage.local.get(candidates.map(aggregateKey))
+  for (const date of candidates) {
+    if (stored[aggregateKey(date)] !== undefined) {
       await enqueueSyncDate(date)
     }
   }

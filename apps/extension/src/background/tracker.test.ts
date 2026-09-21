@@ -822,6 +822,20 @@ describe('a machine that slept without killing the worker', () => {
     expect(allEntries()[0].duration).toBe(90) // heartbeat at session start + grace
   })
 
+  it('does not truncate a live session over mere alarm jitter', async () => {
+    // Chrome may throttle the 1-minute heartbeat past the 90s grace on a
+    // perfectly awake machine. A 3-minute gap is jitter, not sleep — the
+    // clamp only bites past the sleep threshold.
+    const tracker = await loadTracker()
+    setActiveTab('https://youtube.com/watch', 'video', { audible: true })
+    await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
+
+    at(BASE + 3 * 60 * 1000) // heartbeat delayed, user still watching
+    await tracker.handleWindowFocusChanged(-1)
+
+    expect(allEntries()[0].duration).toBe(3 * 60)
+  })
+
   it('still caps a genuinely long session at 4 hours', async () => {
     const tracker = await loadTracker()
     setActiveTab('https://youtube.com/watch', 'video', { audible: true })

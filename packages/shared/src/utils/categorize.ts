@@ -99,7 +99,9 @@ function matchesPathRule(url: string, pattern: string): boolean {
   const slash = pattern.indexOf('/')
   // No slash means no path half — the pattern is a bare host, so it can only
   // match that exact host rather than any URL containing the text.
-  const patternHost = (slash === -1 ? pattern : pattern.slice(0, slash)).replace(/^www\./, '')
+  const patternHost = (slash === -1 ? pattern : pattern.slice(0, slash))
+    .replace(/^www\./, '')
+    .replace(/\.$/, '')
   const patternPath = slash === -1 ? '' : pattern.slice(slash)
 
   let parsed: URL
@@ -109,7 +111,10 @@ function matchesPathRule(url: string, pattern: string): boolean {
     return false
   }
 
-  if (parsed.hostname.toLowerCase().replace(/^www\./, '') !== patternHost) return false
+  // Same normalization extractDomain applies (www. and trailing-dot strip),
+  // so the two rule families can never disagree about what host a URL is on.
+  const host = parsed.hostname.toLowerCase().replace(/^www\./, '').replace(/\.$/, '')
+  if (host !== patternHost) return false
   return `${parsed.pathname}${parsed.search}`.toLowerCase().startsWith(patternPath)
 }
 
