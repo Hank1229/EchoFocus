@@ -5,18 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EchoFocus</title>
     <style>
+      /* First-paint shell only — the real tokens live in index.css. */
       body {
         margin: 0;
         padding: 0;
-        width: 360px;
+        width: 380px;
         min-height: 480px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        background: #0c1210;
-        color: #ecf3ef;
+        background: #f6f7f8;
         overflow-x: hidden;
       }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: #101418;
+        }
+      }
       #root {
-        width: 360px;
+        width: 380px;
         min-height: 480px;
       }
     </style>

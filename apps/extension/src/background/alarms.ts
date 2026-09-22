@@ -4,6 +4,7 @@ import { syncYesterdayAggregate } from '../lib/sync'
 import { requestAiAnalysis } from '../lib/ai'
 import { recordHeartbeat } from './tracker'
 import { notifyDailySummary } from './notifications'
+import * as pomodoro from './pomodoro'
 
 const CLEANUP_ALARM = 'echofocus-cleanup'
 const AGGREGATE_ALARM = 'echofocus-aggregate'
@@ -106,6 +107,12 @@ export async function handleAlarm(alarm: chrome.alarms.Alarm): Promise<void> {
 
     case HEARTBEAT_ALARM:
       await recordHeartbeat()
+      // Piggyback the badge's minute countdown on the existing 1-minute tick.
+      await pomodoro.refreshBadge()
+      break
+
+    case pomodoro.POMODORO_ALARM:
+      await pomodoro.advance()
       break
   }
 }

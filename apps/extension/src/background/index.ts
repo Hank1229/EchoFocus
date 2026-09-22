@@ -13,7 +13,8 @@ import {
 import { applySettings } from './settings'
 import { setupAlarms, ensureHeartbeatAlarm, handleAlarm } from './alarms'
 import { openDailySummary } from './notifications'
-import { partialSettingsSchema, classificationRuleArraySchema, dateStringSchema, aiAnalysisRequestSchema } from '../lib/schemas'
+import { partialSettingsSchema, classificationRuleArraySchema, dateStringSchema, aiAnalysisRequestSchema, pomodoroCommandSchema } from '../lib/schemas'
+import * as pomodoro from './pomodoro'
 import { requestAiAnalysis } from '../lib/ai'
 import { getTodayDateString } from '@echofocus/shared'
 import { drainSyncQueue, enqueueMissedSyncDates } from '../lib/sync'
@@ -34,6 +35,8 @@ type MessageType =
   | 'EXPORT_DATA'
   | 'DELETE_ALL_DATA'
   | 'GET_STORAGE_INFO'
+  | 'GET_POMODORO'
+  | 'POMODORO_COMMAND'
 
 interface IncomingMessage {
   type: MessageType
@@ -243,6 +246,18 @@ export async function handleMessage(
     case 'GET_STORAGE_INFO': {
       const info = await getStorageInfo()
       return { success: true, data: info }
+    }
+
+    case 'GET_POMODORO': {
+      return { success: true, data: await pomodoro.snapshot() }
+    }
+
+    case 'POMODORO_COMMAND': {
+      const parsed = pomodoroCommandSchema.safeParse(message.payload)
+      if (!parsed.success) {
+        return { success: false, error: 'Invalid pomodoro command' }
+      }
+      return { success: true, data: await pomodoro.run(parsed.data) }
     }
 
     default:

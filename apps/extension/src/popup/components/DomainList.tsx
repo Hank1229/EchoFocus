@@ -1,7 +1,6 @@
 import React from 'react'
-import { Coffee, Minus, Zap } from 'lucide-react'
 import type { Category, TopDomain } from '@echofocus/shared'
-import { categoryColors, formatDuration, palette } from '@echofocus/shared'
+import { formatDuration } from '@echofocus/shared'
 import { useLocale } from '../../lib/i18n'
 
 interface DomainListProps {
@@ -10,31 +9,18 @@ interface DomainListProps {
   currentElapsedSeconds: number
 }
 
-// Bars use the deep chart shades; labels use the lighter text shades.
-const ACCENTS: Record<Category, string> = {
-  productive: palette.productive.DEFAULT,
-  distraction: palette.breaks.DEFAULT,
-  neutral: palette.neutral.DEFAULT,
-  uncategorized: palette.neutral.deep,
+const DOTS: Record<Category, string> = {
+  productive: 'var(--productive)',
+  distraction: 'var(--rest)',
+  neutral: 'var(--neutral)',
+  uncategorized: 'var(--neutral)',
 }
 
-function categoryIcon(category: Category, color: string) {
-  const props = { size: 13, strokeWidth: 2, style: { color }, className: 'flex-shrink-0' } as const
-  if (category === 'productive') return <Zap {...props} />
-  if (category === 'distraction') return <Coffee {...props} />
-  return <Minus {...props} />
-}
-
+// Today's top 5 — single-line rows: category dot, domain, duration.
 export default function DomainList({ domains, currentDomain, currentElapsedSeconds }: DomainListProps) {
   const { t } = useLocale()
 
-  const labels: Record<Category, string> = {
-    productive: t.categories.categoryLabels.productive,
-    distraction: t.categories.categoryLabels.distraction,
-    neutral: t.categories.categoryLabels.neutral,
-    uncategorized: t.categories.categoryLabels.uncategorized,
-  }
-
+  // The current session is not yet in the stored aggregate — fold it in.
   const merged = [...domains]
   if (currentDomain && currentElapsedSeconds > 0) {
     const idx = merged.findIndex(d => d.domain === currentDomain)
@@ -48,50 +34,31 @@ export default function DomainList({ domains, currentDomain, currentElapsedSecon
 
   if (topFive.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-800 px-4 py-5 text-center">
-        <p className="text-xs text-slate-400">{t.popup.noBrowsingYet}</p>
-        <p className="mt-1 text-xs text-slate-600">{t.popup.keepBrowsing}</p>
+      <div className="rounded-lg border border-line px-4 py-5 text-center">
+        <p className="text-caption text-content-secondary">{t.popup.noBrowsingYet}</p>
+        <p className="mt-1 text-caption text-content-tertiary">{t.popup.keepBrowsing}</p>
       </div>
     )
   }
 
-  const maxSeconds = Math.max(...topFive.map(d => d.seconds), 1)
-
   return (
-    <div className="flex flex-col gap-1.5">
-      {topFive.map(domain => {
-        const isActive = domain.domain === currentDomain
-        const accent = ACCENTS[domain.category]
-
-        return (
-          <div
-            key={domain.domain}
-            className={`relative overflow-hidden rounded-lg bg-slate-800/60 px-3 py-2 ${
-              isActive ? 'ring-1 ring-brand/40' : ''
-            }`}
-          >
-            <div
-              className="absolute inset-y-0 left-0 opacity-20"
-              style={{ width: `${(domain.seconds / maxSeconds) * 100}%`, backgroundColor: categoryColors[domain.category] }}
-            />
-
-            <div className="relative flex items-center justify-between gap-2">
-              <div className="flex min-w-0 items-center gap-2">
-                {categoryIcon(domain.category, accent)}
-                <span className="truncate text-sm text-slate-200">{domain.domain}</span>
-                {isActive && <span className="h-1.5 w-1.5 flex-shrink-0 animate-pulse rounded-full bg-brand" />}
-              </div>
-
-              <div className="flex flex-shrink-0 items-center gap-2">
-                <span className="text-[11px]" style={{ color: accent }}>{labels[domain.category]}</span>
-                <span className="text-xs font-semibold tabular-nums text-slate-300">
-                  {formatDuration(domain.seconds)}
-                </span>
-              </div>
-            </div>
-          </div>
-        )
-      })}
+    <div className="flex flex-col">
+      {topFive.map(domain => (
+        <div
+          key={domain.domain}
+          className="pressable flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-surface-hover"
+        >
+          <span
+            aria-hidden="true"
+            className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
+            style={{ background: DOTS[domain.category] }}
+          />
+          <span className="min-w-0 flex-1 truncate text-body text-content">{domain.domain}</span>
+          <span className="flex-shrink-0 text-caption text-content-tertiary">
+            {formatDuration(domain.seconds)}
+          </span>
+        </div>
+      ))}
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { installChromeStub, type ChromeStub } from '../test/chrome-stub'
 // The jobs the alarms trigger are unit-tested in their own files; here we only
 // care about which alarm is scheduled how, and which job each one runs.
 vi.mock('./storage', () => ({
+  STORAGE_FULL_KEY: 'storage_full_at',
   cleanupOldData: vi.fn(async () => undefined),
   recomputeAndSaveAggregate: vi.fn(async () => emptyAggregate('2026-03-14')),
   getStorageInfo: vi.fn(async () => ({ usedBytes: 1024, quotaBytes: 10485760 })),

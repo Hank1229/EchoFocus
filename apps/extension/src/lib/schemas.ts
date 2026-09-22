@@ -101,6 +101,25 @@ export const aiAnalysisRequestSchema = z.union([
   z.object({ date: dateStringSchema, language: z.string().optional() }),
 ])
 
+export const pomodoroStateSchema = z.object({
+  phase: z.enum(['idle', 'focusing', 'break']),
+  endsAt: z.number().nullable(),
+  pausedRemainingMs: z.number().nullable(),
+})
+
+export type PomodoroState = z.infer<typeof pomodoroStateSchema>
+
+export const pomodoroSettingsSchema = z.object({
+  focusMinutes: z.number().positive(),
+  breakMinutes: z.number().positive(),
+})
+
+export type PomodoroSettings = z.infer<typeof pomodoroSettingsSchema>
+
+export const pomodoroCommandSchema = z.enum(['start', 'pause', 'resume', 'skip', 'stop'])
+
+export type PomodoroCommand = z.infer<typeof pomodoroCommandSchema>
+
 export const aiAnalysisResultSchema: z.ZodType<AiAnalysisResult> = z.object({
   analysisText: z.string(),
   focusScore: z.number(),

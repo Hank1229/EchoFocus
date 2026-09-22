@@ -25,7 +25,7 @@ const SETTINGS_KEY = 'settings'
 const CUSTOM_RULES_KEY = 'custom_rules'
 const AI_ANALYSIS_KEY_PREFIX = 'ai_analysis:'
 const LAST_SEEN_AT_KEY = 'last_seen_at'
-const STORAGE_FULL_KEY = 'storage_full_at'
+export const STORAGE_FULL_KEY = 'storage_full_at'
 
 // ─── Write Serialization ───────────────────────────────────────────────────
 

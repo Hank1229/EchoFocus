@@ -8,39 +8,25 @@
     "now": "目前：",
     "todaysSites": "今日網站",
     "focusByHour": "每小時專注",
-    "generateSnapshot": "讓 AI 解讀你今天的專注去向。",
-    "needAtLeast30Min": "需要至少 30 分鐘的瀏覽資料",
     "idle": "閒置",
-    "aiError": "無法產生快照,請稍後再試一次。",
     "openSettings": "開啟設定",
     "tracking": "追蹤中",
     "paused": "已暫停",
     "clickToPause": "點擊暫停追蹤",
     "clickToResume": "點擊繼續追蹤",
-    "excellent": "優秀",
-    "average": "普通",
-    "roomToGrow": "有待提升",
     "focusScore": "專注分數",
     "todaysTotal": "今日總計",
     "noBrowsingYet": "尚無瀏覽活動記錄",
     "keepBrowsing": "繼續瀏覽 — 統計將在此顯示",
-    "openProfile": "開啟個人檔案",
-    "streakDays": "連續 {n} 天達標",
-    "streakBest": "最佳 {n} 天",
-    "streakRestart": "達標 1 天即可重啟連續紀錄",
-    "aiSignedOut": "請先到設定頁登入,才能產生快照。",
-    "aiSessionExpired": "登入已過期,請到設定頁重新登入。",
-    "aiNoData": "今天的瀏覽資料還不夠,再使用一陣子後回來。"
-  },
-  "aiInsight": {
-    "generating": "正在生成快照…",
-    "dailyInsight": "每日洞察",
-    "collapse": "收起",
-    "readMore": "閱讀更多",
-    "analyzed": "分析於",
-    "generate": "生成快照",
-    "refresh": "重新生成",
-    "retry": "重試"
+    "startFocus": "開始專注",
+    "pause": "暫停",
+    "resume": "繼續",
+    "skip": "跳過",
+    "endSession": "結束",
+    "focusing": "專注中",
+    "onBreak": "休息中",
+    "timerPaused": "已暫停",
+    "viewFullAnalysis": "查看完整分析"
   },
   "options": {
     "title": "EchoFocus 設定",
@@ -170,6 +156,12 @@
       "title": "今天的專注分數：{score}",
       "message": "今天累積 {time} 專注時間。",
       "messageWithStreak": "今天累積 {time} 專注時間 — 已連續 {n} 天達標。"
+    },
+    "pomodoro": {
+      "focusEndTitle": "專注完成",
+      "focusEndMessage": "休息 {n} 分鐘。",
+      "breakEndTitle": "休息結束",
+      "breakEndMessage": "開始下一輪 {n} 分鐘專注。"
     }
   },
   "onboarding": {

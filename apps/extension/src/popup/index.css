@@ -2,10 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
+/* DESIGN.md tokens — the popup's single source for color, motion, and type.
+   Light is the default; dark follows the system preference. The variable
+   structure is ready for a manual [data-theme] override in Phase 2. */
 :root {
-  color-scheme: dark;
-  /* The one easing the whole product moves on — same curve as the dashboard. */
-  --ease-silk: cubic-bezier(0.22, 1, 0.36, 1);
+  color-scheme: light dark;
+
+  --bg: #f6f7f8;
+  --surface: #ffffff;
+  --surface-hover: #f1f3f4;
+  --border: #e4e7ea;
+  --border-strong: #d3d8dc;
+  --text: #1a1d21;
+  --text-secondary: #5c6570;
+  --text-tertiary: #8a939d;
+
+  --accent: #0d9488;
+  --accent-subtle: rgba(13, 148, 136, 0.1);
+  --productive: #16a34a;
+  --rest: #d97706;
+  --neutral: #6b7280;
+  --danger: #dc2626;
+
+  --shadow-float: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  --dur-fast: 100ms;
+  --dur-base: 150ms;
+  --dur-slow: 250ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  --font-sans: 'Inter', 'Noto Sans TC', 'PingFang TC', system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101418;
+    --surface: #171c22;
+    --surface-hover: #1d242b;
+    --border: #262e36;
+    --border-strong: #333d47;
+    --text: #e7eaed;
+    --text-secondary: #9aa4ae;
+    --text-tertiary: #6b7580;
+
+    --accent: #2dd4bf;
+    --accent-subtle: rgba(45, 212, 191, 0.12);
+    --productive: #4ade80;
+    --rest: #fbbf24;
+    --neutral: #9ca3af;
+    --danger: #f87171;
+
+    --shadow-float: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
 }
 
 * {
@@ -14,11 +62,15 @@
 
 body {
   -webkit-font-smoothing: antialiased;
-  background: #0c1210;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  /* Countdown and stats must not jitter as digits change. */
+  font-variant-numeric: tabular-nums;
 }
 
 ::selection {
-  background: rgba(45, 212, 191, 0.25);
+  background: var(--accent-subtle);
 }
 
 ::-webkit-scrollbar {
@@ -28,55 +80,70 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2e3b36;
+  background: var(--border-strong);
   border-radius: 2px;
 }
 
 @layer components {
+  /* Pressed/hover feedback inside --dur-fast, per DESIGN.md section 5. */
   .pressable {
-    transition: color 150ms var(--ease-silk), background-color 150ms var(--ease-silk),
-      border-color 150ms var(--ease-silk), transform 150ms var(--ease-silk),
-      opacity 150ms var(--ease-silk);
+    transition: color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease),
+      opacity var(--dur-fast) var(--ease),
+      transform var(--dur-fast) var(--ease);
   }
   .pressable:active {
     transform: scale(0.98);
   }
+
+  /* Top status module crossfade: both states occupy the same fixed-height
+     cell; opacity swaps over --dur-slow so there is never a hard cut and
+     never a layout shift. */
+  .xfade {
+    transition: opacity var(--dur-slow) var(--ease);
+  }
 }
 
-/* One entrance per popup open, staggered by .rise-N. Static under
-   prefers-reduced-motion: the keyframes simply never attach. */
-@media (prefers-reduced-motion: no-preference) {
-  .rise {
-    animation: rise 0.4s var(--ease-silk) both;
+/* The timer's breathing glow — the product's only ambient animation.
+   Focusing breathes 0.12–0.24; the break is capped lighter at 0.16. */
+.glow-focus {
+  animation: breathe-focus 4s ease-in-out infinite;
+}
+.glow-break {
+  animation: breathe-break 4s ease-in-out infinite;
+}
+@keyframes breathe-focus {
+  0%,
+  100% {
+    opacity: 0.12;
   }
-  .rise-1 { animation-delay: 0.03s; }
-  .rise-2 { animation-delay: 0.08s; }
-  .rise-3 { animation-delay: 0.13s; }
-  .rise-4 { animation-delay: 0.18s; }
+  50% {
+    opacity: 0.24;
+  }
+}
+@keyframes breathe-break {
+  0%,
+  100% {
+    opacity: 0.08;
+  }
+  50% {
+    opacity: 0.16;
+  }
+}
 
-  @keyframes rise {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation: none !important;
   }
-
-  .wave-grow {
-    transform-origin: bottom;
-    animation: wave-grow 0.5s var(--ease-silk) both;
+  /* The glow holds as a static faint halo instead of breathing. */
+  .glow-focus {
+    opacity: 0.18;
   }
-  @keyframes wave-grow {
-    from { transform: scaleY(0); }
-    to { transform: scaleY(1); }
-  }
-
-  /* The score arc draws itself in: stroke-dashoffset starts at "empty" via a
-     CSS custom property the component sets, then transitions to the target. */
-  .arc-draw {
-    transition: stroke-dashoffset 0.7s var(--ease-silk);
+  .glow-break {
+    opacity: 0.12;
   }
 }

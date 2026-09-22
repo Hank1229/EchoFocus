@@ -25,14 +25,14 @@ export default function TrackingToggle({ isTracking, onToggle }: TrackingToggleP
     <button
       onClick={toggle}
       disabled={pending}
-      className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+      className={`pressable flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-label ${
         isTracking
-          ? 'border-brand/30 bg-brand/10 text-brand hover:bg-brand/20'
-          : 'border-slate-700 bg-slate-800/70 text-slate-400 hover:bg-slate-800'
+          ? 'border-transparent bg-accent-subtle text-accent'
+          : 'border-line bg-surface text-content-secondary hover:bg-surface-hover'
       } ${pending ? 'cursor-not-allowed opacity-50' : ''}`}
       title={isTracking ? t.popup.clickToPause : t.popup.clickToResume}
     >
-      {isTracking ? <Eye size={14} strokeWidth={2} /> : <EyeOff size={14} strokeWidth={2} />}
+      {isTracking ? <Eye size={14} strokeWidth={1.5} /> : <EyeOff size={14} strokeWidth={1.5} />}
       {isTracking ? t.popup.tracking : t.popup.paused}
     </button>
   )

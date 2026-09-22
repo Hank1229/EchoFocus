@@ -8,39 +8,25 @@
     "now": "Now:",
     "todaysSites": "Today's sites",
     "focusByHour": "Focus by hour",
-    "generateSnapshot": "Get an AI read on where today's focus went.",
-    "needAtLeast30Min": "Need at least 30 min of browsing data",
     "idle": "Idle",
-    "aiError": "Couldn't generate your snapshot. Try again in a moment.",
     "openSettings": "Open settings",
     "tracking": "Tracking",
     "paused": "Paused",
     "clickToPause": "Click to pause tracking",
     "clickToResume": "Click to resume tracking",
-    "excellent": "Excellent",
-    "average": "Average",
-    "roomToGrow": "Room to grow",
     "focusScore": "Focus score",
     "todaysTotal": "Today's total",
     "noBrowsingYet": "No browsing activity recorded yet",
     "keepBrowsing": "Keep browsing — stats will appear here",
-    "openProfile": "Open Profile",
-    "streakDays": "{n}-day streak",
-    "streakBest": "best {n}",
-    "streakRestart": "1 day to restart your streak",
-    "aiSignedOut": "Sign in from Settings to generate snapshots.",
-    "aiSessionExpired": "Your sign-in expired. Open Settings and sign in again.",
-    "aiNoData": "There isn't enough browsing data for today yet."
-  },
-  "aiInsight": {
-    "generating": "Generating your snapshot…",
-    "dailyInsight": "Daily insight",
-    "collapse": "Collapse",
-    "readMore": "Read more",
-    "analyzed": "Analyzed",
-    "generate": "Generate snapshot",
-    "refresh": "Refresh",
-    "retry": "Try again"
+    "startFocus": "Start focus",
+    "pause": "Pause",
+    "resume": "Resume",
+    "skip": "Skip",
+    "endSession": "End",
+    "focusing": "Focusing",
+    "onBreak": "Break",
+    "timerPaused": "Paused",
+    "viewFullAnalysis": "View full analysis"
   },
   "options": {
     "title": "EchoFocus Settings",
@@ -170,6 +156,12 @@
       "title": "Today's focus score: {score}",
       "message": "{time} of productive time today.",
       "messageWithStreak": "{time} of productive time today — {n} days in a row."
+    },
+    "pomodoro": {
+      "focusEndTitle": "Focus complete",
+      "focusEndMessage": "Take a {n}-minute break.",
+      "breakEndTitle": "Break over",
+      "breakEndMessage": "Start the next {n}-minute focus round."
     }
   },
   "onboarding": {
