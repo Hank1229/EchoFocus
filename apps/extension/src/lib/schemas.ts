@@ -101,6 +101,10 @@ export const aiAnalysisRequestSchema = z.union([
   z.object({ date: dateStringSchema, language: z.string().optional() }),
 ])
 
+export const themePreferenceSchema = z.enum(['light', 'dark', 'system'])
+
+export type ThemePreference = z.infer<typeof themePreferenceSchema>
+
 export const pomodoroStateSchema = z.object({
   phase: z.enum(['idle', 'focusing', 'break']),
   endsAt: z.number().nullable(),

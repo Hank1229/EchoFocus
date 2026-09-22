@@ -39,7 +39,7 @@ export default function StatusModule({ score, totalSeconds, pomodoro, remainingM
         </div>
         <button
           onClick={() => void onCommand('start')}
-          className="pressable rounded-md bg-accent px-5 py-2 text-label text-white dark:text-canvas"
+          className="pressable rounded-md bg-accent px-5 py-2 text-label text-accent-ink"
         >
           {t.popup.startFocus}
         </button>

@@ -18,7 +18,7 @@ import * as pomodoro from './pomodoro'
 import { requestAiAnalysis } from '../lib/ai'
 import { getTodayDateString } from '@echofocus/shared'
 import { drainSyncQueue, enqueueMissedSyncDates } from '../lib/sync'
-import { pushRules, pushSettings, reconcileWithCloud } from '../lib/prefs-sync'
+import { pushRules, pushSettings, reconcileWithCloud, reconcileIfStale } from '../lib/prefs-sync'
 
 // ─── Message Types ─────────────────────────────────────────────────────────
 
@@ -249,6 +249,10 @@ export async function handleMessage(
     }
 
     case 'GET_POMODORO': {
+      // Every popup open lands here — piggyback a throttled cloud pull so
+      // dashboard edits (durations, theme) are fresh before a round starts.
+      // Fire-and-forget: the popup must not wait on the network.
+      void reconcileIfStale().catch(() => undefined)
       return { success: true, data: await pomodoro.snapshot() }
     }
 

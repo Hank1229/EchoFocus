@@ -18,7 +18,10 @@ import zhTW from '../locales/zh-TW.json'
 export const POMODORO_ALARM = 'echofocus-pomodoro'
 
 const STATE_KEY = 'pomodoro_state'
-const SETTINGS_KEY = 'pomodoro_settings'
+
+// Written by the preferences sync as well as read here, so both use one name.
+export const POMODORO_SETTINGS_KEY = 'pomodoro_settings'
+export const POMODORO_REMINDERS_KEY = 'pomodoro_reminders_enabled'
 
 const FOCUS_END_NOTIFICATION = 'echofocus-pomodoro-focus-end'
 const BREAK_END_NOTIFICATION = 'echofocus-pomodoro-break-end'
@@ -48,8 +51,8 @@ async function setState(state: PomodoroState): Promise<void> {
 
 // Written by the dashboard settings page in Phase 2; until then the defaults.
 export async function getPomodoroSettings(): Promise<PomodoroSettings> {
-  const stored = await chrome.storage.local.get(SETTINGS_KEY)
-  const parsed = pomodoroSettingsSchema.safeParse(stored[SETTINGS_KEY])
+  const stored = await chrome.storage.local.get(POMODORO_SETTINGS_KEY)
+  const parsed = pomodoroSettingsSchema.safeParse(stored[POMODORO_SETTINGS_KEY])
   return parsed.success ? parsed.data : { focusMinutes: 25, breakMinutes: 5 }
 }
 
@@ -146,6 +149,11 @@ export async function refreshBadge(): Promise<void> {
 }
 
 async function notify(id: string): Promise<void> {
+  // Absent means on — the toggle shipped after the timer, and reminders were
+  // always on before it existed.
+  const stored = await chrome.storage.local.get(POMODORO_REMINDERS_KEY)
+  if (stored[POMODORO_REMINDERS_KEY] === false) return
+
   const { language } = await chrome.storage.local.get('language')
   const locale = language === 'zh-TW' ? (zhTW as typeof en) : en
   const { focusMinutes, breakMinutes } = await getPomodoroSettings()

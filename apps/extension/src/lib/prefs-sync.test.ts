@@ -8,7 +8,7 @@ vi.mock('./auth', () => ({ getSession: vi.fn(), refreshSession: vi.fn() }))
 
 import { getSupabaseClient } from './supabase'
 import { getSession, refreshSession } from './auth'
-import { pushRules, pushSettings, reconcileWithCloud } from './prefs-sync'
+import { pushRules, pushSettings, reconcileWithCloud, reconcileIfStale } from './prefs-sync'
 import { getCustomRules, getSettings, saveCustomRules, saveSettings } from '../background/storage'
 
 const USER = 'user-1'
@@ -409,5 +409,88 @@ describe('an access token that expired while the worker was asleep', () => {
     await reconcileWithCloud()
 
     expect(patterns(await getCustomRules())).toEqual(['notion.so'])
+  })
+})
+
+describe('theme and pomodoro extras on the preferences row', () => {
+  it('a pull adopts the 008 columns into their storage keys and remembers the cloud has them', async () => {
+    alreadyBootstrapped()
+    supabase.rows.user_preferences = [cloudPrefs({
+      theme: 'dark',
+      pomodoro_focus_minutes: 50,
+      pomodoro_break_minutes: 10,
+      pomodoro_reminders_enabled: false,
+    })]
+
+    await reconcileWithCloud()
+
+    expect(chromeStub.store.theme).toBe('dark')
+    expect(chromeStub.store.pomodoro_settings).toEqual({ focusMinutes: 50, breakMinutes: 10 })
+    expect(chromeStub.store.pomodoro_reminders_enabled).toBe(false)
+    expect(chromeStub.store.cloud_prefs_v2).toBe(true)
+  })
+
+  it('a pre-008 cloud row leaves local extras alone and pushes only the original columns', async () => {
+    alreadyBootstrapped()
+    chromeStub.store.theme = 'dark'
+    supabase.rows.user_preferences = [cloudPrefs()]
+
+    await reconcileWithCloud()
+    await pushSettings()
+
+    expect(chromeStub.store.theme).toBe('dark')
+    expect(chromeStub.store.cloud_prefs_v2).toBeUndefined()
+    const row = upserts('user_preferences').at(-1)!
+    expect(row).not.toHaveProperty('theme')
+    expect(row).not.toHaveProperty('pomodoro_focus_minutes')
+  })
+
+  it('once the cloud has the columns, a push carries the local extras', async () => {
+    alreadyBootstrapped()
+    chromeStub.store.cloud_prefs_v2 = true
+    chromeStub.store.theme = 'light'
+    chromeStub.store.pomodoro_settings = { focusMinutes: 30, breakMinutes: 5 }
+
+    await pushSettings()
+
+    const row = upserts('user_preferences').at(-1)!
+    expect(row.theme).toBe('light')
+    expect(row.pomodoro_focus_minutes).toBe(30)
+    expect(row.pomodoro_break_minutes).toBe(5)
+    expect(row.pomodoro_reminders_enabled).toBe(true)
+  })
+
+  it('bootstrap keeps a local choice and takes the cloud value where local sits at the default', async () => {
+    chromeStub.store.theme = 'dark'
+    supabase.rows.user_preferences = [cloudPrefs({
+      theme: 'light',
+      pomodoro_focus_minutes: 45,
+      pomodoro_break_minutes: 15,
+      pomodoro_reminders_enabled: true,
+    })]
+
+    await reconcileWithCloud()
+
+    expect(chromeStub.store.theme).toBe('dark')
+    expect(chromeStub.store.pomodoro_settings).toEqual({ focusMinutes: 45, breakMinutes: 15 })
+  })
+
+  it('reconcileIfStale runs at most once per interval', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 8, 22, 12, 0, 0))
+    alreadyBootstrapped()
+    supabase.rows.user_preferences = [cloudPrefs()]
+
+    await reconcileIfStale()
+    const afterFirst = supabase.requests.length
+    expect(afterFirst).toBeGreaterThan(0)
+
+    await reconcileIfStale()
+    expect(supabase.requests.length).toBe(afterFirst)
+
+    vi.setSystemTime(new Date(2026, 8, 22, 12, 1, 1))
+    await reconcileIfStale()
+    expect(supabase.requests.length).toBeGreaterThan(afterFirst)
+    vi.useRealTimers()
   })
 })

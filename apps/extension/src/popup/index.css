@@ -19,6 +19,7 @@
 
   --accent: #0d9488;
   --accent-subtle: rgba(13, 148, 136, 0.1);
+  --on-accent: #ffffff;
   --productive: #16a34a;
   --rest: #d97706;
   --neutral: #6b7280;
@@ -34,8 +35,14 @@
   --font-sans: 'Inter', 'Noto Sans TC', 'PingFang TC', system-ui, sans-serif;
 }
 
+/* Three theme states: an explicit choice stamps data-theme on <html> (see
+   lib/theme.ts); no stamp means follow the OS. The dark block is declared
+   twice on purpose — once for the un-stamped system path, once for the
+   explicit choice — because CSS cannot share a var block across the two. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
     --bg: #101418;
     --surface: #171c22;
     --surface-hover: #1d242b;
@@ -47,6 +54,7 @@
 
     --accent: #2dd4bf;
     --accent-subtle: rgba(45, 212, 191, 0.12);
+    --on-accent: #101418;
     --productive: #4ade80;
     --rest: #fbbf24;
     --neutral: #9ca3af;
@@ -54,6 +62,33 @@
 
     --shadow-float: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #101418;
+  --surface: #171c22;
+  --surface-hover: #1d242b;
+  --border: #262e36;
+  --border-strong: #333d47;
+  --text: #e7eaed;
+  --text-secondary: #9aa4ae;
+  --text-tertiary: #6b7580;
+
+  --accent: #2dd4bf;
+  --accent-subtle: rgba(45, 212, 191, 0.12);
+  --on-accent: #101418;
+  --productive: #4ade80;
+  --rest: #fbbf24;
+  --neutral: #9ca3af;
+  --danger: #f87171;
+
+  --shadow-float: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
 }
 
 * {

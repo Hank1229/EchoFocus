@@ -148,6 +148,17 @@ describe('advance', () => {
     expect(chromeStub.notifications).toHaveLength(0)
   })
 
+  it('a disabled reminders toggle suppresses the notification but not the transition', async () => {
+    chromeStub.store['pomodoro_reminders_enabled'] = false
+    await run('start')
+    vi.setSystemTime(new Date(NOW.getTime() + 25 * 60_000))
+
+    await advance()
+
+    expect(chromeStub.notifications).toHaveLength(0)
+    expect((await snapshot()).phase).toBe('break')
+  })
+
   it('localizes the notification copy', async () => {
     chromeStub.store['language'] = 'zh-TW'
     await run('start')

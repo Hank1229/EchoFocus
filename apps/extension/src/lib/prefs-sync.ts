@@ -3,9 +3,11 @@ import type { ClassificationRule, Settings } from '@echofocus/shared'
 import { DEFAULT_SETTINGS } from '@echofocus/shared'
 import { getSupabaseClient } from './supabase'
 import { getSession, refreshSession } from './auth'
-import { categorySchema } from './schemas'
+import { categorySchema, themePreferenceSchema, type ThemePreference } from './schemas'
 import { getCustomRules, saveCustomRules, getSettings, withStorageLock } from '../background/storage'
 import { applySettings } from '../background/settings'
+import { getPomodoroSettings, POMODORO_SETTINGS_KEY, POMODORO_REMINDERS_KEY } from '../background/pomodoro'
+import { getStoredTheme, THEME_KEY } from './theme'
 
 // Classification rules and preferences are the one slice of state the cloud
 // owns: the web editor and every browser the user signs into have to agree on
@@ -18,10 +20,27 @@ import { applySettings } from '../background/settings'
 
 type SyncedSettings = Pick<Settings, 'idleTimeoutMinutes' | 'dataRetentionDays' | 'dailyGoalMinutes'>
 
+// Theme and pomodoro preferences live in their own storage keys (the Settings
+// schema strips unknown fields), but ride the same user_preferences row.
+interface SyncedExtras {
+  theme: ThemePreference
+  focusMinutes: number
+  breakMinutes: number
+  remindersEnabled: boolean
+}
+
+const EXTRAS_DEFAULTS: SyncedExtras = { theme: 'system', focusMinutes: 25, breakMinutes: 5, remindersEnabled: true }
+
 type Pushable = 'rules' | 'settings'
 
 const PENDING_PUSH_KEY = 'pending_prefs_push'
 const BOOTSTRAPPED_USER_KEY = 'prefs_bootstrapped_user'
+
+// Set once a pull has seen the migration-008 columns on the cloud row. Until
+// then uploads send only the original columns, so an extension shipped ahead
+// of the remote migration cannot break the whole settings sync.
+const CLOUD_EXTRAS_KEY = 'cloud_prefs_v2'
+const LAST_RECONCILE_KEY = 'last_prefs_reconcile_at'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -203,26 +222,70 @@ const cloudSettingsSchema = z.object({
   idle_timeout_minutes: z.number().positive(),
   data_retention_days: z.number().positive(),
   daily_goal_minutes: z.number().positive(),
+  // Absent until migration 008 reaches the remote project.
+  theme: themePreferenceSchema.optional().catch(undefined),
+  pomodoro_focus_minutes: z.number().positive().optional().catch(undefined),
+  pomodoro_break_minutes: z.number().positive().optional().catch(undefined),
+  pomodoro_reminders_enabled: z.boolean().optional().catch(undefined),
 })
+
+async function localExtras(): Promise<SyncedExtras> {
+  const [theme, pomodoro, stored] = await Promise.all([
+    getStoredTheme(),
+    getPomodoroSettings(),
+    chrome.storage.local.get(POMODORO_REMINDERS_KEY),
+  ])
+  return {
+    theme,
+    focusMinutes: pomodoro.focusMinutes,
+    breakMinutes: pomodoro.breakMinutes,
+    remindersEnabled: stored[POMODORO_REMINDERS_KEY] !== false,
+  }
+}
+
+async function adoptExtras(extras: Partial<SyncedExtras>): Promise<void> {
+  const writes: Record<string, unknown> = {}
+  if (extras.theme !== undefined) writes[THEME_KEY] = extras.theme
+  if (extras.focusMinutes !== undefined && extras.breakMinutes !== undefined) {
+    writes[POMODORO_SETTINGS_KEY] = { focusMinutes: extras.focusMinutes, breakMinutes: extras.breakMinutes }
+  }
+  if (extras.remindersEnabled !== undefined) writes[POMODORO_REMINDERS_KEY] = extras.remindersEnabled
+  if (Object.keys(writes).length > 0) await chrome.storage.local.set(writes)
+}
+
+async function cloudSupportsExtras(): Promise<boolean> {
+  const stored = await chrome.storage.local.get(CLOUD_EXTRAS_KEY)
+  return stored[CLOUD_EXTRAS_KEY] === true
+}
 
 // `value: null` means the account has no preferences row yet, which is a very
 // different thing from the request having failed.
-async function fetchCloudSettings(userId: string): Promise<{ ok: boolean; value: SyncedSettings | null }> {
+async function fetchCloudSettings(userId: string): Promise<{
+  ok: boolean
+  value: SyncedSettings | null
+  extras: Partial<SyncedExtras> | null
+}> {
   const supabase = getSupabaseClient()
+  // select('*') rather than named columns: the same build must work against a
+  // cloud row with and without the 008 columns.
   const result = await run<unknown>(() =>
     supabase
       .from('user_preferences')
-      .select('idle_timeout_minutes, data_retention_days, daily_goal_minutes')
+      .select('*')
       .eq('user_id', userId)
       .maybeSingle(),
   )
-  if (!result.ok) return { ok: false, value: null }
-  if (result.data === null) return { ok: true, value: null }
+  if (!result.ok) return { ok: false, value: null, extras: null }
+  if (result.data === null) return { ok: true, value: null, extras: null }
+
+  if (typeof result.data === 'object' && 'theme' in result.data) {
+    await chrome.storage.local.set({ [CLOUD_EXTRAS_KEY]: true })
+  }
 
   const parsed = cloudSettingsSchema.safeParse(result.data)
   if (!parsed.success) {
     console.warn('[EchoFocus] Ignoring malformed cloud preferences:', parsed.error.message)
-    return { ok: true, value: null }
+    return { ok: true, value: null, extras: null }
   }
   return {
     ok: true,
@@ -231,12 +294,20 @@ async function fetchCloudSettings(userId: string): Promise<{ ok: boolean; value:
       dataRetentionDays: parsed.data.data_retention_days,
       dailyGoalMinutes: parsed.data.daily_goal_minutes,
     },
+    extras: {
+      theme: parsed.data.theme,
+      focusMinutes: parsed.data.pomodoro_focus_minutes,
+      breakMinutes: parsed.data.pomodoro_break_minutes,
+      remindersEnabled: parsed.data.pomodoro_reminders_enabled,
+    },
   }
 }
 
 async function uploadSettings(userId: string): Promise<boolean> {
   const supabase = getSupabaseClient()
   const settings = await getSettings()
+  const extras = await localExtras()
+  const withExtras = await cloudSupportsExtras()
 
   const pushed = await run(() =>
     supabase.from('user_preferences').upsert({
@@ -244,6 +315,14 @@ async function uploadSettings(userId: string): Promise<boolean> {
       idle_timeout_minutes: settings.idleTimeoutMinutes,
       data_retention_days: settings.dataRetentionDays,
       daily_goal_minutes: settings.dailyGoalMinutes,
+      ...(withExtras
+        ? {
+            theme: extras.theme,
+            pomodoro_focus_minutes: extras.focusMinutes,
+            pomodoro_break_minutes: extras.breakMinutes,
+            pomodoro_reminders_enabled: extras.remindersEnabled,
+          }
+        : {}),
       updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id' }),
   )
@@ -258,6 +337,7 @@ async function pullSettings(userId: string): Promise<void> {
   // SyncedSettings can't carry trackingEnabled, so applySettings can never be
   // handed the master switch from here.
   if (cloud.value) await applySettings(cloud.value)
+  if (cloud.extras) await adoptExtras(cloud.extras)
 }
 
 // ─── First Contact ─────────────────────────────────────────────────────────
@@ -291,6 +371,21 @@ function mergeSettings(local: Settings, cloud: SyncedSettings | null): SyncedSet
   }
 }
 
+// Same rule as mergeSettings, field by field: a local value moved off its
+// default is user intent and wins; otherwise the cloud's (when it has one).
+function mergeExtras(local: SyncedExtras, cloud: Partial<SyncedExtras> | null): SyncedExtras {
+  const pick = <K extends keyof SyncedExtras>(key: K): SyncedExtras[K] => {
+    if (local[key] !== EXTRAS_DEFAULTS[key] || !cloud) return local[key]
+    return (cloud[key] ?? local[key]) as SyncedExtras[K]
+  }
+  return {
+    theme: pick('theme'),
+    focusMinutes: pick('focusMinutes'),
+    breakMinutes: pick('breakMinutes'),
+    remindersEnabled: pick('remindersEnabled'),
+  }
+}
+
 // The one pass where the cloud is not authoritative: neither side has ever
 // seen the other, so an empty cloud means "nothing uploaded yet", not "the
 // user deleted everything". Merge both ways, push the result, and only then
@@ -306,6 +401,7 @@ async function bootstrap(userId: string): Promise<void> {
   const local = await getCustomRules()
   await adoptRules(mergeRules(local.filter((rule) => !rule.isDefault), cloudRuleList))
   await applySettings(mergeSettings(await getSettings(), cloudPrefs.value))
+  await adoptExtras(mergeExtras(await localExtras(), cloudPrefs.extras))
 
   const rulesUp = await uploadRules(userId)
   const settingsUp = await uploadSettings(userId)
@@ -352,6 +448,18 @@ async function flush(kind: Pushable): Promise<void> {
 // the nightly sync, on browser startup, and behind the manual "Sync now"
 // button. Signed out it does nothing at all — local rules and settings are the
 // user's data and stay exactly as they are.
+// Popup opens call this: fresh dashboard edits (pomodoro durations, theme)
+// should be live by the time the user starts a round, without hammering the
+// cloud on every open. The timestamp is written before the reconcile so two
+// near-simultaneous opens can't both fire.
+export async function reconcileIfStale(minIntervalMs = 60_000): Promise<void> {
+  const stored = await chrome.storage.local.get(LAST_RECONCILE_KEY)
+  const last = stored[LAST_RECONCILE_KEY]
+  if (typeof last === 'number' && Date.now() - last < minIntervalMs) return
+  await chrome.storage.local.set({ [LAST_RECONCILE_KEY]: Date.now() })
+  await reconcileWithCloud()
+}
+
 export async function reconcileWithCloud(): Promise<void> {
   try {
     const session = await getSession()
