@@ -28,7 +28,7 @@
 
   --dur-fast: 100ms;
   --dur-base: 150ms;
-  --dur-slow: 250ms;
+  --dur-slow: 400ms;
   --ease: cubic-bezier(0.2, 0, 0, 1);
 
   --font-sans: 'Inter', 'Noto Sans TC', 'PingFang TC', system-ui, sans-serif;

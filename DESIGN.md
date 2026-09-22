@@ -107,7 +107,7 @@ Hierarchy rules:
 ```css
 --dur-fast: 100ms;   /* hover, press, focus ring */
 --dur-base: 150ms;   /* expand, toggle, tooltip */
---dur-slow: 250ms;   /* top status module crossfade, theme switch */
+--dur-slow: 400ms;   /* top status module crossfade, theme switch */
 --ease: cubic-bezier(0.2, 0, 0, 1);  /* the only easing in the product */
 ```
 
@@ -115,7 +115,7 @@ Required:
 
 - Every click shows visual feedback within 100ms (pressed state). Data mutations use optimistic updates; never wait for the API to reflect the action.
 - Async content uses skeletons matching final dimensions. Zero layout shift after load.
-- State changes are bridged with transitions: the popup's top module switches via a 250ms crossfade (old fades out, new fades in, height transitioned). Hard cuts are forbidden.
+- State changes are bridged with transitions: the popup's top module switches via a 400ms crossfade (old fades out, new fades in, height transitioned). Hard cuts are forbidden.
 - Animate only opacity and transform. Never animate width/height/top directly (transition height via grid-template-rows or measured transforms).
 - Under `prefers-reduced-motion: reduce`: all transitions drop to 0ms; the breathing glow becomes a static faint glow.
 
