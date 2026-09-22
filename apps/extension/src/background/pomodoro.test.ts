@@ -115,6 +115,9 @@ describe('advance', () => {
     expect(state.endsAt).toBe(Date.now() + 5 * 60_000)
     expect(chromeStub.notifications).toHaveLength(1)
     expect(chromeStub.notifications[0].id).toBe('echofocus-pomodoro-focus-end')
+    // A lingering same-id notification is replaced without re-alerting on
+    // macOS, so the create must be preceded by a clear.
+    expect(chromeStub.clearedNotificationIds).toContain('echofocus-pomodoro-focus-end')
     expect(chromeStub.alarms.get(POMODORO_ALARM)).toEqual({ when: Date.now() + 5 * 60_000 })
     expect(chromeStub.badgeText).toBe('5')
   })

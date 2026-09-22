@@ -161,10 +161,18 @@ async function notify(id: string): Promise<void> {
           message: locale.notifications.pomodoro.breakEndMessage.replace('{n}', String(focusMinutes)),
         }
 
+  // Creating over an id that still sits in the macOS Notification Center
+  // replaces it in place WITHOUT re-alerting — clear first so every phase
+  // end actually pops a banner.
+  await chrome.notifications.clear(id)
   chrome.notifications.create(id, {
     type: 'basic',
     iconUrl: chrome.runtime.getURL(ICON_PATH),
     title: copy.title,
     message: copy.message,
+  }, () => {
+    if (chrome.runtime.lastError) {
+      console.error('[EchoFocus] pomodoro notification failed:', chrome.runtime.lastError.message)
+    }
   })
 }
