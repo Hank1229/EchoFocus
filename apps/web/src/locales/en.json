@@ -104,7 +104,6 @@
   "sidebar": {
     "todaysOverview": "Today's Overview",
     "trends": "Trends",
-    "dailySnapshots": "Daily Snapshots",
     "settings": "Settings",
     "profile": "Profile",
     "privacyNote": "Browsing data stays on your device",
@@ -154,7 +153,9 @@
     "previousDay": "Previous day",
     "nextDay": "Next day",
     "streakDays": "{n}-day streak",
-    "streakBest": "best {n}"
+    "streakBest": "best {n}",
+    "todaysReview": "Today's review",
+    "totalTracked": "Total tracked"
   },
   "trends": {
     "title": "Trends",

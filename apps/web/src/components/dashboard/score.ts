@@ -28,6 +28,19 @@ const WASH: Record<ScoreTier, string> = {
   quiet: 'bg-neutral/10',
 }
 
+// Token-based color for restyled surfaces. The low tier sits on
+// --text-secondary, not tertiary: a stat numeral is essential content and
+// tertiary fails contrast on the light theme.
+const COLOR_VAR: Record<ScoreTier, string> = {
+  strong: 'var(--productive)',
+  steady: 'var(--accent)',
+  quiet: 'var(--text-secondary)',
+}
+
+export function scoreColorVar(score: number) {
+  return COLOR_VAR[scoreTier(score)]
+}
+
 export function scoreNumeralClass(score: number) {
   return NUMERAL[scoreTier(score)]
 }

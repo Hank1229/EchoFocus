@@ -2,8 +2,8 @@ import { notFound } from 'next/navigation'
 import { getLocale } from '@/lib/i18n-server'
 import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import DashboardHeader from '@/components/layout/DashboardHeader'
-import VerdictBand from '../../dashboard/today/VerdictBand'
-import DailyInsight from '../../dashboard/today/DailyInsight'
+import DayWaveform from '@/components/dashboard/DayWaveform'
+import TodayReview from '../../dashboard/today/TodayReview'
 import SiteRanking from '../../dashboard/today/SiteRanking'
 import DateNav from '../../dashboard/today/DateNav'
 
@@ -45,11 +45,7 @@ export default async function PreviewPage() {
   const neutral = 2400
 
   return (
-    <div className="relative flex min-h-screen bg-slate-950">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(ellipse_70%_100%_at_50%_0%,rgba(45,212,191,0.05),transparent)]"
-      />
+    <div className="relative flex min-h-screen bg-canvas">
       <DashboardSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <DashboardHeader
@@ -68,29 +64,31 @@ export default async function PreviewPage() {
         />
         <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
           <div className="space-y-10">
-            <div className="rise rise-1">
-              <VerdictBand
-                userName="Hank"
-                streak={{ current: 6, best: 11 }}
-                focusScore={76}
-                productiveSeconds={productive}
-                distractionSeconds={distraction}
-                neutralSeconds={neutral}
-                uncategorizedSeconds={0}
-                productiveByHour={HOURS}
-              />
-            </div>
-            <div className="rise rise-2">
-              <DailyInsight analysisText={INSIGHT} date="2026-09-18" canGenerate language={language} />
-            </div>
-            <div className="rise rise-3">
-              <SiteRanking
-                heading={t.today.whereTimeWent}
-                sites={SITES}
-                emptyLabel={t.today.noData}
-                total="8h 39m"
-              />
-            </div>
+            <TodayReview
+              totalSeconds={productive + distraction + neutral}
+              focusScore={76}
+              productiveSeconds={productive}
+              distractionSeconds={distraction}
+              neutralSeconds={neutral}
+              uncategorizedSeconds={0}
+              streak={{ current: 6, best: 11 }}
+              analysisText={INSIGHT}
+              date="2026-09-18"
+              canGenerate
+              language={language}
+            />
+            <section>
+              <h2 className="text-label text-content-secondary">{t.today.focusByHour}</h2>
+              <div className="mt-3">
+                <DayWaveform hours={HOURS} label={t.today.focusByHour} />
+              </div>
+            </section>
+            <SiteRanking
+              heading={t.today.whereTimeWent}
+              sites={SITES}
+              emptyLabel={t.today.noData}
+              total="8h 39m"
+            />
           </div>
         </main>
       </div>

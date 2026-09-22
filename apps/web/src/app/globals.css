@@ -2,10 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
+/* DESIGN.md tokens — single source for color, motion, and type on the web
+   app. Light is the default; dark follows the OS unless an explicit choice
+   stamps data-theme on <html> (see lib/theme.tsx). */
 :root {
+  color-scheme: light;
+
+  --bg: #f6f7f8;
+  --surface: #ffffff;
+  --surface-hover: #f1f3f4;
+  --border: #e4e7ea;
+  --border-strong: #d3d8dc;
+  --text: #1a1d21;
+  --text-secondary: #5c6570;
+  --text-tertiary: #8a939d;
+
+  --accent: #0d9488;
+  --accent-subtle: rgba(13, 148, 136, 0.1);
+  --on-accent: #ffffff;
+  --productive: #16a34a;
+  --rest: #d97706;
+  --neutral: #6b7280;
+  --danger: #dc2626;
+
+  --shadow-float: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  --dur-fast: 100ms;
+  --dur-base: 150ms;
+  --dur-slow: 400ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  --font-sans: 'Inter', 'Noto Sans TC', 'PingFang TC', system-ui, sans-serif;
+}
+
+/* The dark set appears twice on purpose: once for the un-stamped
+   follow-system state, once for the explicit choice. CSS cannot share a
+   variable block across the two selectors. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --bg: #101418;
+    --surface: #171c22;
+    --surface-hover: #1d242b;
+    --border: #262e36;
+    --border-strong: #333d47;
+    --text: #e7eaed;
+    --text-secondary: #9aa4ae;
+    --text-tertiary: #6b7580;
+
+    --accent: #2dd4bf;
+    --accent-subtle: rgba(45, 212, 191, 0.12);
+    --on-accent: #101418;
+    --productive: #4ade80;
+    --rest: #fbbf24;
+    --neutral: #9ca3af;
+    --danger: #f87171;
+
+    --shadow-float: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+:root[data-theme='dark'] {
   color-scheme: dark;
-  /* The one easing the whole product moves on. */
-  --ease-silk: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --bg: #101418;
+  --surface: #171c22;
+  --surface-hover: #1d242b;
+  --border: #262e36;
+  --border-strong: #333d47;
+  --text: #e7eaed;
+  --text-secondary: #9aa4ae;
+  --text-tertiary: #6b7580;
+
+  --accent: #2dd4bf;
+  --accent-subtle: rgba(45, 212, 191, 0.12);
+  --on-accent: #101418;
+  --productive: #4ade80;
+  --rest: #fbbf24;
+  --neutral: #9ca3af;
+  --danger: #f87171;
+
+  --shadow-float: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 * {
@@ -14,12 +92,15 @@
 
 body {
   -webkit-font-smoothing: antialiased;
-  background: #070c0a;
-  color: #ecf3ef;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  /* Stats and countdowns must not jitter as digits change. */
+  font-variant-numeric: tabular-nums;
 }
 
 ::selection {
-  background: rgba(45, 212, 191, 0.25);
+  background: var(--accent-subtle);
 }
 
 ::-webkit-scrollbar {
@@ -29,61 +110,37 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2e3b36;
+  background: var(--border-strong);
   border-radius: 2px;
 }
 
 @layer components {
-  /* Raised surfaces are lit from above: a hairline top highlight over a
-     one-step-lighter panel is what separates "surface" from "hole" on a
-     near-black ground. */
-  .surface {
-    @apply rounded-2xl border border-slate-800 bg-slate-900;
-    box-shadow: inset 0 1px 0 rgba(236, 243, 239, 0.04);
-  }
-
-  /* Anything pressable answers the hand: quick, on the silk curve, and it
-     gives slightly under the press. */
+  /* Pressed/hover feedback inside --dur-fast, per DESIGN.md section 5. */
   .pressable {
-    transition: color 150ms var(--ease-silk), background-color 150ms var(--ease-silk),
-      border-color 150ms var(--ease-silk), transform 150ms var(--ease-silk),
-      opacity 150ms var(--ease-silk);
+    transition: color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease),
+      opacity var(--dur-fast) var(--ease),
+      transform var(--dur-fast) var(--ease);
   }
   .pressable:active {
     transform: scale(0.98);
   }
+
+  /* Transitional shim: pages not yet restyled to the token system still use
+     .surface cards. Swept in checkpoint B. */
+  .surface {
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
 }
 
-/* Entrance choreography — used once per page load, staggered by .rise-N.
-   Static under prefers-reduced-motion: the keyframes simply never attach. */
-@media (prefers-reduced-motion: no-preference) {
-  .rise {
-    animation: rise 0.55s var(--ease-silk) both;
-  }
-  .rise-1 { animation-delay: 0.05s; }
-  .rise-2 { animation-delay: 0.12s; }
-  .rise-3 { animation-delay: 0.19s; }
-  .rise-4 { animation-delay: 0.26s; }
-
-  @keyframes rise {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-
-  /* The day-waveform bars grow out of the baseline; each bar sets its own
-     delay inline so the wave sweeps left to right. */
-  .wave-grow {
-    transform-origin: bottom;
-    animation: wave-grow 0.6s var(--ease-silk) both;
-  }
-  @keyframes wave-grow {
-    from { transform: scaleY(0); }
-    to { transform: scaleY(1); }
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation: none !important;
   }
 }

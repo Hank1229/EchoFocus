@@ -104,7 +104,6 @@
   "sidebar": {
     "todaysOverview": "今日總覽",
     "trends": "趨勢",
-    "dailySnapshots": "每日快照",
     "settings": "設定",
     "profile": "個人檔案",
     "privacyNote": "瀏覽資料僅儲存在您的裝置上",
@@ -154,7 +153,9 @@
     "previousDay": "前一天",
     "nextDay": "後一天",
     "streakDays": "連續 {n} 天達標",
-    "streakBest": "最佳 {n} 天"
+    "streakBest": "最佳 {n} 天",
+    "todaysReview": "本日回顧",
+    "totalTracked": "今日總計"
   },
   "trends": {
     "title": "趨勢",

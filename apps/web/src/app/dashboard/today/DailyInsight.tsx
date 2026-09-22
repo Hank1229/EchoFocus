@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { RefreshCw, Sparkles } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 import { requestAiAnalysis } from '@/lib/ai'
 
@@ -14,6 +13,8 @@ interface Props {
   language: string
 }
 
+// The insight half of the Today's review block. Headless on purpose — the
+// parent card owns the surface.
 export default function DailyInsight({ analysisText, date, canGenerate, language }: Props) {
   const { t } = useLocale()
   const [text, setText] = useState<string | null>(analysisText)
@@ -47,76 +48,51 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
   const [lead, ...rest] = paragraphs
 
   return (
-    <section className="surface relative overflow-hidden px-7 py-7 sm:px-9 sm:py-8">
+    <div>
       <div className="flex items-center justify-between gap-4">
-        <h2 className="flex items-center gap-2.5 font-display text-base font-semibold tracking-tight text-slate-100">
-          <Sparkles size={15} strokeWidth={1.75} className="text-brand" />
-          {t.today.dailyInsight}
-        </h2>
+        <h3 className="text-label text-content-secondary">{t.today.dailyInsight}</h3>
         {text && canGenerate && (
           <button
             onClick={run}
             disabled={isRunning}
-            className="flex flex-shrink-0 items-center gap-1.5 text-xs text-slate-500 transition-colors hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
+            className="pressable flex-shrink-0 text-caption text-content-tertiary hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <RefreshCw size={12} strokeWidth={2} className={isRunning ? 'animate-spin' : ''} />
             {isRunning ? t.today.regenerating : t.today.regenerate}
           </button>
         )}
       </div>
 
       {lead ? (
-        <div className="mt-6">
-          {/* The lead paragraph is the product's whole point, so it is set as a
-              lead: larger, brighter, and held to a reading measure. The
-              follow-up runs in two columns so the surface carries the text
-              instead of trailing off into empty space. */}
-          <p className="max-w-[58ch] text-lg leading-[1.6] text-slate-100">{lead}</p>
-          {rest.length > 0 && (
-            <div className="mt-6 gap-10 lg:columns-2">
-              {rest.map((para, i) => (
-                <p
-                  key={i}
-                  className="mb-4 break-inside-avoid text-[0.9375rem] leading-[1.7] text-slate-400 last:mb-0"
-                >
-                  {para}
-                </p>
-              ))}
-            </div>
-          )}
+        <div className="mt-4 max-w-[65ch]">
+          <p className="text-body text-content">{lead}</p>
+          {rest.map((para, i) => (
+            <p key={i} className="mt-3 text-body text-content-secondary">
+              {para}
+            </p>
+          ))}
         </div>
       ) : (
-        <div className="mt-6 max-w-md">
-          <p className="text-[0.9375rem] leading-relaxed text-slate-400">
+        <div className="mt-4 max-w-[65ch]">
+          <p className="text-body text-content-secondary">
             {canGenerate ? t.today.noInsightYet : t.today.insightWindowClosed}
           </p>
           {canGenerate && (
             <button
               onClick={run}
               disabled={isRunning}
-              className="mt-5 flex items-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-brand-soft disabled:opacity-60"
+              className="pressable mt-4 rounded-md bg-accent px-4 py-2 text-label text-accent-ink disabled:opacity-60"
             >
-              {isRunning ? (
-                <>
-                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
-                  {t.today.regenerating}
-                </>
-              ) : (
-                <>
-                  <Sparkles size={15} strokeWidth={2} />
-                  {t.today.generateInsight}
-                </>
-              )}
+              {isRunning ? t.today.regenerating : t.today.generateInsight}
             </button>
           )}
         </div>
       )}
 
       {error && (
-        <p className="mt-5 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-xs leading-relaxed text-danger">
+        <p role="alert" className="mt-4 text-caption" style={{ color: 'var(--danger)' }}>
           {error}
         </p>
       )}
-    </section>
+    </div>
   )
 }

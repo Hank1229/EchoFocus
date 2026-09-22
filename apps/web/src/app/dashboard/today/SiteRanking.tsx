@@ -17,15 +17,14 @@ interface Props {
 }
 
 const BAR: Record<SiteCategory, string> = {
-  productive: 'bg-productive-deep',
-  distraction: 'bg-breaks-deep',
-  neutral: 'bg-neutral-deep',
-  uncategorized: 'bg-neutral-deep',
+  productive: 'var(--productive)',
+  distraction: 'var(--rest)',
+  neutral: 'var(--neutral)',
+  uncategorized: 'var(--neutral)',
 }
 
-// A ranked list, so it is set as a list: hairline rows, the bar carries both the
-// relative weight and (by colour) the category, which retires the per-row icon
-// and the repeated category caption.
+// A ranked list set as a list: hairline rows; the bar carries both relative
+// weight and (by color) the category.
 export default function SiteRanking({ heading, sites, emptyLabel, total }: Props) {
   const ranked = [...sites].sort((a, b) => b.seconds - a.seconds).slice(0, 10)
   const leader = ranked[0]?.seconds ?? 1
@@ -33,27 +32,27 @@ export default function SiteRanking({ heading, sites, emptyLabel, total }: Props
   return (
     <section>
       <div className="flex items-baseline justify-between gap-4">
-        <h2 className="font-display text-base font-semibold tracking-tight text-slate-100">{heading}</h2>
-        {total && <p className="text-xs tabular-nums text-slate-600">{total}</p>}
+        <h2 className="text-label text-content-secondary">{heading}</h2>
+        {total && <p className="text-caption text-content-tertiary">{total}</p>}
       </div>
 
       {ranked.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-500">{emptyLabel}</p>
+        <p className="mt-4 text-body text-content-secondary">{emptyLabel}</p>
       ) : (
-        <ul className="mt-4 grid border-t border-slate-800/80 lg:grid-cols-2 lg:gap-x-12">
+        <ul className="mt-3 grid border-t border-line lg:grid-cols-2 lg:gap-x-12">
           {ranked.map(site => (
-            <li
-              key={site.domain}
-              className="flex items-center gap-4 border-b border-slate-800/80 py-2.5"
-            >
-              <span className="min-w-0 flex-1 truncate text-sm text-slate-300">{site.domain}</span>
-              <span aria-hidden className="h-[3px] w-16 flex-shrink-0 overflow-hidden rounded-full bg-slate-800 sm:w-24">
+            <li key={site.domain} className="flex items-center gap-4 border-b border-line py-2.5">
+              <span className="min-w-0 flex-1 truncate text-body text-content">{site.domain}</span>
+              <span aria-hidden className="h-[3px] w-16 flex-shrink-0 overflow-hidden rounded-full bg-surface-hover sm:w-24">
                 <span
-                  className={`block h-full rounded-full ${BAR[site.category]}`}
-                  style={{ width: `${Math.max((site.seconds / leader) * 100, 4)}%` }}
+                  className="block h-full rounded-full"
+                  style={{
+                    width: `${Math.max((site.seconds / leader) * 100, 4)}%`,
+                    background: BAR[site.category],
+                  }}
                 />
               </span>
-              <span className="w-14 flex-shrink-0 text-right text-xs tabular-nums text-slate-500">
+              <span className="w-14 flex-shrink-0 text-right text-caption text-content-tertiary">
                 {formatDuration(site.seconds)}
               </span>
             </li>

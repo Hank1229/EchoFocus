@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 interface DashboardHeaderProps {
   title: string
   /** Page-level context or controls — the date and sync time on Today, the
-      period switch on Trends, the generate action on Snapshots. */
+      period switch on Trends. */
   context?: ReactNode
   userEmail?: string
   avatarUrl?: string
@@ -14,9 +14,9 @@ export default function DashboardHeader({ title, context, userEmail, avatarUrl }
   const initial = userEmail?.charAt(0).toUpperCase() ?? '?'
 
   return (
-    <header className="sticky top-0 z-10 border-b border-slate-800/80 bg-slate-950/85 backdrop-blur">
+    <header className="sticky top-0 z-10 border-b border-line bg-canvas">
       <div className="mx-auto flex h-16 max-w-5xl items-center gap-4 px-6 sm:gap-6">
-        <h1 className="flex-shrink-0 font-display text-[1.375rem] font-semibold tracking-tight text-slate-100">{title}</h1>
+        <h1 className="flex-shrink-0 text-title text-content">{title}</h1>
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-4">
           {context}
@@ -35,11 +35,11 @@ export default function DashboardHeader({ title, context, userEmail, avatarUrl }
               alt=""
               width={28}
               height={28}
-              className="rounded-full ring-1 ring-slate-700 transition-all hover:ring-brand/60"
+              className="pressable rounded-full ring-1 ring-line-strong hover:ring-accent"
               referrerPolicy="no-referrer"
             />
           ) : (
-            <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-xs font-semibold text-slate-400 transition-colors hover:border-brand/60 hover:text-slate-200">
+            <span className="pressable flex h-7 w-7 items-center justify-center rounded-full border border-line-strong text-caption font-semibold text-content-secondary hover:border-accent hover:text-content">
               {initial}
             </span>
           )}

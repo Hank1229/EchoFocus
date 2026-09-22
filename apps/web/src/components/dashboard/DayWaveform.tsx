@@ -1,7 +1,7 @@
-// The day as a waveform — the echo motif drawn with real data. One bar per
-// local hour, height carrying that hour's productive minutes; an hour with
-// nothing stays a resting dot, so a day reads like a recording: silence,
-// then signal. Server-rendered; the entrance sweep is pure CSS.
+// The day's 24-hour distribution — Today's hero chart. One bar per local
+// hour, height carrying that hour's productive minutes; silent hours rest as
+// dots on the baseline. Communicates one thing only, so no peaks, glows, or
+// entrance motion.
 
 interface Props {
   /** 24 local-hour buckets of productive seconds. */
@@ -11,40 +11,28 @@ interface Props {
 }
 
 const BAR_MAX = 44
-const BAR_MIN = 5
+const BAR_MIN = 4
 
 export default function DayWaveform({ hours, label }: Props) {
   const peak = Math.max(...hours, 1)
-  const peakIndex = hours.indexOf(Math.max(...hours))
-  const hasSignal = hours.some(h => h > 0)
 
   return (
     <div role="img" aria-label={label}>
       <div className="flex h-[44px] items-end">
-        {hours.map((seconds, hour) => {
-          const height = seconds > 0 ? Math.max((seconds / peak) * BAR_MAX, 8) : BAR_MIN
-          const isPeak = hasSignal && hour === peakIndex && seconds > 0
-          return (
-            // Each hour owns an equal cell; the bar inside stays needle-thin
-            // so height — the signal — is what the eye reads. Silent hours
-            // rest as dots on the baseline.
-            <span key={hour} className="flex min-w-0 flex-1 items-end justify-center">
-              <span
-                title={`${String(hour).padStart(2, '0')}:00 — ${Math.round(seconds / 60)} min`}
-                className={`wave-grow w-[5px] rounded-full ${
-                  seconds > 0
-                    ? isPeak
-                      ? 'bg-brand-soft shadow-[0_0_12px_rgba(94,234,212,0.45)]'
-                      : 'bg-brand/80'
-                    : 'bg-slate-700'
-                }`}
-                style={{ height, animationDelay: `${hour * 22}ms` }}
-              />
-            </span>
-          )
-        })}
+        {hours.map((seconds, hour) => (
+          <span key={hour} className="flex min-w-0 flex-1 items-end justify-center">
+            <span
+              title={`${String(hour).padStart(2, '0')}:00 — ${Math.round(seconds / 60)} min`}
+              className="w-[4px] rounded-full"
+              style={{
+                height: seconds > 0 ? Math.max((seconds / peak) * BAR_MAX, 7) : BAR_MIN,
+                background: seconds > 0 ? 'var(--accent)' : 'var(--border)',
+              }}
+            />
+          </span>
+        ))}
       </div>
-      <div className="mt-2 flex justify-between text-[0.625rem] tabular-nums text-slate-600">
+      <div className="mt-2 flex justify-between text-caption text-content-tertiary">
         <span>00</span>
         <span>06</span>
         <span>12</span>

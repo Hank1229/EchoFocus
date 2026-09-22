@@ -13,13 +13,13 @@ interface Props {
 
 function NavButton({ href, ariaLabel, children }: { href: string | null; ariaLabel: string; children: ReactNode }) {
   if (!href) {
-    return <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center text-slate-700">{children}</span>
+    return <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center text-content-tertiary opacity-40">{children}</span>
   }
   return (
     <Link
       href={href}
       aria-label={ariaLabel}
-      className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-800 hover:text-slate-200"
+      className="pressable flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-content-secondary hover:bg-surface-hover hover:text-content"
     >
       {children}
     </Link>
@@ -30,19 +30,19 @@ export default function DateNav({ label, syncedLabel, prevHref, nextHref, prevAr
   return (
     <div className="flex items-center gap-1.5">
       <NavButton href={prevHref} ariaLabel={prevAriaLabel}>
-        <ChevronLeft size={14} strokeWidth={2} />
+        <ChevronLeft size={14} strokeWidth={1.5} />
       </NavButton>
-      <p className="truncate text-xs text-slate-500">
-        <span className="text-slate-400">{label}</span>
+      <p className="truncate text-caption text-content-tertiary">
+        <span className="text-content-secondary">{label}</span>
         {syncedLabel && (
           <>
-            <span className="mx-2 text-slate-700">/</span>
+            <span className="mx-2">·</span>
             {syncedLabel}
           </>
         )}
       </p>
       <NavButton href={nextHref} ariaLabel={nextAriaLabel}>
-        <ChevronRight size={14} strokeWidth={2} />
+        <ChevronRight size={14} strokeWidth={1.5} />
       </NavButton>
     </div>
   )

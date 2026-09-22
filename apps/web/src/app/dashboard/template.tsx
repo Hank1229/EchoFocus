@@ -1,29 +1,6 @@
-'use client'
-
-import { useEffect, useRef } from 'react'
-
-// Remounts on every dashboard navigation (that is what a template.tsx is for)
-// and plays one short fade-and-rise, so moving between pages feels like the
-// page settling into place instead of a hard swap. The transition runs on the
-// compositor only (opacity + transform) and is skipped for reduced motion.
+// DESIGN.md section 5 forbids entrance animations; the template previously
+// played a fade-and-rise on every navigation. It stays as a plain wrapper so
+// per-navigation remount semantics (scroll reset, effect re-runs) survive.
 export default function DashboardTemplate({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    el.animate(
-      [
-        { opacity: 0, transform: 'translateY(6px)' },
-        { opacity: 1, transform: 'none' },
-      ],
-      { duration: 240, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
-    )
-  }, [])
-
-  return (
-    <div ref={ref} className="flex min-w-0 flex-1 flex-col">
-      {children}
-    </div>
-  )
+  return <div className="flex min-w-0 flex-1 flex-col">{children}</div>
 }
