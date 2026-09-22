@@ -54,3 +54,6 @@ coverage/
 
 # Misc
 *.zip
+
+# Playwright MCP debug output
+.playwright-mcp/
