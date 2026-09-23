@@ -119,6 +119,13 @@ Required:
 - Animate only opacity and transform. Never animate width/height/top directly (transition height via grid-template-rows or measured transforms).
 - Under `prefers-reduced-motion: reduce`: all transitions drop to 0ms; the breathing glow becomes a static faint glow.
 
+One sanctioned data reveal: the Today score tally. On page view (and on date
+navigation) the score numeral counts up to its value and the ring arc sweeps
+with it, ~700ms, ease-out — the feeling of the score being settled. It is the
+dashboard's single choreographed moment, the counterpart of the popup timer's
+breathing glow, and the pair are the only such moments in the product. Under
+reduced motion it renders the final value directly.
+
 Forbidden:
 
 - Per-section fade + slide-up entrance animations.
