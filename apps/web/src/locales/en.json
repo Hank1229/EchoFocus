@@ -259,8 +259,6 @@
     "hoursMinutesUnit": "{h}h {m}m",
     "settingsTitle": "Settings",
     "settingsIntro": "Your language, your daily goal, and how the extension behaves on this account. Saved values reach the extension on its next sync.",
-    "linkProfile": "Account and data →",
-    "linkSettings": "Settings →",
     "deleteFailed": "Couldn't delete your cloud data: ",
     "tabGeneral": "General",
     "tabCategories": "Categories",

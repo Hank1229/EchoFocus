@@ -73,9 +73,9 @@ export default function ActivityBarChart({ data, labels }: ActivityBarChartProps
             tickLine={false}
           />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--surface-hover)' }} />
-          <Bar dataKey="productive" name={labels.productive} stackId="a" fill={COLORS.productive} maxBarSize={34} isAnimationActive={false} />
-          <Bar dataKey="distraction" name={labels.distraction} stackId="a" fill={COLORS.distraction} maxBarSize={34} isAnimationActive={false} />
-          <Bar dataKey="neutral" name={labels.neutral} stackId="a" fill={COLORS.neutral} radius={[3, 3, 0, 0]} maxBarSize={34} isAnimationActive={false} />
+          <Bar dataKey="productive" name={labels.productive} stackId="a" fill="var(--fill-productive)" maxBarSize={34} isAnimationActive={false} />
+          <Bar dataKey="distraction" name={labels.distraction} stackId="a" fill="var(--fill-rest)" maxBarSize={34} isAnimationActive={false} />
+          <Bar dataKey="neutral" name={labels.neutral} stackId="a" fill="var(--fill-neutral)" radius={[3, 3, 0, 0]} maxBarSize={34} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
 

@@ -15,7 +15,7 @@ const LEVELS = [20, 35, 55, 75, 100]
 function cellColor(seconds: number, peak: number): string {
   if (seconds <= 0) return 'var(--border)'
   const level = LEVELS[Math.min(4, Math.ceil((seconds / peak) * 5) - 1)]
-  return `color-mix(in srgb, var(--productive) ${level}%, transparent)`
+  return `color-mix(in srgb, var(--fill-productive) ${level}%, transparent)`
 }
 
 const hourLabel = (hour: number) => `${String(hour).padStart(2, '0')}:00`
@@ -97,7 +97,7 @@ export default function FocusHours({ hours, days, copy }: Props) {
                 key={level}
                 aria-hidden
                 className="h-2 w-4 rounded-sm"
-                style={{ background: `color-mix(in srgb, var(--productive) ${level}%, transparent)` }}
+                style={{ background: `color-mix(in srgb, var(--fill-productive) ${level}%, transparent)` }}
               />
             ))}
             <span>{copy.focusHoursMore}</span>
