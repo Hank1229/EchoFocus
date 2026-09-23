@@ -45,9 +45,9 @@ export default function ExportCloudDataButton({ userId }: { userId: string }) {
     <button
       onClick={handleExport}
       disabled={isExporting}
-      className="flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-100 disabled:opacity-50"
+      className="pressable flex items-center gap-2 rounded-md border border-line px-4 py-2 text-label text-content-secondary hover:border-line-strong hover:text-content disabled:opacity-50"
     >
-      <Download size={14} strokeWidth={1.75} />
+      <Download size={14} strokeWidth={1.5} />
       {isExporting ? t.settings.exporting : t.settings.exportAction}
     </button>
   )

@@ -25,10 +25,10 @@ const PATTERN_MAX = 120
 const EMPTY_DRAFT: Draft = { pattern: '', matchType: 'exact', category: 'productive' }
 
 const DOT: Record<Category, string> = {
-  productive: 'bg-productive',
-  distraction: 'bg-breaks',
-  neutral: 'bg-neutral',
-  uncategorized: 'bg-neutral-deep',
+  productive: 'var(--productive)',
+  distraction: 'var(--rest)',
+  neutral: 'var(--neutral)',
+  uncategorized: 'var(--neutral)',
 }
 
 const matchLabels = (t: Locale): Record<MatchType, string> => ({
@@ -62,7 +62,7 @@ function check(draft: Draft, rules: Rule[], editingId: string | null): Problem |
   return null
 }
 
-const FIELD = 'rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-slate-200 outline-none transition-colors focus:border-brand/60'
+const FIELD = 'pressable rounded-md border border-line bg-surface px-3 py-2 text-body text-content outline-none focus:border-accent'
 
 function RuleFields({
   draft,
@@ -86,7 +86,7 @@ function RuleFields({
         aria-label={t.rules.patternLabel}
         maxLength={PATTERN_MAX}
         autoFocus={autoFocus}
-        className={`${FIELD} min-w-0 flex-1 placeholder-slate-600`}
+        className={`${FIELD} min-w-0 flex-1 placeholder:text-content-tertiary`}
       />
       <select
         value={draft.matchType}
@@ -229,35 +229,35 @@ export default function RulesEditor({ userId, initialRules }: { userId: string; 
 
   return (
     <>
-      <form onSubmit={add} className="mt-9 border-t border-slate-800/80 pt-7">
-        <h2 className="font-display text-base font-semibold tracking-tight text-slate-100">{t.rules.addTitle}</h2>
+      <form onSubmit={add} className="mt-9 border-t border-line pt-7">
+        <h2 className="text-label text-content-secondary">{t.rules.addTitle}</h2>
         <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:items-center">
           <RuleFields draft={draft} onChange={setDraft} />
           <button
             type="submit"
             disabled={isAdding}
-            className="flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-slate-950 transition-colors hover:bg-brand-soft disabled:opacity-60"
+            className="pressable flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-label text-accent-ink disabled:opacity-60"
           >
-            <Plus size={15} strokeWidth={2.25} />
+            <Plus size={15} strokeWidth={1.5} />
             {isAdding ? t.rules.adding : t.rules.add}
           </button>
         </div>
-        <p className="mt-2.5 max-w-[62ch] text-xs leading-relaxed text-slate-500">{matchHints(t)[draft.matchType]}</p>
-        {addError && <p role="alert" className="mt-2 text-xs leading-relaxed text-danger">{addError}</p>}
+        <p className="mt-2.5 max-w-[62ch] text-caption text-content-tertiary">{matchHints(t)[draft.matchType]}</p>
+        {addError && <p role="alert" className="mt-2 text-caption" style={{ color: 'var(--danger)' }}>{addError}</p>}
       </form>
 
       <section className="mt-10">
-        <div className="flex items-baseline justify-between gap-4 border-b border-slate-800/80 pb-2.5">
-          <h2 className="font-display text-base font-semibold tracking-tight text-slate-100">{t.rules.yourRules}</h2>
-          <p className="text-xs tabular-nums text-slate-600">{t.rules.count.replace('{n}', String(rules.length))}</p>
+        <div className="flex items-baseline justify-between gap-4 border-b border-line pb-2.5">
+          <h2 className="text-label text-content-secondary">{t.rules.yourRules}</h2>
+          <p className="text-caption text-content-tertiary">{t.rules.count.replace('{n}', String(rules.length))}</p>
         </div>
 
         {rules.length === 0 ? (
-          <p className="mt-4 max-w-[62ch] text-sm leading-relaxed text-slate-500">{t.rules.empty}</p>
+          <p className="mt-4 max-w-[62ch] text-body text-content-secondary">{t.rules.empty}</p>
         ) : (
           <ul>
             {rules.map(rule => (
-              <li key={rule.id} className="border-b border-slate-800/80 py-3">
+              <li key={rule.id} className="border-b border-line py-3">
                 {editingId === rule.id ? (
                   <>
                     <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
@@ -266,64 +266,64 @@ export default function RulesEditor({ userId, initialRules }: { userId: string; 
                         <button
                           onClick={saveEdit}
                           disabled={isSavingEdit}
-                          className="flex items-center gap-1.5 rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-slate-950 transition-colors hover:bg-brand-soft disabled:opacity-60"
+                          className="pressable flex items-center gap-1.5 rounded-md bg-accent px-3.5 py-2 text-label text-accent-ink disabled:opacity-60"
                         >
-                          <Check size={14} strokeWidth={2.25} />
+                          <Check size={14} strokeWidth={1.5} />
                           {isSavingEdit ? t.rules.saving : t.rules.save}
                         </button>
                         <button
                           onClick={() => { setEditingId(null); setEditError(null) }}
-                          className="rounded-lg px-3 py-2 text-sm text-slate-400 transition-colors hover:text-slate-200"
+                          className="pressable rounded-md px-3 py-2 text-label text-content-secondary hover:text-content"
                         >
                           {t.rules.cancel}
                         </button>
                       </div>
                     </div>
-                    {editError && <p role="alert" className="mt-2.5 text-xs leading-relaxed text-danger">{editError}</p>}
+                    {editError && <p role="alert" className="mt-2.5 text-caption" style={{ color: 'var(--danger)' }}>{editError}</p>}
                   </>
                 ) : (
                   <>
                     <div className="flex items-center gap-4">
-                      <span className="min-w-0 flex-1 truncate text-sm text-slate-300">{rule.pattern}</span>
-                      <span className="hidden w-36 flex-shrink-0 text-xs text-slate-500 sm:block">
+                      <span className="min-w-0 flex-1 truncate text-body text-content">{rule.pattern}</span>
+                      <span className="hidden w-36 flex-shrink-0 text-caption text-content-tertiary sm:block">
                         {matches[rule.match_type]}
                       </span>
                       {/* Wide enough for the longest category label, "Breaks & Browsing" */}
-                      <span className="flex w-36 flex-shrink-0 items-center gap-2 text-xs text-slate-400">
-                        <span aria-hidden className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${DOT[rule.category]}`} />
+                      <span className="flex w-36 flex-shrink-0 items-center gap-2 text-caption text-content-secondary">
+                        <span aria-hidden className="h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: DOT[rule.category] }} />
                         <span className="truncate">{t.categoryLabels[rule.category]}</span>
                       </span>
                       <div className="flex flex-shrink-0 items-center gap-0.5">
                         <button
                           onClick={() => startEdit(rule)}
                           aria-label={t.rules.editAria.replace('{pattern}', rule.pattern)}
-                          className="rounded-md p-1.5 text-slate-600 transition-colors hover:text-slate-300"
+                          className="pressable rounded-md p-1.5 text-content-tertiary hover:text-content"
                         >
-                          <Pencil size={14} strokeWidth={1.75} />
+                          <Pencil size={14} strokeWidth={1.5} />
                         </button>
                         <button
                           onClick={() => { setConfirmingId(rule.id); setRowError(null) }}
                           aria-label={t.rules.deleteAria.replace('{pattern}', rule.pattern)}
-                          className="rounded-md p-1.5 text-slate-600 transition-colors hover:text-danger"
+                          className="pressable rounded-md p-1.5 text-content-tertiary hover:text-[color:var(--danger)]"
                         >
-                          <Trash2 size={14} strokeWidth={1.75} />
+                          <Trash2 size={14} strokeWidth={1.5} />
                         </button>
                       </div>
                     </div>
 
                     {confirmingId === rule.id && (
                       <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
-                        <p className="text-xs text-danger">{t.rules.deleteConfirm}</p>
+                        <p className="text-caption" style={{ color: 'var(--danger)' }}>{t.rules.deleteConfirm}</p>
                         <button
                           onClick={() => remove(rule.id)}
                           disabled={deletingId === rule.id}
-                          className="rounded-lg bg-danger-deep px-3 py-1.5 text-xs font-semibold text-slate-950 transition-colors hover:bg-danger disabled:opacity-50"
+                          className="pressable rounded-md px-3 py-1.5 text-caption font-semibold disabled:opacity-50" style={{ background: 'var(--danger)', color: 'var(--bg)' }}
                         >
                           {deletingId === rule.id ? t.rules.deleting : t.rules.confirmDelete}
                         </button>
                         <button
                           onClick={() => setConfirmingId(null)}
-                          className="flex items-center gap-1 text-xs text-slate-400 transition-colors hover:text-slate-200"
+                          className="pressable flex items-center gap-1 text-caption text-content-secondary hover:text-content"
                         >
                           <X size={12} strokeWidth={2} />
                           {t.rules.cancel}
@@ -332,7 +332,7 @@ export default function RulesEditor({ userId, initialRules }: { userId: string; 
                     )}
 
                     {rowError?.id === rule.id && (
-                      <p role="alert" className="mt-2 text-xs leading-relaxed text-danger">{rowError.message}</p>
+                      <p role="alert" className="mt-2 text-caption" style={{ color: 'var(--danger)' }}>{rowError.message}</p>
                     )}
                   </>
                 )}

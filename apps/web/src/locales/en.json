@@ -269,7 +269,21 @@
     "tabAbout": "About",
     "privacyIntro": "Raw browsing data — every URL, title and visit — lives only in this browser’s extension storage. Your account holds just preferences, site rules, daily aggregates and AI analysis text.",
     "localDataNote": "Exporting or deleting the raw local data happens inside the extension (right-click the EchoFocus icon → Options → Privacy), because this website has no access to it — by design.",
-    "aboutBlurb": "A privacy-first productivity tracker. All browsing data stays on your device."
+    "aboutBlurb": "A privacy-first productivity tracker. All browsing data stays on your device.",
+    "theme": "Theme",
+    "themeDesc": "Applies to the dashboard and syncs to the extension.",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "Follow system",
+    "focusTimer": "Focus timer",
+    "focusDuration": "Focus duration",
+    "focusDurationDesc": "Length of one focus round.",
+    "breakDuration": "Break duration",
+    "breakDurationDesc": "Length of the break between rounds.",
+    "pomodoroReminders": "End-of-round reminders",
+    "pomodoroRemindersDesc": "System notifications when a focus round or break ends.",
+    "pomodoroDndNote": "System notifications will not appear while macOS Focus or Do Not Disturb is on.",
+    "pomodoroSyncNote": "Saved values reach the extension popup the next time it opens."
   },
   "rules": {
     "title": "Site rules",

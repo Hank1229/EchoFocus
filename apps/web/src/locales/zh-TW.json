@@ -269,7 +269,21 @@
     "tabAbout": "關於",
     "privacyIntro": "原始瀏覽資料——每個網址、標題與每次造訪——只存在這個瀏覽器的擴充功能儲存空間。您的帳戶只保存偏好設定、網站規則、每日彙總與 AI 分析文字。",
     "localDataNote": "匯出或刪除原始本機資料要在擴充功能內操作（右鍵點擊 EchoFocus 圖示 → 選項 → 隱私），因為本網站無法存取那些資料——這是刻意的設計。",
-    "aboutBlurb": "隱私優先的生產力追蹤器。所有瀏覽資料都留在您的裝置上。"
+    "aboutBlurb": "隱私優先的生產力追蹤器。所有瀏覽資料都留在您的裝置上。",
+    "theme": "外觀主題",
+    "themeDesc": "套用於儀表板,並同步到擴充功能。",
+    "themeLight": "淺色",
+    "themeDark": "深色",
+    "themeSystem": "跟隨系統",
+    "focusTimer": "專注計時器",
+    "focusDuration": "專注時長",
+    "focusDurationDesc": "每一輪專注的長度。",
+    "breakDuration": "休息時長",
+    "breakDurationDesc": "兩輪專注之間休息的長度。",
+    "pomodoroReminders": "回合結束提醒",
+    "pomodoroRemindersDesc": "專注或休息結束時發送系統通知。",
+    "pomodoroDndNote": "macOS 專注模式或勿擾開啟時,系統通知不會顯示。",
+    "pomodoroSyncNote": "儲存後,下次打開擴充功能視窗即生效。"
   },
   "rules": {
     "title": "網站規則",

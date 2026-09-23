@@ -56,7 +56,7 @@ export default function SettingsTabs({ initialTab, panels }: Props) {
 
   return (
     <div>
-      <div ref={railRef} className="relative flex gap-1 overflow-x-auto border-b border-slate-800/80" role="tablist">
+      <div ref={railRef} className="relative flex gap-1 overflow-x-auto border-b border-line" role="tablist">
         {TABS.map(tab => (
           <button
             key={tab}
@@ -64,8 +64,8 @@ export default function SettingsTabs({ initialTab, panels }: Props) {
             role="tab"
             aria-selected={active === tab}
             onClick={() => select(tab)}
-            className={`pressable whitespace-nowrap px-4 py-3 text-sm font-medium ${
-              active === tab ? 'text-slate-100' : 'text-slate-500 hover:text-slate-300'
+            className={`pressable whitespace-nowrap px-4 py-3 text-label ${
+              active === tab ? 'text-content' : 'text-content-secondary hover:text-content'
             }`}
           >
             {labels[tab]}
@@ -74,15 +74,15 @@ export default function SettingsTabs({ initialTab, panels }: Props) {
         {underline && (
           <span
             aria-hidden
-            className="absolute bottom-0 h-[2px] rounded-full bg-brand shadow-[0_0_8px_rgba(45,212,191,0.5)] transition-all duration-300 ease-silk"
-            style={{ left: underline.left, width: underline.width }}
+            className="absolute bottom-0 h-[2px] rounded-full bg-accent"
+            style={{ left: underline.left, width: underline.width, transition: 'left var(--dur-base) var(--ease), width var(--dur-base) var(--ease)' }}
           />
         )}
       </div>
 
       {TABS.map(tab => (
         <div key={tab} role="tabpanel" hidden={active !== tab} className="pt-8">
-          {active === tab && <div className="rise">{panels[tab]}</div>}
+          {active === tab && panels[tab]}
         </div>
       ))}
     </div>

@@ -19,9 +19,9 @@ export default function SignOutButton() {
   return (
     <button
       onClick={handleSignOut}
-      className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-100"
+      className="pressable flex items-center gap-1.5 rounded-md border border-line px-4 py-2 text-label text-content-secondary hover:border-line-strong hover:text-content"
     >
-      <LogOut size={14} strokeWidth={1.75} />
+      <LogOut size={14} strokeWidth={1.5} />
       {t.settings.signOut}
     </button>
   )

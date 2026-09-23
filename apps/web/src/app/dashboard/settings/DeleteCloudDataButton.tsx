@@ -35,8 +35,8 @@ export default function DeleteCloudDataButton({ userId }: { userId: string }) {
 
   if (done) {
     return (
-      <p className="flex items-center gap-1 text-xs text-brand">
-        <Check size={12} strokeWidth={2} /> {t.settings.deleted}
+      <p className="flex items-center gap-1 text-caption text-accent">
+        <Check size={12} strokeWidth={1.5} /> {t.settings.deleted}
       </p>
     )
   }
@@ -45,34 +45,34 @@ export default function DeleteCloudDataButton({ userId }: { userId: string }) {
     return (
       <button
         onClick={() => setShowConfirm(true)}
-        className="flex items-center gap-2 rounded-lg border border-danger/30 px-4 py-2 text-sm text-danger transition-colors hover:bg-danger/10"
+        className="pressable flex items-center gap-2 rounded-md border border-line px-4 py-2 text-label hover:bg-surface-hover" style={{ color: 'var(--danger)' }}
       >
-        <Trash2 size={14} strokeWidth={1.75} />
+        <Trash2 size={14} strokeWidth={1.5} />
         {t.settings.deleteAction}
       </button>
     )
   }
 
   return (
-    <div className="max-w-md rounded-lg border border-danger/30 bg-danger/[0.06] p-4">
-      <p className="text-xs leading-relaxed text-danger">{t.settings.deleteCloudConfirm}</p>
+    <div className="max-w-md rounded-lg border border-line bg-surface p-4">
+      <p className="text-caption leading-relaxed" style={{ color: 'var(--danger)' }}>{t.settings.deleteCloudConfirm}</p>
       <div className="mt-4 flex gap-2">
         <button
           onClick={handleDelete}
           disabled={isDeleting}
-          className="rounded-lg bg-danger-deep px-4 py-2 text-sm font-semibold text-slate-950 transition-colors hover:bg-danger disabled:opacity-50"
+          className="pressable rounded-md px-4 py-2 text-label font-semibold disabled:opacity-50" style={{ background: 'var(--danger)', color: 'var(--bg)' }}
         >
           {isDeleting ? t.settings.deleting : t.settings.confirmDelete}
         </button>
         <button
           onClick={() => setShowConfirm(false)}
-          className="rounded-lg px-4 py-2 text-sm text-slate-400 transition-colors hover:text-slate-200"
+          className="pressable rounded-md px-4 py-2 text-label text-content-secondary hover:text-content"
         >
           {t.settings.cancel}
         </button>
       </div>
       {error && (
-        <p role="alert" className="mt-3 text-xs leading-relaxed text-danger">
+        <p role="alert" className="mt-3 text-caption leading-relaxed" style={{ color: 'var(--danger)' }}>
           {t.settings.deleteFailed}{error}
         </p>
       )}
