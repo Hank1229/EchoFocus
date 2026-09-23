@@ -81,7 +81,7 @@ Only these six type sizes exist:
 
 | Token | Size / Weight | Use |
 |---|---|---|
-| --text-hero | 40px / 700 | the single hero number per screen (popup countdown or score; Dashboard daily total) |
+| --text-hero | 40px / 700 | the single hero number per screen (popup countdown or score; Dashboard focus score) |
 | --text-title | 20px / 600 | Dashboard page titles |
 | --text-stat | 24px / 600 | secondary stat numbers |
 | --text-body | 14px / 400 | body text, lists |

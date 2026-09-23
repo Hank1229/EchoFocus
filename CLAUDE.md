@@ -359,4 +359,6 @@ When building each phase:
 
 ## Skill usage preference
 
+- For ALL EchoFocus frontend work, load the frontend-design skill, constrained by DESIGN.md: tokens, type scale, spacing, motion, and the forbidden list are hard limits; the skill's judgment applies only where the spec is silent (shapes for information, container identity, chart craft).
+
 - For tasks involving writing, revising, or optimizing prompts for AI tools (LLMs, Cursor, Midjourney, image/video AI, coding agents, etc.), prefer using the prompt-master skill.

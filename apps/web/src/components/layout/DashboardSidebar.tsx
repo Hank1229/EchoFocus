@@ -49,18 +49,14 @@ export default function DashboardSidebar() {
         })}
       </nav>
 
-      <div className="border-t border-line px-3 py-4 md:px-5">
-        <p className="hidden items-start gap-2 text-caption leading-relaxed text-content-tertiary md:flex">
-          <Lock size={13} strokeWidth={1.5} className="mt-0.5 flex-shrink-0" />
-          <span>{t.sidebar.privacyNote}</span>
-        </p>
-        <div className="mt-0 flex justify-center md:mt-3 md:justify-start">
+      <div className="flex flex-col gap-3 border-t border-line px-3 py-5 md:px-5">
+        <div className="flex justify-center gap-1 md:justify-start md:gap-0">
           {(['en', 'zh-TW'] as Language[]).map(lang => (
             <button
               key={lang}
               onClick={() => setLanguage(lang)}
               aria-pressed={language === lang}
-              className={`pressable px-1.5 text-caption md:px-0 md:pr-3 ${
+              className={`pressable px-1.5 text-caption md:px-0 md:pr-4 ${
                 language === lang ? 'text-content' : 'text-content-tertiary hover:text-content-secondary'
               }`}
             >
@@ -68,6 +64,10 @@ export default function DashboardSidebar() {
             </button>
           ))}
         </div>
+        <p className="hidden items-start gap-2 text-caption leading-relaxed text-content-tertiary md:flex">
+          <Lock size={13} strokeWidth={1.5} className="mt-0.5 flex-shrink-0" />
+          <span>{t.sidebar.privacyNote}</span>
+        </p>
       </div>
     </aside>
   )

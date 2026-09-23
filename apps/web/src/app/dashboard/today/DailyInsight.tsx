@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Sparkles } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 import { requestAiAnalysis } from '@/lib/ai'
 
@@ -13,8 +14,9 @@ interface Props {
   language: string
 }
 
-// The insight half of the Today's review block. Headless on purpose — the
-// parent card owns the surface.
+// The insight half of Today's review. The accent-subtle container is the
+// product's one "AI wrote this" marker — the same tint the interface uses
+// for nothing else inside a card.
 export default function DailyInsight({ analysisText, date, canGenerate, language }: Props) {
   const { t } = useLocale()
   const [text, setText] = useState<string | null>(analysisText)
@@ -48,9 +50,12 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
   const [lead, ...rest] = paragraphs
 
   return (
-    <div>
+    <div className="rounded-lg bg-accent-subtle px-5 py-4 sm:px-6 sm:py-5">
       <div className="flex items-center justify-between gap-4">
-        <h3 className="text-label text-content-secondary">{t.today.dailyInsight}</h3>
+        <h3 className="flex items-center gap-2 text-label text-content-secondary">
+          <Sparkles size={14} strokeWidth={1.5} className="text-accent" />
+          {t.today.dailyInsight}
+        </h3>
         {text && canGenerate && (
           <button
             onClick={run}
@@ -63,7 +68,7 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
       </div>
 
       {lead ? (
-        <div className="mt-4 max-w-[65ch]">
+        <div className="mt-3">
           <p className="text-body text-content">{lead}</p>
           {rest.map((para, i) => (
             <p key={i} className="mt-3 text-body text-content-secondary">
@@ -72,7 +77,7 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
           ))}
         </div>
       ) : (
-        <div className="mt-4 max-w-[65ch]">
+        <div className="mt-3">
           <p className="text-body text-content-secondary">
             {canGenerate ? t.today.noInsightYet : t.today.insightWindowClosed}
           </p>
