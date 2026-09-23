@@ -100,7 +100,7 @@ Hierarchy rules:
 - Spacing uses the 4px scale only: 4 / 8 / 12 / 16 / 20 / 24 / 32 / 48. Related elements get small gaps, sections get large gaps; whitespace does half the hierarchy work.
 - Radius: 8px cards, 6px buttons and inputs, full for pills and the score ring. These three values are the entire radius system.
 - Layering: surface color + 1px border. Exactly one shadow exists, reserved for floating elements (dropdowns, tooltips): `0 4px 12px rgba(0,0,0,.08)` (dark theme: .3). Cards have no shadow.
-- Alignment: left-align everything. Centering is allowed only inside the popup's top status module.
+- Alignment: left-align everything. Centering is allowed only in the popup's top status module and its three-category row beneath — they share one axis; everything below (distribution bar labels, site list) is left-aligned.
 
 ## 5. Motion (the engineering definition of "smooth")
 
@@ -155,7 +155,7 @@ Width 380px, top to bottom:
 3. **Top status module** (the only centered area; switches by timer state, see section 6)
    - idle: score ring (--text-hero) + "Today total" hours + Start focus button
    - focusing / break / paused: countdown (--text-hero) + pause/resume + skip; the score shrinks to one --text-caption line at the module's bottom
-4. Three category numbers: Productive / Rest & browsing / Neutral, label + number, one row, three columns
+4. Three category numbers: Productive / Rest & browsing / Neutral, label + number, one row, three centered columns on the status module's axis
 5. 24-hour mini distribution bar (max height 40px; communicates only "which hours I focused today")
 6. Today's top 5 sites (domain + category dot + duration, single-line rows)
 7. Footer: date, "View full analysis" link to Dashboard, settings icon linking to Dashboard settings

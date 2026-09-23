@@ -8,8 +8,9 @@ interface CategoryColumnsProps {
   neutralSeconds: number
 }
 
-// Small label + large number, one row, three columns — DESIGN.md section 7.
-// The category color rides on the dot; the numbers stay on the text scale.
+// Three centered columns on the status module's axis (DESIGN.md section 7) —
+// the totals above carry the big numeral, so these stay body-sized. The
+// category color rides on the dot; the numbers stay on the text scale.
 export function CategoryColumns({ productiveSeconds, distractionSeconds, neutralSeconds }: CategoryColumnsProps) {
   const { t } = useLocale()
 
@@ -20,10 +21,12 @@ export function CategoryColumns({ productiveSeconds, distractionSeconds, neutral
   ]
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    // The middle label ("Breaks & Browsing") is the long one; a symmetric
+    // wider middle track keeps all three labels whole without moving the axis.
+    <div className="grid grid-cols-[1fr_1.3fr_1fr] gap-1">
       {columns.map(column => (
-        <div key={column.label} className="min-w-0">
-          <p className="flex items-center gap-1.5 text-caption text-content-secondary">
+        <div key={column.label} className="flex min-w-0 flex-col items-center">
+          <p className="flex max-w-full items-center gap-1 text-caption text-content-secondary">
             <span
               aria-hidden="true"
               className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
@@ -31,7 +34,9 @@ export function CategoryColumns({ productiveSeconds, distractionSeconds, neutral
             />
             <span className="truncate">{column.label}</span>
           </p>
-          <p className="mt-1 whitespace-nowrap text-stat text-content">{formatDuration(column.seconds)}</p>
+          <p className="mt-1 whitespace-nowrap text-body font-semibold leading-tight text-content">
+            {formatDuration(column.seconds)}
+          </p>
         </div>
       ))}
     </div>
