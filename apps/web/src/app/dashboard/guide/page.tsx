@@ -21,9 +21,7 @@ export default async function GuidePage() {
       />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
-        <div className="rise rise-1">
-          <GuideWalkthrough />
-        </div>
+        <GuideWalkthrough />
       </main>
     </>
   )
