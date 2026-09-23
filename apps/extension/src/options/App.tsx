@@ -5,7 +5,7 @@ import type { Settings, ClassificationRule, Category, MatchType, DailyAggregate 
 import { DEFAULT_SETTINGS } from '@echofocus/shared'
 import type { Session } from '@supabase/supabase-js'
 import { signInWithGoogle, signOut, getSession } from '../lib/auth'
-import { syncAggregateForDate, getLastSyncTime } from '../lib/sync'
+import { syncAggregateForDate, getLastSyncTime, postSignInBootstrap } from '../lib/sync'
 import { isDailySummaryEnabled, setDailySummaryEnabled } from '../background/notifications'
 import { mergeImportedRules } from './rules-import'
 import { getTodayDateString, getDateNDaysAgo } from '@echofocus/shared'
@@ -493,6 +493,21 @@ function AccountTab() {
     const s = await signInWithGoogle()
     setSession(s)
     setIsSigningIn(false)
+    if (!s) return
+
+    // The moment of signing in owes the user their pre-account history:
+    // merge rules/preferences, carry the whole local archive up, drain the
+    // retry queue — with progress, since a year of days takes a few seconds.
+    setSyncMessage({ text: t.account.backfilling, ok: true })
+    const result = await postSignInBootstrap()
+    if (result && result.failed > 0) {
+      setSyncMessage({ text: t.account.backfillPartial, ok: false })
+    } else if (result && result.backfilled > 0) {
+      setSyncMessage({ text: t.account.backfillDone.replace('{n}', String(result.backfilled)), ok: true })
+      setLastSync(await getLastSyncTime())
+    } else {
+      setSyncMessage(null)
+    }
   }
 
   const handleSignOut = async () => {

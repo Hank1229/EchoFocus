@@ -3,6 +3,7 @@ import { emptyProductiveByHour, formatLocalDate, getDateNDaysAgo, getTodayDateSt
 import { getSupabaseClient } from './supabase'
 import { getSession } from './auth'
 import { aggregateKey, getAggregateForDate, recomputeAndSaveAggregate } from '../background/storage'
+import { dailyAggregateSchema } from './schemas'
 import { reconcileWithCloud } from './prefs-sync'
 import { getPendingSyncDates, enqueueSyncDate, removePendingSyncDate } from './sync-queue'
 
@@ -14,13 +15,19 @@ const LAST_SYNC_KEY = 'last_sync_at'
 // install (no last_sync_at at all) probes a month of keys, not a year.
 const MAX_BACKFILL_DAYS = 30
 
-// Upsert a DailyAggregate into Supabase synced_aggregates.
+// First sign-in carries the WHOLE local archive up: aggregates are kept 365
+// days locally, and someone who tried the product for two months before
+// creating an account must not lose that history to the 30-day catch-up.
+const MAX_HISTORY_DAYS = 365
+const HISTORY_BATCH_SIZE = 50
+// Per-user marker, set only after a clean full pass — an interrupted backfill
+// simply reruns on the next sign-in or startup (upserts are idempotent).
+const HISTORY_BACKFILLED_KEY = 'history_backfilled_user'
+
 // Only anonymized data is sent: domain names + durations + categories.
 // Raw URLs and page titles never leave the device.
-async function upsertAggregate(aggregate: DailyAggregate, userId: string): Promise<boolean> {
-  const supabase = getSupabaseClient()
-
-  const { error } = await supabase.from('synced_aggregates').upsert({
+function aggregateRow(aggregate: DailyAggregate, userId: string): Record<string, unknown> {
+  return {
     user_id: userId,
     date: aggregate.date,
     total_seconds: aggregate.totalSeconds,
@@ -35,16 +42,25 @@ async function upsertAggregate(aggregate: DailyAggregate, userId: string): Promi
     // default rather than leaving the row's old value behind.
     productive_by_hour: aggregate.productiveByHour ?? emptyProductiveByHour(),
     synced_at: new Date().toISOString(),
-  }, {
-    onConflict: 'user_id,date',
-  })
+  }
+}
 
+async function upsertAggregates(aggregates: DailyAggregate[], userId: string): Promise<boolean> {
+  const supabase = getSupabaseClient()
+  const rows = aggregates.map(a => aggregateRow(a, userId))
+  const { error } = await supabase.from('synced_aggregates').upsert(
+    rows.length === 1 ? rows[0] : rows,
+    { onConflict: 'user_id,date' },
+  )
   if (error) {
-    console.error(`[EchoFocus] Sync error for ${aggregate.date}:`, error.message)
+    console.error(`[EchoFocus] Sync error for ${aggregates[0]?.date}…(${aggregates.length}):`, error.message)
     return false
   }
-
   return true
+}
+
+async function upsertAggregate(aggregate: DailyAggregate, userId: string): Promise<boolean> {
+  return upsertAggregates([aggregate], userId)
 }
 
 // ─── Pending Sync Queue ────────────────────────────────────────────────────
@@ -123,6 +139,66 @@ export async function enqueueMissedSyncDates(): Promise<void> {
       await enqueueSyncDate(date)
     }
   }
+}
+
+// One-time full-history upload for an account that has never seen this
+// device's archive. Bypasses the retry queue on purpose — the queue caps at
+// 60 dates and would silently drop most of a year. Failed batches fall back
+// to the queue for near-term retry, and because the marker is only written
+// after a clean pass, the next sign-in or startup reruns the whole scan.
+export async function backfillHistoryIfNeeded(): Promise<{ backfilled: number; failed: number } | null> {
+  const session = await getSession()
+  if (!session) return null
+  const userId = session.user.id
+
+  const marker = await chrome.storage.local.get(HISTORY_BACKFILLED_KEY)
+  if (marker[HISTORY_BACKFILLED_KEY] === userId) return { backfilled: 0, failed: 0 }
+
+  const dates: string[] = []
+  for (let daysAgo = 0; daysAgo <= MAX_HISTORY_DAYS; daysAgo++) {
+    dates.push(getDateNDaysAgo(daysAgo))
+  }
+  // One batched read for the whole archive instead of 365 IPC round-trips.
+  const stored = await chrome.storage.local.get(dates.map(aggregateKey))
+
+  const aggregates: DailyAggregate[] = []
+  for (const date of dates) {
+    const raw = stored[aggregateKey(date)]
+    if (raw === undefined) continue
+    const parsed = dailyAggregateSchema.safeParse(raw)
+    if (parsed.success) aggregates.push(parsed.data)
+    else console.warn(`[EchoFocus] Skipping malformed aggregate during backfill: ${date}`)
+  }
+
+  let backfilled = 0
+  let failed = 0
+  for (let i = 0; i < aggregates.length; i += HISTORY_BATCH_SIZE) {
+    const batch = aggregates.slice(i, i + HISTORY_BATCH_SIZE)
+    if (await upsertAggregates(batch, userId)) {
+      backfilled += batch.length
+    } else {
+      failed += batch.length
+      for (const a of batch) await enqueueSyncDate(a.date)
+    }
+  }
+
+  if (failed === 0) {
+    await chrome.storage.local.set({ [HISTORY_BACKFILLED_KEY]: userId })
+    if (backfilled > 0) {
+      await chrome.storage.local.set({ [LAST_SYNC_KEY]: new Date().toISOString() })
+    }
+  }
+  return { backfilled, failed }
+}
+
+// Everything the moment of signing in owes the user: the rules/preferences
+// first-contact merge, the full local history, and any queued days — so a
+// try-first-register-later account starts from everything, not from zero.
+export async function postSignInBootstrap(): Promise<{ backfilled: number; failed: number } | null> {
+  await reconcileWithCloud()
+  const result = await backfillHistoryIfNeeded()
+  await drainSyncQueue()
+  return result
 }
 
 // Nightly sync: enqueue yesterday, bring rules and preferences back in line

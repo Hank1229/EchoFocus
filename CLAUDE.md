@@ -120,6 +120,16 @@ echofocus/
 
 ---
 
+## Account Model (settled 2026-09-23)
+
+1. **Signed out = the full product.** Tracking, categorization, scoring, the pomodoro timer, and the popup all work with no account. Data lives only in chrome.storage.local, pruned by the retention setting, and never uploaded.
+2. **Signing in unlocks** the web dashboard (history, trends, AI insights) and cross-device sync.
+3. **Sign-in backfills history.** `postSignInBootstrap()` (lib/sync.ts) merges rules/preferences, then uploads the WHOLE local aggregate archive (365-day scan, direct batched upserts that bypass the 60-entry retry queue). The per-user marker `history_backfilled_user` is set only after a clean pass, so an interrupted backfill reruns on the next startup. Try-first-register-later users never start from zero.
+4. **Settings ownership.** The extension Options page is the device-level editor and the only one that works signed out. Signed in, Options and Dashboard Settings edit the same user_preferences row (cloud authoritative). "Local non-default wins" applies only to the first-contact bootstrap merge.
+5. **Concurrent-edit trade-off (accepted).** Cross-surface settings writes resolve last-writer-wins: a device pushing stale values can overwrite a newer cloud row in the window before its next pull. Accepted deliberately (single user, narrow window); escalate to conditional writes only if real multi-device conflicts appear.
+
+---
+
 ## Critical Rules
 
 ### Privacy (MOST IMPORTANT)

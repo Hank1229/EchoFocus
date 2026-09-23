@@ -6,6 +6,7 @@ import { installChromeStub, type ChromeStub } from '../test/chrome-stub'
 
 vi.mock('./supabase', () => ({ getSupabaseClient: vi.fn() }))
 vi.mock('./auth', () => ({ getSession: vi.fn() }))
+vi.mock('./prefs-sync', () => ({ reconcileWithCloud: vi.fn(async () => undefined) }))
 
 import { getSupabaseClient } from './supabase'
 import { getSession } from './auth'
@@ -16,6 +17,8 @@ import {
   syncYesterdayAggregate,
   syncAggregateForDate,
   getLastSyncTime,
+  backfillHistoryIfNeeded,
+  postSignInBootstrap,
 } from './sync'
 
 interface UpsertCall {
@@ -33,10 +36,14 @@ function installFakeSupabase(): void {
   const client = {
     from(table: string) {
       return {
-        async upsert(payload: Record<string, unknown>, options: Record<string, unknown>) {
-          upsertCalls.push({ table, payload, options })
-          const date = payload.date as string
-          return failingDates.has(date) ? { error: { message: 'network down' } } : { error: null }
+        async upsert(
+          payload: Record<string, unknown> | Record<string, unknown>[],
+          options: Record<string, unknown>,
+        ) {
+          const rows = Array.isArray(payload) ? payload : [payload]
+          for (const row of rows) upsertCalls.push({ table, payload: row, options })
+          const anyFailing = rows.some(row => failingDates.has(row.date as string))
+          return anyFailing ? { error: { message: 'network down' } } : { error: null }
         },
       }
     },
@@ -438,5 +445,80 @@ describe('getLastSyncTime', () => {
   it('returns the stored ISO timestamp', async () => {
     chromeStub.store['last_sync_at'] = '2026-03-15T00:05:00.000Z'
     expect(await getLastSyncTime()).toBe('2026-03-15T00:05:00.000Z')
+  })
+})
+
+describe('backfillHistoryIfNeeded (first sign-in carries the archive up)', () => {
+  it('uploads every stored day, far beyond the 30-day catch-up, and sets the per-user marker', async () => {
+    storeAggregate('2026-03-14')
+    storeAggregate('2026-01-02')
+    storeAggregate('2025-06-20')  // ~9 months back — inside the 365-day scan
+
+    const result = await backfillHistoryIfNeeded()
+
+    expect(result).toEqual({ backfilled: 3, failed: 0 })
+    expect(upsertCalls.map(c => c.payload.date).sort()).toEqual(['2025-06-20', '2026-01-02', '2026-03-14'])
+    expect(chromeStub.store.history_backfilled_user).toBe('user-1')
+    expect(pending()).toEqual([])
+  })
+
+  it('is a no-op once the marker matches the user, and reruns for a different account', async () => {
+    storeAggregate('2026-03-14')
+    chromeStub.store.history_backfilled_user = 'user-1'
+
+    expect(await backfillHistoryIfNeeded()).toEqual({ backfilled: 0, failed: 0 })
+    expect(upsertCalls).toHaveLength(0)
+
+    signedIn('user-2')
+    const result = await backfillHistoryIfNeeded()
+    expect(result).toEqual({ backfilled: 1, failed: 0 })
+    expect(chromeStub.store.history_backfilled_user).toBe('user-2')
+  })
+
+  it('a failed batch queues its dates, leaves the marker unset, and the next run retries', async () => {
+    storeAggregate('2026-03-14')
+    storeAggregate('2026-03-13')
+    failingDates.add('2026-03-13')
+
+    const result = await backfillHistoryIfNeeded()
+
+    expect(result).toEqual({ backfilled: 0, failed: 2 })
+    expect(chromeStub.store.history_backfilled_user).toBeUndefined()
+    expect(pending().sort()).toEqual(['2026-03-13', '2026-03-14'])
+
+    failingDates.clear()
+    expect(await backfillHistoryIfNeeded()).toEqual({ backfilled: 2, failed: 0 })
+    expect(chromeStub.store.history_backfilled_user).toBe('user-1')
+  })
+
+  it('skips a malformed stored aggregate instead of failing the pass', async () => {
+    storeAggregate('2026-03-14')
+    chromeStub.store['aggregates:2026-03-13'] = { totally: 'broken' }
+
+    const result = await backfillHistoryIfNeeded()
+
+    expect(result).toEqual({ backfilled: 1, failed: 0 })
+    expect(chromeStub.store.history_backfilled_user).toBe('user-1')
+  })
+
+  it('does nothing signed out', async () => {
+    vi.mocked(getSession).mockResolvedValue(null)
+    storeAggregate('2026-03-14')
+
+    expect(await backfillHistoryIfNeeded()).toBeNull()
+    expect(upsertCalls).toHaveLength(0)
+  })
+})
+
+describe('postSignInBootstrap', () => {
+  it('backfills and then drains days that were already queued', async () => {
+    storeAggregate('2026-03-14')
+    storeAggregate('2026-03-10')
+    await enqueueSyncDate('2026-03-10')
+
+    const result = await postSignInBootstrap()
+
+    expect(result).toEqual({ backfilled: 2, failed: 0 })
+    expect(pending()).toEqual([])
   })
 })

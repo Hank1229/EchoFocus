@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Moon, Settings as SettingsIcon } from 'lucide-react'
 import iconSrc from '../assets/icon-32.png'
 import { useTodayStats } from './hooks/useTodayStats'
@@ -24,6 +24,15 @@ export default function App() {
   const { t, language, setLanguage } = useLocale()
   const { aggregate, trackingState, currentSession, isLoading, refreshAggregate, refreshTrackingState } = useTodayStats()
   const { pomodoro, remainingMs, command } = usePomodoro()
+
+  // Quiet sign-in nudge: shown only while signed out (DESIGN.md tone — one
+  // caption line, no popup-blocking prompts).
+  const [signedOut, setSignedOut] = useState(false)
+  useEffect(() => {
+    void chrome.storage.local.get('supabase_session').then(stored => {
+      setSignedOut(stored.supabase_session === undefined)
+    })
+  }, [])
 
   const toggleTracking = useCallback(async () => {
     await sendMessage('TOGGLE_TRACKING')
@@ -126,6 +135,15 @@ export default function App() {
             currentElapsedSeconds={currentElapsed}
           />
         </section>
+
+        {signedOut && (
+          <button
+            onClick={() => chrome.runtime.openOptionsPage()}
+            className="pressable text-left text-caption text-content-tertiary hover:text-accent"
+          >
+            {t.popup.signInHint}
+          </button>
+        )}
       </div>
 
       <footer className="mt-auto flex items-center justify-between border-t border-line px-4 py-3">

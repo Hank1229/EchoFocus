@@ -26,7 +26,8 @@
     "focusing": "Focusing",
     "onBreak": "Break",
     "timerPaused": "Paused",
-    "viewFullAnalysis": "View full analysis"
+    "viewFullAnalysis": "View full analysis",
+    "signInHint": "Sign in for AI insights and cross-device sync"
   },
   "options": {
     "title": "EchoFocus Settings",
@@ -101,7 +102,7 @@
     "account": "Account",
     "connected": "Connected",
     "connectAccount": "Connect account",
-    "signInDesc": "Sign in to sync daily stats to the web dashboard and view trends across devices.",
+    "signInDesc": "Sign in to unlock AI insights, the web dashboard, and cross-device sync. Your history so far comes with you.",
     "privacyNote": "Only anonymous aggregates (domain + duration) are synced. Raw URLs never leave your device.",
     "signInWithGoogle": "Sign in with Google",
     "signingIn": "Signing in…",
@@ -112,7 +113,10 @@
     "syncing": "Syncing…",
     "webDashboard": "Web dashboard",
     "openDashboard": "Open dashboard",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "backfilling": "Backing up your local history…",
+    "backfillDone": "Backed up {n} days of local history.",
+    "backfillPartial": "Some days could not be uploaded yet — they will retry automatically."
   },
   "privacy": {
     "localStorage": "Local storage",

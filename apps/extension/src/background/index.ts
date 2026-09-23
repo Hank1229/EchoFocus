@@ -17,7 +17,7 @@ import { partialSettingsSchema, classificationRuleArraySchema, dateStringSchema,
 import * as pomodoro from './pomodoro'
 import { requestAiAnalysis } from '../lib/ai'
 import { getTodayDateString } from '@echofocus/shared'
-import { drainSyncQueue, enqueueMissedSyncDates } from '../lib/sync'
+import { drainSyncQueue, enqueueMissedSyncDates, backfillHistoryIfNeeded } from '../lib/sync'
 import { pushRules, pushSettings, reconcileWithCloud, reconcileIfStale } from '../lib/prefs-sync'
 
 // ─── Message Types ─────────────────────────────────────────────────────────
@@ -82,6 +82,9 @@ chrome.runtime.onStartup.addListener(async () => {
   // fired because the browser was closed at 00:05
   try {
     await reconcileWithCloud()
+    // Covers a sign-in whose backfill was interrupted (options page closed
+    // mid-upload) — the marker is per-user and only set after a clean pass.
+    await backfillHistoryIfNeeded()
     await enqueueMissedSyncDates()
     await drainSyncQueue()
   } catch (err) {

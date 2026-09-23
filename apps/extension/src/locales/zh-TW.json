@@ -26,7 +26,8 @@
     "focusing": "專注中",
     "onBreak": "休息中",
     "timerPaused": "已暫停",
-    "viewFullAnalysis": "查看完整分析"
+    "viewFullAnalysis": "查看完整分析",
+    "signInHint": "登入以取得 AI 洞察與跨裝置同步"
   },
   "options": {
     "title": "EchoFocus 設定",
@@ -101,7 +102,7 @@
     "account": "帳戶",
     "connected": "已連接",
     "connectAccount": "連接帳戶",
-    "signInDesc": "登入以同步每日統計至網頁儀表板，並跨裝置查看趨勢。",
+    "signInDesc": "登入以解鎖 AI 洞察、網頁儀表板與跨裝置同步。目前累積的紀錄會一併帶上。",
     "privacyNote": "僅同步匿名統計（網域 + 時長）。原始網址永遠不會離開您的裝置。",
     "signInWithGoogle": "使用 Google 登入",
     "signingIn": "登入中…",
@@ -112,7 +113,10 @@
     "syncing": "同步中…",
     "webDashboard": "網頁儀表板",
     "openDashboard": "開啟儀表板",
-    "signOut": "登出"
+    "signOut": "登出",
+    "backfilling": "正在補傳本機歷史資料…",
+    "backfillDone": "已補傳 {n} 天的本機歷史資料。",
+    "backfillPartial": "部分日期尚未上傳成功，之後會自動重試。"
   },
   "privacy": {
     "localStorage": "本地儲存",
