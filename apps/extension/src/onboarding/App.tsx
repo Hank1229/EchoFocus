@@ -43,26 +43,26 @@ export default function App() {
   const isLast = step === LAST_STEP
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
+    <div className="min-h-screen bg-canvas text-content">
       <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-8 py-10">
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img src={iconSrc} alt="" width={28} height={28} className="rounded-lg" />
-            <span className="font-display text-base font-bold leading-none tracking-tight">
-              <span className="text-slate-100">Echo</span><span className="text-brand">Focus</span>
+            <span className="text-base font-bold leading-none tracking-tight">
+              <span className="text-content">Echo</span><span className="text-accent">Focus</span>
             </span>
           </div>
           <div className="flex items-center gap-5">
             <button
               onClick={() => setLanguage(language === 'en' ? 'zh-TW' : 'en')}
-              className="text-xs font-medium text-slate-500 transition-colors hover:text-brand"
+              className="text-xs font-medium text-content-tertiary transition-colors hover:text-accent"
               title={language === 'en' ? '切換至繁體中文' : 'Switch to English'}
             >
               {language === 'en' ? 'EN' : '繁'}
             </button>
             <button
               onClick={closeOnboardingTab}
-              className="text-xs text-slate-500 transition-colors hover:text-slate-300"
+              className="text-xs text-content-tertiary transition-colors hover:text-content-secondary"
             >
               {t.onboarding.skip}
             </button>
@@ -79,12 +79,12 @@ export default function App() {
             >
               <span
                 className={`h-[3px] rounded-full transition-colors duration-500 ${
-                  i <= step ? 'bg-brand' : 'bg-slate-800'
+                  i <= step ? 'bg-accent' : 'bg-surface'
                 }`}
               />
               <span
                 className={`text-xs font-medium transition-colors duration-500 ${
-                  i === step ? 'text-brand' : i < step ? 'text-slate-400' : 'text-slate-600'
+                  i === step ? 'text-accent' : i < step ? 'text-content-secondary' : 'text-content-tertiary'
                 }`}
               >
                 {label}
@@ -106,10 +106,10 @@ export default function App() {
           </div>
         </main>
 
-        <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-6">
+        <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6">
           <button
             onClick={() => setStep(step - 1)}
-            className={`flex items-center gap-1.5 text-xs text-slate-500 transition-colors hover:text-slate-300 ${
+            className={`flex items-center gap-1.5 text-xs text-content-tertiary transition-colors hover:text-content-secondary ${
               step === 0 ? 'invisible' : ''
             }`}
           >
@@ -121,14 +121,14 @@ export default function App() {
             {isLast && (
               <button
                 onClick={closeOnboardingTab}
-                className="rounded-xl border border-slate-800 px-4 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:border-slate-700 hover:text-slate-200"
+                className="rounded-lg border border-line px-4 py-2.5 text-sm font-medium text-content-secondary transition-colors hover:border-line-strong hover:text-content"
               >
                 {t.onboarding.step3SkipBasic}
               </button>
             )}
             <button
               onClick={isLast ? openSettings : () => setStep(step + 1)}
-              className="rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-slate-900 transition-colors hover:bg-brand-soft"
+              className="pressable rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink"
             >
               {isLast ? t.onboarding.step3SignIn : ctas[step]}
             </button>

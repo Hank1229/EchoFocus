@@ -40,18 +40,18 @@ export default function TrackingStep() {
     <div>
       <StepHeading title={t.onboarding.step1Title} desc={t.onboarding.step1Desc} />
 
-      <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+      <div className="mt-8 rounded-2xl border border-line bg-surface p-5">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="text-xs text-slate-500">{t.onboarding.step1ScoreExample}</span>
+          <span className="text-xs text-content-tertiary">{t.onboarding.step1ScoreExample}</span>
           <span className="flex items-baseline gap-2">
-            <span className="text-xs text-slate-500">{t.onboarding.step1ScoreLabel}</span>
-            <span className="font-display text-xl font-semibold leading-none tabular-nums text-brand-soft">
+            <span className="text-xs text-content-tertiary">{t.onboarding.step1ScoreLabel}</span>
+            <span className="text-xl font-semibold leading-none tabular-nums text-accent">
               {EXAMPLE_SCORE}
             </span>
           </span>
         </div>
 
-        <div className="mt-3 flex h-1.5 overflow-hidden rounded-full bg-slate-800">
+        <div className="mt-3 flex h-1.5 overflow-hidden rounded-full bg-surface">
           {buckets.map(({ title, share, fill }) => (
             <div key={title} className={fill} style={{ width: `${share}%` }} />
           ))}
@@ -62,8 +62,8 @@ export default function TrackingStep() {
             <li key={title} className="flex items-center gap-3">
               <Icon size={15} strokeWidth={2} className={`flex-shrink-0 ${accent}`} />
               <span className="min-w-0 flex-1">
-                <span className="text-sm font-medium text-slate-200">{title}</span>
-                <span className="ml-2 text-xs text-slate-500">{desc}</span>
+                <span className="text-sm font-medium text-content">{title}</span>
+                <span className="ml-2 text-xs text-content-tertiary">{desc}</span>
               </span>
               <span className={`flex-shrink-0 text-xs font-semibold tabular-nums ${accent}`}>{share}%</span>
             </li>
@@ -71,7 +71,7 @@ export default function TrackingStep() {
         </ul>
       </div>
 
-      <p className="mt-4 max-w-xl text-xs leading-relaxed text-slate-500">{t.onboarding.step1ScoreNote}</p>
+      <p className="mt-4 max-w-xl text-xs leading-relaxed text-content-tertiary">{t.onboarding.step1ScoreNote}</p>
     </div>
   )
 }

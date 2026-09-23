@@ -31,9 +31,19 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (val
       role="switch"
       aria-checked={checked}
       aria-label={label}
-      className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${checked ? 'bg-brand' : 'bg-slate-600'}`}
+      className={`pressable relative h-6 w-11 flex-shrink-0 rounded-full ${checked ? 'bg-accent' : 'border border-line-strong bg-surface-hover'}`}
     >
-      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
+      <span
+        aria-hidden
+        className="absolute top-1/2 -translate-y-1/2 rounded-full"
+        style={{
+          height: 18,
+          width: 18,
+          left: checked ? 22 : 3,
+          background: checked ? 'var(--on-accent)' : 'var(--text-tertiary)',
+          transition: 'left var(--dur-base) var(--ease), background-color var(--dur-base) var(--ease)',
+        }}
+      />
     </button>
   )
 }
@@ -79,19 +89,19 @@ function GeneralTab() {
   }
 
   if (isLoading) {
-    return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" /></div>
+    return <div className="flex justify-center py-12"><div className="h-6 w-24 rounded bg-surface-hover" /></div>
   }
 
   return (
     <div className="space-y-6">
-      <section className="bg-slate-800 rounded-xl p-5 space-y-5">
-        <h2 className="text-xs font-medium text-slate-400">{t.general.tracking}</h2>
+      <section className="bg-surface rounded-lg p-5 space-y-5">
+        <h2 className="text-xs font-medium text-content-secondary">{t.general.tracking}</h2>
 
         {/* trackingEnabled */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-200">{t.general.enableTracking}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{t.general.enableTrackingDesc}</p>
+            <p className="text-sm font-medium text-content">{t.general.enableTracking}</p>
+            <p className="text-xs text-content-tertiary mt-0.5">{t.general.enableTrackingDesc}</p>
           </div>
           <Toggle checked={settings.trackingEnabled} onChange={value => update('trackingEnabled', value)} label={t.general.enableTracking} />
         </div>
@@ -100,61 +110,61 @@ function GeneralTab() {
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <div>
-              <p className="text-sm font-medium text-slate-200">{t.general.idleTimeout}</p>
-              <p className="text-xs text-slate-500 mt-0.5">{t.general.idleTimeoutDesc}</p>
+              <p className="text-sm font-medium text-content">{t.general.idleTimeout}</p>
+              <p className="text-xs text-content-tertiary mt-0.5">{t.general.idleTimeoutDesc}</p>
             </div>
-            <span className="text-sm font-semibold text-brand tabular-nums">{settings.idleTimeoutMinutes} {t.general.min}</span>
+            <span className="text-sm font-semibold text-accent tabular-nums">{settings.idleTimeoutMinutes} {t.general.min}</span>
           </div>
           <input type="range" min={1} max={30} value={settings.idleTimeoutMinutes}
             onChange={e => update('idleTimeoutMinutes', Number(e.target.value))}
-            className="w-full accent-brand" />
-          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>{t.general.range1Min}</span><span>{t.general.range30Min}</span></div>
+            className="w-full accent-[var(--accent)]" />
+          <div className="flex justify-between text-xs text-content-tertiary mt-1"><span>{t.general.range1Min}</span><span>{t.general.range30Min}</span></div>
         </div>
       </section>
 
-      <section className="bg-slate-800 rounded-xl p-5 space-y-5">
-        <h2 className="text-xs font-medium text-slate-400">{t.general.goalsAndData}</h2>
+      <section className="bg-surface rounded-lg p-5 space-y-5">
+        <h2 className="text-xs font-medium text-content-secondary">{t.general.goalsAndData}</h2>
 
         {/* dailyGoalMinutes */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <div>
-              <p className="text-sm font-medium text-slate-200">{t.general.dailyFocusGoal}</p>
-              <p className="text-xs text-slate-500 mt-0.5">{t.general.dailyFocusGoalDesc}</p>
+              <p className="text-sm font-medium text-content">{t.general.dailyFocusGoal}</p>
+              <p className="text-xs text-content-tertiary mt-0.5">{t.general.dailyFocusGoalDesc}</p>
             </div>
-            <span className="text-sm font-semibold text-brand tabular-nums">
+            <span className="text-sm font-semibold text-accent tabular-nums">
               {Math.floor(settings.dailyGoalMinutes / 60)}h{settings.dailyGoalMinutes % 60 > 0 ? ` ${settings.dailyGoalMinutes % 60}m` : ''}
             </span>
           </div>
           <input type="range" min={60} max={720} step={30} value={settings.dailyGoalMinutes}
             onChange={e => update('dailyGoalMinutes', Number(e.target.value))}
-            className="w-full accent-brand" />
-          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>{t.general.range1hr}</span><span>{t.general.range12hr}</span></div>
+            className="w-full accent-[var(--accent)]" />
+          <div className="flex justify-between text-xs text-content-tertiary mt-1"><span>{t.general.range1hr}</span><span>{t.general.range12hr}</span></div>
         </div>
 
         {/* dataRetentionDays */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <div>
-              <p className="text-sm font-medium text-slate-200">{t.general.dataRetention}</p>
-              <p className="text-xs text-slate-500 mt-0.5">{t.general.dataRetentionDesc}</p>
+              <p className="text-sm font-medium text-content">{t.general.dataRetention}</p>
+              <p className="text-xs text-content-tertiary mt-0.5">{t.general.dataRetentionDesc}</p>
             </div>
-            <span className="text-sm font-semibold text-brand tabular-nums">{settings.dataRetentionDays} {t.general.day}</span>
+            <span className="text-sm font-semibold text-accent tabular-nums">{settings.dataRetentionDays} {t.general.day}</span>
           </div>
           <input type="range" min={7} max={365} step={7} value={settings.dataRetentionDays}
             onChange={e => update('dataRetentionDays', Number(e.target.value))}
-            className="w-full accent-brand" />
-          <div className="flex justify-between text-xs text-slate-600 mt-1"><span>{t.general.range7d}</span><span>{t.general.range365d}</span></div>
+            className="w-full accent-[var(--accent)]" />
+          <div className="flex justify-between text-xs text-content-tertiary mt-1"><span>{t.general.range7d}</span><span>{t.general.range365d}</span></div>
         </div>
       </section>
 
-      <section className="bg-slate-800 rounded-xl p-5 space-y-5">
-        <h2 className="text-xs font-medium text-slate-400">{t.general.notifications}</h2>
+      <section className="bg-surface rounded-lg p-5 space-y-5">
+        <h2 className="text-xs font-medium text-content-secondary">{t.general.notifications}</h2>
 
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-slate-200">{t.general.dailySummary}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{t.general.dailySummaryDesc}</p>
+            <p className="text-sm font-medium text-content">{t.general.dailySummary}</p>
+            <p className="text-xs text-content-tertiary mt-0.5">{t.general.dailySummaryDesc}</p>
           </div>
           <Toggle
             checked={dailySummary}
@@ -166,8 +176,8 @@ function GeneralTab() {
 
       {/* Language setting */}
       <section className="px-5 space-y-3">
-        <h2 className="text-xs font-medium text-slate-400">{t.general.language}</h2>
-        <p className="text-xs text-slate-500">{t.general.languageDesc}</p>
+        <h2 className="text-xs font-medium text-content-secondary">{t.general.language}</h2>
+        <p className="text-xs text-content-tertiary">{t.general.languageDesc}</p>
         <div className="flex gap-2">
           {(['en', 'zh-TW'] as Language[]).map(lang => (
             <button
@@ -175,8 +185,8 @@ function GeneralTab() {
               onClick={() => setLanguage(lang)}
               className={`flex-1 py-2 text-sm font-medium rounded-lg border transition-colors ${
                 language === lang
-                  ? 'bg-brand/10 text-brand border-brand/30'
-                  : 'text-slate-400 border-slate-700 hover:text-slate-200 hover:border-slate-600'
+                  ? 'bg-accent-subtle text-accent border-accent'
+                  : 'text-content-secondary border-line-strong hover:text-content hover:border-line-strong'
               }`}
             >
               {lang === 'en' ? t.general.english : t.general.traditionalChinese}
@@ -187,7 +197,7 @@ function GeneralTab() {
 
       <div className="flex items-center justify-between pt-1">
         {savedAt ? (
-          <span className="flex items-center gap-1.5 text-xs text-brand">
+          <span className="flex items-center gap-1.5 text-xs text-accent">
             <Check size={13} strokeWidth={2.5} />{t.general.saved}
           </span>
         ) : saveFailed ? (
@@ -196,7 +206,7 @@ function GeneralTab() {
           </span>
         ) : <span />}
         <button onClick={handleSave} disabled={isSaving}
-          className="px-5 py-2 bg-brand hover:bg-brand-soft disabled:opacity-50 text-slate-950 text-sm font-semibold rounded-lg transition-colors">
+          className="px-5 py-2 bg-accent hover:bg-accent disabled:opacity-50 text-accent-ink text-sm font-semibold rounded-lg transition-colors">
           {isSaving ? t.general.saving : t.general.saveSettings}
         </button>
       </div>
@@ -329,14 +339,14 @@ function CategoriesTab() {
   }
 
   if (isLoading) {
-    return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" /></div>
+    return <div className="flex justify-center py-12"><div className="h-6 w-24 rounded bg-surface-hover" /></div>
   }
 
   return (
     <div className="space-y-5">
       {/* Add rule form */}
-      <section className="bg-slate-800 rounded-xl p-5">
-        <h2 className="text-xs font-medium text-slate-400 mb-4">{t.categories.addCustomRule}</h2>
+      <section className="bg-surface rounded-lg p-5">
+        <h2 className="text-xs font-medium text-content-secondary mb-4">{t.categories.addCustomRule}</h2>
         <div className="space-y-3">
           <input
             type="text"
@@ -344,33 +354,33 @@ function CategoriesTab() {
             onChange={e => setNewPattern(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') void addRule() }}
             placeholder={t.categories.patternPlaceholder}
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand"
+            className="w-full bg-surface-hover border border-line-strong rounded-lg px-3 py-2 text-sm text-content placeholder:text-content-tertiary focus:outline-none focus:border-accent"
           />
           <div className="flex gap-2">
             <select value={newMatchType} onChange={e => setNewMatchType(e.target.value as MatchType)}
-              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-brand">
+              className="flex-1 bg-surface-hover border border-line-strong rounded-lg px-3 py-2 text-sm text-content focus:outline-none focus:border-accent">
               {(Object.entries(MATCH_TYPE_LABELS) as [MatchType, string][]).map(([v, label]) => (
                 <option key={v} value={v}>{label}</option>
               ))}
             </select>
             <select value={newCategory} onChange={e => setNewCategory(e.target.value as Category)}
-              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-brand">
+              className="flex-1 bg-surface-hover border border-line-strong rounded-lg px-3 py-2 text-sm text-content focus:outline-none focus:border-accent">
               {(Object.entries(CATEGORY_LABELS) as [Category, string][]).map(([v, label]) => (
                 <option key={v} value={v}>{label}</option>
               ))}
             </select>
           </div>
           <button onClick={() => void addRule()} disabled={!newPattern.trim() || isSaving}
-            className="w-full py-2 bg-brand hover:bg-brand-soft disabled:opacity-50 text-slate-950 text-sm font-semibold rounded-lg transition-colors">
+            className="w-full py-2 bg-accent hover:bg-accent disabled:opacity-50 text-accent-ink text-sm font-semibold rounded-lg transition-colors">
             {t.categories.addRule}
           </button>
         </div>
       </section>
 
       {/* Rule list */}
-      <section className="border border-slate-700 rounded-xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-700 flex items-center justify-between">
-          <h2 className="text-xs font-medium text-slate-400">
+      <section className="border border-line-strong rounded-lg overflow-hidden">
+        <div className="px-5 py-3 border-b border-line-strong flex items-center justify-between">
+          <h2 className="text-xs font-medium text-content-secondary">
             {t.categories.customRules} ({rules.length})
           </h2>
           {saveFailed ? (
@@ -378,29 +388,29 @@ function CategoriesTab() {
               <X size={13} strokeWidth={2.5} />{t.common.saveFailed}
             </span>
           ) : savedAt && (
-            <span className="flex items-center gap-1.5 text-xs text-brand">
+            <span className="flex items-center gap-1.5 text-xs text-accent">
               <Check size={13} strokeWidth={2.5} />{t.categories.saved}
             </span>
           )}
         </div>
 
         {rules.length === 0 ? (
-          <div className="px-5 py-8 text-center text-sm text-slate-500">
+          <div className="px-5 py-8 text-center text-sm text-content-tertiary">
             {t.categories.noRules}
           </div>
         ) : (
-          <ul className="divide-y divide-slate-700">
+          <ul className="divide-y divide-line">
             {rules.map(rule => (
               <li key={rule.id} className="flex items-center gap-3 px-5 py-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-200 truncate">{rule.pattern}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{MATCH_TYPE_LABELS[rule.matchType]}</p>
+                  <p className="text-sm font-medium text-content truncate">{rule.pattern}</p>
+                  <p className="text-xs text-content-tertiary mt-0.5">{MATCH_TYPE_LABELS[rule.matchType]}</p>
                 </div>
                 <span className={`text-xs font-semibold ${CATEGORY_COLORS[rule.category]}`}>
                   {CATEGORY_LABELS[rule.category]}
                 </span>
                 <button onClick={() => void deleteRule(rule.id)}
-                  className="text-slate-600 hover:text-danger transition-colors flex-shrink-0"
+                  className="text-content-tertiary hover:text-danger transition-colors flex-shrink-0"
                   title={t.categories.deleteRule} aria-label={t.categories.deleteRule}>
                   <X size={15} strokeWidth={2} />
                 </button>
@@ -411,11 +421,11 @@ function CategoriesTab() {
       </section>
 
       {/* Import / export */}
-      <section className="bg-slate-800 rounded-xl p-5 space-y-3">
-        <h2 className="text-xs font-medium text-slate-400">{t.categories.importExport}</h2>
-        <p className="text-xs text-slate-500">{t.categories.importExportDesc}</p>
+      <section className="bg-surface rounded-lg p-5 space-y-3">
+        <h2 className="text-xs font-medium text-content-secondary">{t.categories.importExport}</h2>
+        <p className="text-xs text-content-tertiary">{t.categories.importExportDesc}</p>
 
-        <p role="status" className={`text-xs ${importMessage?.ok === false ? 'text-danger' : 'text-slate-400'}`}>
+        <p role="status" className={`text-xs ${importMessage?.ok === false ? 'text-danger' : 'text-content-secondary'}`}>
           {importMessage?.text}
         </p>
 
@@ -423,14 +433,14 @@ function CategoriesTab() {
           <button
             onClick={exportRules}
             disabled={rules.length === 0}
-            className="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-600"
+            className="flex-1 flex items-center justify-center gap-2 py-2 bg-surface-hover hover:bg-surface-hover disabled:opacity-50 text-content text-sm font-medium rounded-lg transition-colors border border-line-strong"
           >
             <Download size={14} strokeWidth={2} />{t.categories.exportRules}
           </button>
           <button
             onClick={() => fileInput.current?.click()}
             disabled={isSaving}
-            className="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-600"
+            className="flex-1 flex items-center justify-center gap-2 py-2 bg-surface-hover hover:bg-surface-hover disabled:opacity-50 text-content text-sm font-medium rounded-lg transition-colors border border-line-strong"
           >
             <Upload size={14} strokeWidth={2} />{t.categories.importRules}
           </button>
@@ -449,7 +459,7 @@ function CategoriesTab() {
         />
       </section>
 
-      <p className="text-xs text-slate-600 text-center">
+      <p className="text-xs text-content-tertiary text-center">
         {t.categories.rulesNote}
       </p>
     </div>
@@ -511,7 +521,7 @@ function AccountTab() {
   }
 
   if (isLoading) {
-    return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" /></div>
+    return <div className="flex justify-center py-12"><div className="h-6 w-24 rounded bg-surface-hover" /></div>
   }
 
   return (
@@ -519,54 +529,54 @@ function AccountTab() {
       {session ? (
         <>
           {/* Logged in state */}
-          <section className="bg-slate-800 rounded-xl p-5 space-y-4">
-            <h2 className="text-xs font-medium text-slate-400">{t.account.account}</h2>
+          <section className="bg-surface rounded-lg p-5 space-y-4">
+            <h2 className="text-xs font-medium text-content-secondary">{t.account.account}</h2>
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-brand/20 border border-brand/30 flex items-center justify-center">
-                <span className="text-brand text-sm font-bold">
+              <div className="w-9 h-9 rounded-full bg-accent/20 border border-accent flex items-center justify-center">
+                <span className="text-accent text-sm font-bold">
                   {session.user.email?.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-200 truncate">{session.user.email}</p>
-                <p className="text-xs text-brand mt-0.5">{t.account.connected}</p>
+                <p className="text-sm font-medium text-content truncate">{session.user.email}</p>
+                <p className="text-xs text-accent mt-0.5">{t.account.connected}</p>
               </div>
             </div>
           </section>
 
           {/* Sync */}
-          <section className="bg-slate-800 rounded-xl p-5 space-y-3">
-            <h2 className="text-xs font-medium text-slate-400">{t.account.dataSync}</h2>
-            <p className="text-xs text-slate-500">
+          <section className="bg-surface rounded-lg p-5 space-y-3">
+            <h2 className="text-xs font-medium text-content-secondary">{t.account.dataSync}</h2>
+            <p className="text-xs text-content-tertiary">
               {t.account.autoSyncNote}
             </p>
             {lastSync && (
-              <p className="text-xs text-slate-500">
-                {t.account.lastSync} <span className="text-slate-400">{formatSyncTime(lastSync)}</span>
+              <p className="text-xs text-content-tertiary">
+                {t.account.lastSync} <span className="text-content-secondary">{formatSyncTime(lastSync)}</span>
               </p>
             )}
             {syncMessage && (
-              <p className={`text-xs ${syncMessage.ok ? 'text-brand' : 'text-danger'}`}>
+              <p className={`text-xs ${syncMessage.ok ? 'text-accent' : 'text-danger'}`}>
                 {syncMessage.text}
               </p>
             )}
             <button onClick={() => void handleSyncNow()} disabled={isSyncing}
-              className="w-full py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-600">
+              className="w-full py-2 bg-surface-hover hover:bg-surface-hover disabled:opacity-50 text-content text-sm font-medium rounded-lg transition-colors border border-line-strong">
               {isSyncing ? t.account.syncing : t.account.syncToday}
             </button>
           </section>
 
           {/* Dashboard link */}
           <section className="px-5">
-            <h2 className="text-xs font-medium text-slate-400 mb-1">{t.account.webDashboard}</h2>
+            <h2 className="text-xs font-medium text-content-secondary mb-1">{t.account.webDashboard}</h2>
             <a
               href={`${DASHBOARD_URL}/dashboard`}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-between gap-2 py-2 text-sm text-slate-300 hover:text-slate-100 transition-colors"
+              className="flex items-center justify-between gap-2 py-2 text-sm text-content-secondary hover:text-content transition-colors"
             >
               <span>{t.account.openDashboard}</span>
-              <ArrowUpRight size={15} strokeWidth={2} className="text-slate-500" />
+              <ArrowUpRight size={15} strokeWidth={2} className="text-content-tertiary" />
             </a>
           </section>
 
@@ -579,21 +589,21 @@ function AccountTab() {
       ) : (
         <>
           {/* Logged out state */}
-          <section className="bg-slate-800 rounded-xl p-5 space-y-4">
-            <h2 className="text-xs font-medium text-slate-400">{t.account.connectAccount}</h2>
-            <p className="text-sm text-slate-400 leading-relaxed">
+          <section className="bg-surface rounded-lg p-5 space-y-4">
+            <h2 className="text-xs font-medium text-content-secondary">{t.account.connectAccount}</h2>
+            <p className="text-sm text-content-secondary leading-relaxed">
               {t.account.signInDesc}
             </p>
-            <div className="flex items-start gap-3 px-4 py-3 bg-slate-700/50 border border-slate-700 rounded-lg">
-              <Lock size={14} strokeWidth={1.75} className="text-slate-400 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-slate-400 leading-relaxed">
+            <div className="flex items-start gap-3 px-4 py-3 bg-surface-hover border border-line-strong rounded-lg">
+              <Lock size={14} strokeWidth={1.75} className="text-content-secondary flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-content-secondary leading-relaxed">
                 {t.account.privacyNote}
               </p>
             </div>
             <button onClick={() => void handleSignIn()} disabled={isSigningIn}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-white hover:bg-slate-100 disabled:opacity-50 text-slate-900 text-sm font-semibold rounded-lg transition-colors">
+              className="pressable flex w-full items-center justify-center gap-2 rounded-md bg-white py-2.5 text-sm font-semibold text-[#1a1d21] disabled:opacity-50">
               {isSigningIn ? (
-                <><div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />{t.account.signingIn}</>
+                <>{t.account.signingIn}</>
               ) : (
                 <><GoogleIcon />{t.account.signInWithGoogle}</>
               )}
@@ -721,36 +731,36 @@ function PrivacyTab() {
   return (
     <div className="space-y-5">
       {/* Storage usage */}
-      <section className="bg-slate-800 rounded-xl p-5 space-y-3">
-        <h2 className="text-xs font-medium text-slate-400">{t.privacy.localStorage}</h2>
+      <section className="bg-surface rounded-lg p-5 space-y-3">
+        <h2 className="text-xs font-medium text-content-secondary">{t.privacy.localStorage}</h2>
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-400">{t.privacy.used}</span>
-            <span className="text-slate-200 tabular-nums">{usedMB} {t.privacy.storageMB}</span>
+            <span className="text-content-secondary">{t.privacy.used}</span>
+            <span className="text-content tabular-nums">{usedMB} {t.privacy.storageMB}</span>
           </div>
-          <div className="w-full bg-slate-700 rounded-full h-2">
-            <div className="bg-brand h-2 rounded-full" style={{ width: `${usedPercent}%` }} />
+          <div className="w-full bg-surface-hover rounded-full h-2">
+            <div className="bg-accent h-2 rounded-full" style={{ width: `${usedPercent}%` }} />
           </div>
-          <p className="text-xs text-slate-500">{t.privacy.storageNote}</p>
+          <p className="text-xs text-content-tertiary">{t.privacy.storageNote}</p>
         </div>
       </section>
 
       {/* Export */}
-      <section className="bg-slate-800 rounded-xl p-5 space-y-3">
-        <h2 className="text-xs font-medium text-slate-400">{t.privacy.exportData}</h2>
-        <p className="text-xs text-slate-500">{t.privacy.exportDesc}</p>
+      <section className="bg-surface rounded-lg p-5 space-y-3">
+        <h2 className="text-xs font-medium text-content-secondary">{t.privacy.exportData}</h2>
+        <p className="text-xs text-content-tertiary">{t.privacy.exportDesc}</p>
 
         {/* Range selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">{t.privacy.range}</span>
+          <span className="text-xs text-content-tertiary">{t.privacy.range}</span>
           {(['all', '30d'] as const).map(r => (
             <button
               key={r}
               onClick={() => setExportRange(r)}
               className={`px-3 py-1 text-xs rounded-lg border transition-colors ${
                 exportRange === r
-                  ? 'bg-brand/10 text-brand border-brand/30'
-                  : 'text-slate-500 border-slate-700 hover:text-slate-300'
+                  ? 'bg-accent-subtle text-accent border-accent'
+                  : 'text-content-tertiary border-line-strong hover:text-content-secondary'
               }`}
             >
               {r === 'all' ? t.privacy.allData : t.privacy.last30Days}
@@ -762,14 +772,14 @@ function PrivacyTab() {
           <button
             onClick={() => void handleExportJSON()}
             disabled={isExporting}
-            className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-600"
+            className="flex-1 py-2 bg-surface-hover hover:bg-surface-hover disabled:opacity-50 text-content text-sm font-medium rounded-lg transition-colors border border-line-strong"
           >
             {isExporting ? t.privacy.exporting : t.privacy.exportJSON}
           </button>
           <button
             onClick={() => void handleExportCSV()}
             disabled={isExporting}
-            className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-600"
+            className="flex-1 py-2 bg-surface-hover hover:bg-surface-hover disabled:opacity-50 text-content text-sm font-medium rounded-lg transition-colors border border-line-strong"
           >
             {isExporting ? t.privacy.exporting : t.privacy.exportCSV}
           </button>
@@ -778,28 +788,28 @@ function PrivacyTab() {
 
       {/* Links */}
       <section className="px-5">
-        <h2 className="text-xs font-medium text-slate-400 mb-1">{t.privacy.documents}</h2>
+        <h2 className="text-xs font-medium text-content-secondary mb-1">{t.privacy.documents}</h2>
         {[
           { label: t.privacy.privacyPolicy, href: `${DASHBOARD_URL}/privacy` },
           { label: t.privacy.termsOfService, href: `${DASHBOARD_URL}/terms` },
         ].map(({ label, href }) => (
           <a key={label} href={href} target="_blank" rel="noreferrer"
-            className="flex items-center justify-between text-sm text-slate-300 hover:text-slate-100 transition-colors py-2 border-b border-slate-800 last:border-0">
+            className="flex items-center justify-between text-sm text-content-secondary hover:text-content transition-colors py-2 border-b border-line last:border-0">
             <span>{label}</span>
-            <ArrowUpRight size={15} strokeWidth={2} className="text-slate-500" />
+            <ArrowUpRight size={15} strokeWidth={2} className="text-content-tertiary" />
           </a>
         ))}
       </section>
 
       {/* Reset zone */}
-      <section className="rounded-xl p-5 space-y-3 border border-danger/30">
+      <section className="rounded-lg p-5 space-y-3 border border-danger/30">
         <h2 className="text-xs font-medium text-danger">{t.privacy.reset}</h2>
         {statusMessage && (
-          <p className={`text-xs ${statusMessage.ok ? 'text-brand' : 'text-danger'}`}>{statusMessage.text}</p>
+          <p className={`text-xs ${statusMessage.ok ? 'text-accent' : 'text-danger'}`}>{statusMessage.text}</p>
         )}
         {!showDeleteConfirm ? (
           <>
-            <p className="text-xs text-slate-500">{t.privacy.deleteDesc}</p>
+            <p className="text-xs text-content-tertiary">{t.privacy.deleteDesc}</p>
             <button
               onClick={() => { setShowDeleteConfirm(true); setStatusMessage(null) }}
               className="w-full py-2 border border-danger/30 text-danger hover:bg-danger/10 text-sm font-medium rounded-lg transition-colors"
@@ -813,7 +823,7 @@ function PrivacyTab() {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 py-2 bg-slate-700 text-slate-300 text-sm rounded-lg transition-colors hover:bg-slate-600"
+                className="flex-1 py-2 bg-surface-hover text-content-secondary text-sm rounded-lg transition-colors hover:bg-surface-hover"
               >
                 {t.privacy.cancel}
               </button>
@@ -838,25 +848,25 @@ function AboutTab() {
   const { t } = useLocale()
   return (
     <div className="space-y-5">
-      <section className="bg-slate-800 rounded-xl p-5 space-y-4">
+      <section className="bg-surface rounded-lg p-5 space-y-4">
         <div className="flex items-center gap-4">
-          <img src={iconSrc} alt="EchoFocus" width={48} height={48} className="rounded-xl" />
+          <img src={iconSrc} alt="EchoFocus" width={48} height={48} className="rounded-lg" />
           <div>
-            <h2 className="font-display text-base font-bold tracking-tight text-slate-100">EchoFocus</h2>
-            <p className="text-xs text-slate-500 mt-0.5">{t.about.version} {APP_VERSION}</p>
+            <h2 className="text-base font-bold tracking-tight text-content">EchoFocus</h2>
+            <p className="text-xs text-content-tertiary mt-0.5">{t.about.version} {APP_VERSION}</p>
           </div>
         </div>
-        <p className="text-sm text-slate-400 leading-relaxed">
+        <p className="text-sm text-content-secondary leading-relaxed">
           {t.about.appDesc}
         </p>
       </section>
 
       <section className="px-5">
-        <h2 className="text-xs font-medium text-slate-400 mb-3">{t.about.privacyProtection}</h2>
-        <ul className="space-y-3 border-t border-slate-800 pt-4">
+        <h2 className="text-xs font-medium text-content-secondary mb-3">{t.about.privacyProtection}</h2>
+        <ul className="space-y-3 border-t border-line pt-4">
           {[t.about.privacyItem0, t.about.privacyItem1, t.about.privacyItem2, t.about.privacyItem3].map((item, i) => (
-            <li key={i} className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-400">
-              <Check size={15} strokeWidth={2.25} className="text-brand mt-0.5 flex-shrink-0" />
+            <li key={i} className="flex items-start gap-2.5 text-sm leading-relaxed text-content-secondary">
+              <Check size={15} strokeWidth={2.25} className="text-accent mt-0.5 flex-shrink-0" />
               {item}
             </li>
           ))}
@@ -864,21 +874,21 @@ function AboutTab() {
       </section>
 
       <section className="px-5">
-        <h2 className="text-xs font-medium text-slate-400 mb-1">{t.about.links}</h2>
+        <h2 className="text-xs font-medium text-content-secondary mb-1">{t.about.links}</h2>
         {[
           { label: t.privacy.privacyPolicy, href: `${DASHBOARD_URL}/privacy` },
           { label: t.privacy.termsOfService, href: `${DASHBOARD_URL}/terms` },
           { label: t.about.reportIssue, href: 'https://github.com/Hank1229/EchoFocus/issues' },
         ].map(({ label, href }) => (
           <a key={label} href={href} target="_blank" rel="noreferrer"
-            className="flex items-center justify-between text-sm text-slate-300 hover:text-slate-100 transition-colors py-2 border-b border-slate-800 last:border-0">
+            className="flex items-center justify-between text-sm text-content-secondary hover:text-content transition-colors py-2 border-b border-line last:border-0">
             <span>{label}</span>
-            <ArrowUpRight size={15} strokeWidth={2} className="text-slate-500" />
+            <ArrowUpRight size={15} strokeWidth={2} className="text-content-tertiary" />
           </a>
         ))}
       </section>
 
-      <p className="text-xs text-slate-600 text-center pb-2">
+      <p className="text-xs text-content-tertiary text-center pb-2">
         {t.about.copyright}
       </p>
     </div>
@@ -900,27 +910,27 @@ export default function App() {
   ]
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100">
+    <div className="min-h-screen bg-canvas text-content">
       <div className="max-w-xl mx-auto px-6 py-10">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <img src={iconSrc} alt="EchoFocus" width={36} height={36} className="rounded-xl" />
+          <img src={iconSrc} alt="EchoFocus" width={36} height={36} className="rounded-lg" />
           <div>
-            <h1 className="text-xl font-bold text-slate-100">{t.options.title}</h1>
-            <p className="text-xs text-slate-500 mt-0.5">{t.options.subtitle}</p>
+            <h1 className="text-xl font-bold text-content">{t.options.title}</h1>
+            <p className="text-xs text-content-tertiary mt-0.5">{t.options.subtitle}</p>
           </div>
         </div>
 
         {/* Tab bar */}
-        <div className="flex border-b border-slate-700 mb-6">
+        <div className="flex border-b border-line-strong mb-6">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`px-5 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
                 activeTab === tab.id
-                  ? 'border-brand text-brand'
-                  : 'border-transparent text-slate-500 hover:text-slate-300'
+                  ? 'border-accent text-accent'
+                  : 'border-transparent text-content-tertiary hover:text-content-secondary'
               }`}
             >
               {tab.label}

@@ -25,6 +25,7 @@ export default {
           tertiary: 'var(--text-tertiary)',
         },
         accent: { DEFAULT: 'var(--accent)', subtle: 'var(--accent-subtle)', ink: 'var(--on-accent)' },
+        danger: { DEFAULT: 'var(--danger)', deep: 'var(--danger)' },
       },
       // The six DESIGN.md type sizes — the popup uses these and nothing else.
       fontSize: {

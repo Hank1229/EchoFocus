@@ -22,13 +22,13 @@ export default function WelcomeStep() {
         <EchoMark size={160} className="hidden flex-shrink-0 sm:block" />
       </div>
 
-      <ul className="mt-10 border-t border-slate-800">
+      <ul className="mt-10 border-t border-line">
         {points.map(({ Icon, title, desc }) => (
-          <li key={title} className="flex gap-4 border-b border-slate-800 py-4">
-            <Icon size={17} strokeWidth={1.75} className="mt-0.5 flex-shrink-0 text-brand" />
+          <li key={title} className="flex gap-4 border-b border-line py-4">
+            <Icon size={17} strokeWidth={1.75} className="mt-0.5 flex-shrink-0 text-accent" />
             <div className="min-w-0">
-              <p className="text-sm font-medium text-slate-100">{title}</p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-500">{desc}</p>
+              <p className="text-sm font-medium text-content">{title}</p>
+              <p className="mt-1 text-xs leading-relaxed text-content-tertiary">{desc}</p>
             </div>
           </li>
         ))}

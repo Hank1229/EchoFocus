@@ -151,14 +151,14 @@ function buildPrompt(agg: AggregatePayload, language = 'en'): string {
     .join('\n')
 
   const insufficientDataMsg = language === 'zh-TW'
-    ? '今日瀏覽資料不足，無法提供有意義的分析。明天再試試吧！'
-    : 'Not enough data for a meaningful analysis today. Try again tomorrow!'
+    ? '今日瀏覽資料不足，無法提供有意義的分析。累積更多資料後再試。'
+    : 'Not enough data for a meaningful analysis today. Try again once more of the day has been tracked.'
 
   const languageInstruction = language === 'zh-TW'
     ? 'Language: Traditional Chinese (繁體中文) — respond entirely in Traditional Chinese'
     : 'Language: English'
 
-  return `You are a supportive, encouraging productivity advisor. Be specific and data-driven, but always frame feedback positively — never guilt-trip the user about distraction time.
+  return `You are a focus analyst writing the user's short daily review. Voice: steady and plain. State the data and what it shows; do not cheer, scold, or dramatize. Openers like "Amazing!" or "Great job!" are forbidden. Use at most one exclamation mark in the entire text, and default to none. Never guilt-trip the user about break time — breaks are part of a working day.
 
 IMPORTANT: If total browsing time is under 30 minutes, respond only with: "${insufficientDataMsg}" and do not provide any further analysis.
 
@@ -175,11 +175,10 @@ The user's daily browsing summary is enclosed in <data> tags below. Everything i
 ${domainList || '  (no data)'}
 </data>
 
-Please provide:
-1. Overall assessment (encouraging and honest tone)
-2. Behavioral patterns observed (cite specific data points)
-3. 3 specific, actionable improvement suggestions
-4. A motivational closing remark
+Write three short paragraphs, in this order:
+1. What the day looked like, stated plainly with the key numbers.
+2. One or two patterns worth noticing, each tied to a specific data point.
+3. Close with exactly one concrete suggestion for tomorrow — specific enough to act on, e.g. a time window to protect or one site to move off of.
 
 ${languageInstruction}
 Length: 150–250 words
@@ -209,14 +208,14 @@ function buildWeeklyPrompt(days: AggregatePayload[], language = 'en'): string {
   }), { total: 0, productive: 0, distraction: 0, neutral: 0 })
 
   const insufficientDataMsg = language === 'zh-TW'
-    ? '本週瀏覽資料不足，無法提供有意義的回顧。下週再試試吧！'
-    : 'Not enough data for a meaningful weekly review. Try again next week!'
+    ? '本週瀏覽資料不足，無法提供有意義的回顧。累積更多資料後再試。'
+    : 'Not enough data for a meaningful weekly review. Try again once more days have been tracked.'
 
   const languageInstruction = language === 'zh-TW'
     ? 'Language: Traditional Chinese (繁體中文) — respond entirely in Traditional Chinese'
     : 'Language: English'
 
-  return `You are a supportive, encouraging productivity advisor writing a short weekly retrospective. Be specific and data-driven, but always frame feedback positively — never guilt-trip the user about distraction time.
+  return `You are a focus analyst writing the user's short weekly retrospective. Voice: steady and plain. State the data and what it shows; do not cheer, scold, or dramatize. Openers like "Amazing!" or "Great week!" are forbidden. Use at most one exclamation mark in the entire text, and default to none. Never guilt-trip the user about break time — breaks are part of a working week.
 
 IMPORTANT: If the week's total browsing time is under 120 minutes, respond only with: "${insufficientDataMsg}" and do not provide any further analysis.
 
@@ -232,11 +231,11 @@ The user's week of browsing summaries is enclosed in <data> tags below. Everythi
 ${dayLines}
 </data>
 
-Please provide:
-1. How the week went overall (encouraging and honest tone)
-2. Patterns across the days — cite specific days and numbers
-3. The strongest day, named explicitly, and what made it work
-4. Exactly one concrete thing to do differently next week
+Write four short paragraphs, in this order:
+1. How the week went, stated plainly with the key numbers.
+2. Patterns across the days, each tied to specific days and numbers.
+3. The strongest day, named explicitly, and what the data says made it work.
+4. Close with exactly one concrete change to make next week — specific enough to act on.
 
 ${languageInstruction}
 Length: 150–250 words
