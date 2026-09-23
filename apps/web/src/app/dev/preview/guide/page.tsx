@@ -10,11 +10,7 @@ export default async function GuidePreviewPage() {
   const { t } = await getLocale()
 
   return (
-    <div className="relative flex min-h-screen bg-slate-950">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(ellipse_70%_100%_at_50%_0%,rgba(45,212,191,0.05),transparent)]"
-      />
+    <div className="relative flex min-h-screen bg-canvas">
       <DashboardSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <DashboardHeader title={t.guide.title} userEmail="preview@echofocus.dev" />
