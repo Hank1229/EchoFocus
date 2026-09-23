@@ -3,6 +3,7 @@ import { getLocale } from '@/lib/i18n-server'
 import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import TrendsView from '../../../dashboard/trends/TrendsView'
+import WeeklyReview from '../../../dashboard/trends/WeeklyReview'
 
 // Design-review harness for the Trends page. Dev only — production 404s.
 
@@ -24,27 +25,23 @@ const HOURS = [
 
 export default async function TrendsPreviewPage() {
   if (process.env.NODE_ENV === 'production') notFound()
-  const { t } = await getLocale()
+  const { t, language } = await getLocale()
 
   const totalProductive = WEEK.reduce((s, d) => s + d.productive, 0)
   const totalBreaks = WEEK.reduce((s, d) => s + d.distraction, 0)
   const avgScore = Math.round(WEEK.reduce((s, d) => s + d.score, 0) / WEEK.length)
 
   return (
-    <div className="relative flex min-h-screen bg-slate-950">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(ellipse_70%_100%_at_50%_0%,rgba(45,212,191,0.05),transparent)]"
-      />
+    <div className="relative flex min-h-screen bg-canvas">
       <DashboardSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <DashboardHeader
           title={t.trends.title}
           userEmail="preview@echofocus.dev"
           context={
-            <div className="flex items-center gap-1 rounded-lg border border-slate-800 p-0.5">
-              <span className="rounded-md bg-slate-800 px-3 py-1 text-xs font-medium text-slate-100">{t.trends.last7days}</span>
-              <span className="px-3 py-1 text-xs font-medium text-slate-500">{t.trends.last30days}</span>
+            <div className="flex items-center gap-1 rounded-md border border-line p-0.5">
+              <span className="rounded bg-accent-subtle px-3 py-1 text-caption font-medium text-accent">{t.trends.last7days}</span>
+              <span className="px-3 py-1 text-caption font-medium text-content-secondary">{t.trends.last30days}</span>
             </div>
           }
         />
@@ -62,6 +59,7 @@ export default async function TrendsPreviewPage() {
             copy={t.trends}
             neutralLabel={t.today.neutral}
           />
+          <div className="mt-10"><WeeklyReview initialText={"A steady week: four of your six tracked days crossed the goal line, and the strongest stretch landed midweek.\n\nOne suggestion: your Friday tail-off is where most of the lost time lives — shield one morning block there and the week evens out."} language={language} /></div>
         </main>
       </div>
     </div>

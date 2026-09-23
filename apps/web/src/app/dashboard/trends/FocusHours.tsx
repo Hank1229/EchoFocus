@@ -8,20 +8,14 @@ interface Props {
   copy: Locale['trends']
 }
 
-// Six steps: an untouched hour reads as slate, then five emerald grades of the
-// peak hour. Written out so Tailwind sees every class it has to emit.
-const TONES = [
-  'bg-neutral/10',
-  'bg-productive/20',
-  'bg-productive/35',
-  'bg-productive/55',
-  'bg-productive/75',
-  'bg-productive',
-]
+// Six steps: an untouched hour reads as the hairline color, then five grades
+// of the productive green up to the peak hour.
+const LEVELS = [20, 35, 55, 75, 100]
 
-function tone(seconds: number, peak: number): string {
-  if (seconds <= 0) return TONES[0]
-  return TONES[Math.min(5, Math.ceil((seconds / peak) * 5))]
+function cellColor(seconds: number, peak: number): string {
+  if (seconds <= 0) return 'var(--border)'
+  const level = LEVELS[Math.min(4, Math.ceil((seconds / peak) * 5) - 1)]
+  return `color-mix(in srgb, var(--productive) ${level}%, transparent)`
 }
 
 const hourLabel = (hour: number) => `${String(hour).padStart(2, '0')}:00`
@@ -40,25 +34,23 @@ export default function FocusHours({ hours, days, copy }: Props) {
     .sort((a, b) => b.seconds - a.seconds)
 
   return (
-    <section className="border-t border-slate-800/80 pt-9">
+    <section className="border-t border-line pt-9">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 className="font-display text-base font-semibold tracking-tight text-slate-100">
-          {copy.focusHours}
-        </h2>
+        <h2 className="text-label text-content-secondary">{copy.focusHours}</h2>
         {ranked.length > 0 && (
-          <p className="text-xs tabular-nums text-slate-600">
-            {copy.focusHoursTop}: {ranked.slice(0, 3).map(h => hourLabel(h.hour)).join(' · ')}
+          <p className="text-caption text-content-tertiary">
+            {copy.focusHoursTop}: {ranked.slice(0, 3).map(h => hourLabel(h.hour)).join(', ')}
           </p>
         )}
       </div>
 
       {peak === 0 ? (
-        <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-500">
+        <p className="mt-4 max-w-xl text-body text-content-secondary">
           {copy.focusHoursEmpty}
         </p>
       ) : (
         <>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed tabular-nums text-slate-400">
+          <p className="mt-3 max-w-xl text-body text-content-secondary">
             {copy.focusHoursPeak
               .replace('{hour}', hourLabel(peakHour))
               .replace('{duration}', formatDuration(peak))
@@ -78,15 +70,16 @@ export default function FocusHours({ hours, days, copy }: Props) {
                   <span
                     aria-hidden
                     title={label}
-                    className={`h-9 w-full rounded-sm ${tone(seconds, peak)} ${
-                      hour === peakHour ? 'ring-1 ring-productive ring-offset-1 ring-offset-slate-950' : ''
-                    }`}
+                    className="h-9 w-full rounded-sm"
+                    style={{
+                      background: cellColor(seconds, peak),
+                      ...(hour === peakHour ? { boxShadow: 'inset 0 0 0 1px var(--productive)' } : {}),
+                    }}
                   />
                   <span
                     aria-hidden
-                    className={`text-[10px] tabular-nums ${
-                      hour === peakHour ? 'text-productive' : 'text-slate-600'
-                    }`}
+                    className="text-caption"
+                    style={{ color: hour === peakHour ? 'var(--productive)' : 'var(--text-tertiary)' }}
                   >
                     {String(hour).padStart(2, '0')}
                   </span>
@@ -96,10 +89,16 @@ export default function FocusHours({ hours, days, copy }: Props) {
             })}
           </ul>
 
-          <div className="mt-5 flex items-center gap-2 text-xs text-slate-600">
+          <div className="mt-5 flex items-center gap-2 text-caption text-content-tertiary">
             <span>{copy.focusHoursLess}</span>
-            {TONES.map(shade => (
-              <span key={shade} aria-hidden className={`h-2 w-4 rounded-sm ${shade}`} />
+            <span aria-hidden className="h-2 w-4 rounded-sm" style={{ background: 'var(--border)' }} />
+            {LEVELS.map(level => (
+              <span
+                key={level}
+                aria-hidden
+                className="h-2 w-4 rounded-sm"
+                style={{ background: `color-mix(in srgb, var(--productive) ${level}%, transparent)` }}
+              />
             ))}
             <span>{copy.focusHoursMore}</span>
           </div>

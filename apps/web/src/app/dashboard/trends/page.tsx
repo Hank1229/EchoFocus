@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getLocale } from '@/lib/i18n-server'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import TrendsView from './TrendsView'
+import WeeklyReview from './WeeklyReview'
 
 interface SyncedRow {
   date: string
@@ -48,13 +49,24 @@ export default async function TrendsPage({
 
   // Newest N days, then reverse so charts read left→right chronologically.
   // (ascending + limit would return the OLDEST rows and freeze the charts in the past)
-  const { data, error: loadError } = await supabase
+  const [{ data, error: loadError }, { data: weeklyRows }] = await Promise.all([
+    supabase
     .from('synced_aggregates')
     .select('date, total_seconds, productive_seconds, distraction_seconds, neutral_seconds, uncategorized_seconds, focus_score, productive_by_hour')
     .eq('user_id', user.id)
     .order('date', { ascending: false })
-    .limit(days)
+    .limit(days),
+    supabase
+      .from('ai_analyses')
+      .select('analysis_text')
+      .eq('user_id', user.id)
+      .eq('type', 'weekly')
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(1),
+  ])
 
+  const weeklyText = (weeklyRows?.[0]?.analysis_text as string | undefined) ?? null
   const newest = (data ?? []) as SyncedRow[]
   // "Last N days" means a calendar window, not "last N synced rows" — with
   // sync gaps the latter silently spans months. Floor the window at newest
@@ -100,14 +112,14 @@ export default async function TrendsPage({
         userEmail={user?.email ?? undefined}
         avatarUrl={user?.user_metadata?.avatar_url as string | undefined}
         context={
-          <div className="flex items-center gap-1 rounded-lg border border-slate-800 p-0.5">
+          <div className="flex items-center gap-1 rounded-md border border-line p-0.5">
             {periods.map(p => (
               <Link
                 key={p}
                 href={`/dashboard/trends?period=${p}`}
                 aria-current={days === p ? 'true' : undefined}
-                className={`pressable rounded-md px-3 py-1 text-xs font-medium ${
-                  days === p ? 'bg-slate-800 text-slate-100' : 'text-slate-500 hover:text-slate-300'
+                className={`pressable rounded px-3 py-1 text-caption font-medium ${
+                  days === p ? 'bg-accent-subtle text-accent' : 'text-content-secondary hover:text-content'
                 }`}
               >
                 {p === 7 ? t.trends.last7days : t.trends.last30days}
@@ -119,18 +131,19 @@ export default async function TrendsPage({
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
         {loadError ? (
-          <p role="alert" className="max-w-xl rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm leading-relaxed text-danger">
+          <p role="alert" className="max-w-xl text-body" style={{ color: 'var(--danger)' }}>
             {t.common.loadFailed}{loadError.message}
           </p>
         ) : rows.length === 0 ? (
-          <div className="max-w-md border-t border-slate-800/80 pt-10">
-            <LineChart size={28} strokeWidth={1.5} className="text-slate-600" />
-            <h2 className="mt-4 font-display text-xl font-semibold tracking-tight text-slate-200">
+          <div className="max-w-md border-t border-line pt-10">
+            <LineChart size={28} strokeWidth={1.5} className="text-content-tertiary" />
+            <h2 className="mt-4 text-title text-content">
               {t.trends.noTrendData}
             </h2>
-            <p className="mt-3 text-sm leading-relaxed text-slate-500">{t.trends.noTrendDesc}</p>
+            <p className="mt-3 text-body text-content-secondary">{t.trends.noTrendDesc}</p>
           </div>
         ) : (
+          <div className="space-y-10">
           <TrendsView
             days={days}
             avgScore={avgScore}
@@ -144,6 +157,8 @@ export default async function TrendsPage({
             copy={t.trends}
             neutralLabel={t.today.neutral}
           />
+          <WeeklyReview initialText={weeklyText} language={language} />
+          </div>
         )}
       </main>
     </>

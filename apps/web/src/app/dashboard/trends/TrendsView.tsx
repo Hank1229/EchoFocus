@@ -2,7 +2,7 @@ import { formatDuration } from '@echofocus/shared'
 import type { Locale } from '@/lib/i18n-server'
 import ActivityBarChart from '@/components/charts/ActivityBarChart'
 import FocusScoreChart from '@/components/charts/FocusScoreChart'
-import { scoreNumeralClass } from '@/components/dashboard/score'
+import { scoreColorVar } from '@/components/dashboard/score'
 import FocusHours from './FocusHours'
 
 export interface TrendsViewProps {
@@ -48,20 +48,20 @@ export default function TrendsView({
     <div className="space-y-10">
       {/* The trajectory leads: the average is the figure, the line is its
           shape. Neither works as a lonely stat card, so they share one band. */}
-      <section className="rise rise-1 border-b border-slate-800/80 pb-9">
+      <section className="border-b border-line pb-9">
         <div className="flex items-baseline justify-between gap-4">
-          <h2 className="font-display text-base font-semibold tracking-tight text-slate-100">
+          <h2 className="text-label text-content-secondary">
             {copy.focusScoreTrend}
           </h2>
-          <p className="flex-shrink-0 text-xs text-slate-600">{copy.dashedLineNote}</p>
+          <p className="flex-shrink-0 text-caption text-content-tertiary">{copy.dashedLineNote}</p>
         </div>
 
         <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-center lg:gap-10">
           <div className="flex-shrink-0 lg:w-40">
-            <p className={`font-display text-6xl font-semibold leading-none tracking-tight tabular-nums ${scoreNumeralClass(avgScore)}`}>
+            <p className="text-hero" style={{ color: scoreColorVar(avgScore) }}>
               {avgScore}
             </p>
-            <p className="mt-3 max-w-[9rem] text-xs leading-relaxed text-slate-500">
+            <p className="mt-2 max-w-[9rem] text-caption text-content-tertiary">
               {days}{copy.avgFocusScore}
             </p>
           </div>
@@ -72,23 +72,23 @@ export default function TrendsView({
         </div>
       </section>
 
-      <section className="rise rise-2">
+      <section>
         <dl className="grid grid-cols-2 gap-y-7 sm:grid-cols-4">
           {stats.map((stat, i) => (
             <div
               key={stat.label}
-              className={i > 0 ? 'sm:border-l sm:border-slate-800/80 sm:pl-6' : ''}
+              className={i > 0 ? 'sm:border-l sm:border-line sm:pl-6' : ''}
             >
-              <dd className="font-display text-2xl font-semibold tabular-nums text-slate-100">{stat.value}</dd>
-              <dt className="mt-1.5 text-xs text-slate-500">{stat.label}</dt>
-              {stat.note && <p className="mt-0.5 text-xs text-slate-600">{stat.note}</p>}
+              <dd className="text-stat text-content">{stat.value}</dd>
+              <dt className="mt-1.5 text-caption text-content-secondary">{stat.label}</dt>
+              {stat.note && <p className="mt-0.5 text-caption text-content-tertiary">{stat.note}</p>}
             </div>
           ))}
         </dl>
       </section>
 
-      <section className="rise rise-3 border-t border-slate-800/80 pt-9">
-        <h2 className="font-display text-base font-semibold tracking-tight text-slate-100">
+      <section className="border-t border-line pt-9">
+        <h2 className="text-label text-content-secondary">
           {copy.dailyTimeBreakdown}
         </h2>
         <div className="mt-5">
