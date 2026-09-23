@@ -177,7 +177,7 @@ Dashboard polish comes from chart quality, never from effects.
 - Hover highlight: active data point grows to 4px radius, other series drop to 0.3 opacity, 150ms transition.
 - Empty states are designed: one sentence on what will appear here + the next action. No illustrations.
 - "Daily snapshot" and "Daily insight" merge into a single "Today's review" block: data on top (total time, score, category split), AI insight text below.
-- Pomodoro settings (focus duration, break duration, reminder toggle; defaults 25 / 5) live on the settings page; saving takes effect in the popup immediately.
+- The settings page holds the theme selector (Light / Dark / Follow system, next to language) and the pomodoro settings (focus duration, break duration, reminder toggle; defaults 25 / 5). Saved values reach the popup by the next time it opens — the popup pulls the cloud copy on open.
 
 ## 9. Copy and tone
 
