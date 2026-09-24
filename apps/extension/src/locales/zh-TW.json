@@ -27,7 +27,8 @@
     "onBreak": "休息中",
     "timerPaused": "已暫停",
     "viewFullAnalysis": "查看完整分析",
-    "signInHint": "登入以取得 AI 洞察與跨裝置同步"
+    "signInHint": "登入以取得 AI 洞察與跨裝置同步",
+    "connecting": "連結中…"
   },
   "options": {
     "title": "EchoFocus 設定",

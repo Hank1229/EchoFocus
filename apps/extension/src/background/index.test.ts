@@ -7,9 +7,29 @@ import { installChromeStub, type ChromeStub } from '../test/chrome-stub'
 vi.mock('../lib/ai', () => ({
   requestAiAnalysis: vi.fn(async () => ({ ok: false, reason: 'unavailable' })),
 }))
+// SIGN_IN hands the OAuth flow to the worker; neither the identity API nor
+// the network exist here.
+vi.mock('../lib/auth', () => ({
+  signInWithGoogle: vi.fn(async () => ({ user: { id: 'user-1' } })),
+  getSession: vi.fn(async () => null),
+  refreshSession: vi.fn(async () => false),
+}))
+vi.mock('../lib/sync', () => ({
+  drainSyncQueue: vi.fn(async () => undefined),
+  enqueueMissedSyncDates: vi.fn(async () => undefined),
+  backfillHistoryIfNeeded: vi.fn(async () => null),
+  postSignInBootstrap: vi.fn(async () => ({ backfilled: 3, failed: 0 })),
+  enqueueSyncDate: vi.fn(async () => undefined),
+}))
 
 import * as ai from '../lib/ai'
+import * as auth from '../lib/auth'
+import * as sync from '../lib/sync'
 import { handleMessage } from './index'
+
+async function flushSignInFlow(): Promise<void> {
+  for (let i = 0; i < 20; i++) await Promise.resolve()
+}
 
 let chromeStub: ChromeStub
 
@@ -112,5 +132,27 @@ describe('REQUEST_AI_ANALYSIS payload validation', () => {
     expect(chromeStub.store[`aggregates:${today}`]).toEqual(
       expect.objectContaining({ totalSeconds: 600 }),
     )
+  })
+})
+
+describe('SIGN_IN (one-click from the popup)', () => {
+  it('acknowledges immediately and completes OAuth + bootstrap in the worker', async () => {
+    const res = await handleMessage({ type: 'SIGN_IN' })
+    expect(res.success).toBe(true)
+
+    await flushSignInFlow()
+    expect(auth.signInWithGoogle).toHaveBeenCalled()
+    expect(sync.postSignInBootstrap).toHaveBeenCalled()
+    expect(chromeStub.store.signin_in_progress).toBeUndefined()
+  })
+
+  it('a cancelled OAuth clears the progress flag and skips the bootstrap', async () => {
+    vi.mocked(auth.signInWithGoogle).mockResolvedValue(null)
+
+    await handleMessage({ type: 'SIGN_IN' })
+    await flushSignInFlow()
+
+    expect(sync.postSignInBootstrap).not.toHaveBeenCalled()
+    expect(chromeStub.store.signin_in_progress).toBeUndefined()
   })
 })

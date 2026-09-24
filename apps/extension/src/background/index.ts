@@ -17,8 +17,9 @@ import { partialSettingsSchema, classificationRuleArraySchema, dateStringSchema,
 import * as pomodoro from './pomodoro'
 import { requestAiAnalysis } from '../lib/ai'
 import { getTodayDateString } from '@echofocus/shared'
-import { drainSyncQueue, enqueueMissedSyncDates, backfillHistoryIfNeeded } from '../lib/sync'
+import { drainSyncQueue, enqueueMissedSyncDates, backfillHistoryIfNeeded, postSignInBootstrap } from '../lib/sync'
 import { pushRules, pushSettings, reconcileWithCloud, reconcileIfStale, pullThemeNow } from '../lib/prefs-sync'
+import { signInWithGoogle } from '../lib/auth'
 
 // ─── Message Types ─────────────────────────────────────────────────────────
 
@@ -37,6 +38,7 @@ type MessageType =
   | 'GET_STORAGE_INFO'
   | 'GET_POMODORO'
   | 'POMODORO_COMMAND'
+  | 'SIGN_IN'
 
 interface IncomingMessage {
   type: MessageType
@@ -249,6 +251,24 @@ export async function handleMessage(
     case 'GET_STORAGE_INFO': {
       const info = await getStorageInfo()
       return { success: true, data: info }
+    }
+
+    case 'SIGN_IN': {
+      // Answer immediately: the popup that asked is about to close when the
+      // OAuth window takes focus. The flow finishes here in the worker; the
+      // popup reads signin_in_progress / the stored session when it reopens.
+      void (async () => {
+        await chrome.storage.local.set({ signin_in_progress: true })
+        try {
+          const session = await signInWithGoogle()
+          if (session) await postSignInBootstrap()
+        } catch (err) {
+          console.error('[EchoFocus] Sign-in flow failed:', err)
+        } finally {
+          await chrome.storage.local.remove('signin_in_progress')
+        }
+      })()
+      return { success: true }
     }
 
     case 'GET_POMODORO': {

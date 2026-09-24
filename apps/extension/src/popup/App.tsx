@@ -26,12 +26,22 @@ export default function App() {
   const { pomodoro, remainingMs, command } = usePomodoro()
 
   // Quiet sign-in nudge: shown only while signed out (DESIGN.md tone — one
-  // caption line, no popup-blocking prompts).
+  // caption line, no popup-blocking prompts). Clicking it hands the OAuth
+  // flow to the worker — this popup closes when the auth window opens, so
+  // the linking state is read back from storage on reopen.
   const [signedOut, setSignedOut] = useState(false)
+  const [isLinking, setIsLinking] = useState(false)
   useEffect(() => {
-    void chrome.storage.local.get('supabase_session').then(stored => {
+    void chrome.storage.local.get(['supabase_session', 'signin_in_progress']).then(stored => {
       setSignedOut(stored.supabase_session === undefined)
+      setIsLinking(stored.signin_in_progress === true)
     })
+    const listener = (changes: Record<string, chrome.storage.StorageChange>) => {
+      if ('supabase_session' in changes) setSignedOut(changes.supabase_session.newValue === undefined)
+      if ('signin_in_progress' in changes) setIsLinking(changes.signin_in_progress.newValue === true)
+    }
+    chrome.storage.onChanged.addListener(listener)
+    return () => chrome.storage.onChanged.removeListener(listener)
   }, [])
 
   const toggleTracking = useCallback(async () => {
@@ -138,10 +148,11 @@ export default function App() {
 
         {signedOut && (
           <button
-            onClick={() => chrome.runtime.openOptionsPage()}
-            className="pressable text-left text-caption text-content-tertiary hover:text-accent"
+            onClick={() => { setIsLinking(true); void sendMessage('SIGN_IN') }}
+            disabled={isLinking}
+            className="pressable text-left text-caption text-content-tertiary hover:text-accent disabled:opacity-60"
           >
-            {t.popup.signInHint}
+            {isLinking ? t.popup.connecting : t.popup.signInHint}
           </button>
         )}
       </div>
