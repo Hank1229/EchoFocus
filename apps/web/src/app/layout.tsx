@@ -4,6 +4,7 @@ import '@fontsource-variable/bricolage-grotesque'
 import './globals.css'
 import { LanguageProvider, type Language } from '@/lib/i18n'
 import { ThemeProvider, type ThemePreference } from '@/lib/theme'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 export const metadata: Metadata = {
   title: 'EchoFocus — Privacy-First Productivity Tracker',
@@ -28,6 +29,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
           </LanguageProvider>
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   )
