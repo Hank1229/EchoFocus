@@ -164,7 +164,9 @@ export default async function SettingsPage({
       />
 
       <main className="mx-auto w-full max-w-[1200px] flex-1 px-6 pb-16 pt-6">
-        <SettingsTabs initialTab={asTab(tab)} panels={panels} />
+        <div className="mx-auto w-full max-w-3xl">
+          <SettingsTabs initialTab={asTab(tab)} panels={panels} />
+        </div>
       </main>
     </>
   )

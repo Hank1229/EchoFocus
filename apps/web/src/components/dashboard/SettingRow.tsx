@@ -18,7 +18,7 @@ export default function SettingRow({ label, description, children, stack }: Prop
       }`}
     >
       <div>
-        <dt className="text-label text-content">{label}</dt>
+        <dt className="text-body font-medium leading-snug text-content">{label}</dt>
         {description && <dd className="mt-1.5 text-caption leading-relaxed text-content-tertiary">{description}</dd>}
       </div>
       <dd className="min-w-0">{children}</dd>

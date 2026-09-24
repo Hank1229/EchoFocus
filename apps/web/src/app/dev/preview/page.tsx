@@ -54,7 +54,9 @@ export default async function PreviewPage() {
           context={
             <DateNav
               label={language === 'zh-TW' ? '9月18日 星期四' : 'Thursday, September 18'}
-              syncedLabel={`${t.today.synced} 21:02`}
+              syncedAtIso="2026-09-18T13:02:00Z"
+              syncedPrefix={t.today.synced}
+              locale={language === 'zh-TW' ? 'zh-TW' : 'en-US'}
               prevHref="#"
               nextHref={null}
               prevAriaLabel={t.today.previousDay}

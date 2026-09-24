@@ -55,11 +55,13 @@ export default function TodayReview({
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-9">
         <ScoreDial score={focusScore} label={t.today.focusScore} />
 
-        <div className="min-w-0">
+        {/* The right half carries the day's numbers — total and streak above,
+            the three categories beneath — so the card's width is all data. */}
+        <div className="min-w-0 flex-1">
           <p className="text-caption text-content-secondary">{t.today.totalTracked}</p>
           <p className="mt-1 text-stat text-content">{formatDuration(totalSeconds)}</p>
           {streak.current > 0 && (
-            <p className="mt-3 flex items-center gap-1.5 text-caption text-content-tertiary">
+            <p className="mt-2 flex items-center gap-1.5 text-caption text-content-tertiary">
               <Flame size={13} strokeWidth={1.5} style={{ color: 'var(--productive)' }} />
               {t.today.streakDays.replace('{n}', String(streak.current))}
               {streak.best > streak.current && (
@@ -67,6 +69,23 @@ export default function TodayReview({
               )}
             </p>
           )}
+
+          <dl className="mt-5 grid grid-cols-3 gap-x-6 gap-y-4 border-t border-line pt-4">
+            {parts.map(part => (
+              <div key={part.label} className="min-w-0">
+                <dt className="flex items-center gap-1.5 text-caption text-content-secondary">
+                  <span aria-hidden className="h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: part.color }} />
+                  <span className="truncate">{part.label}</span>
+                </dt>
+                <dd className="mt-1 flex items-baseline gap-2">
+                  <span className="whitespace-nowrap text-stat text-content">{formatDuration(part.seconds)}</span>
+                  <span className="text-caption text-content-tertiary">
+                    {Math.round((part.seconds / tracked) * 100)}%
+                  </span>
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </div>
 
@@ -79,22 +98,6 @@ export default function TodayReview({
             />
           ))}
         </div>
-        <dl className="mt-4 grid grid-cols-3 gap-x-6 gap-y-4">
-          {parts.map(part => (
-            <div key={part.label} className="min-w-0">
-              <dt className="flex items-center gap-1.5 text-caption text-content-secondary">
-                <span aria-hidden className="h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: part.color }} />
-                <span className="truncate">{part.label}</span>
-              </dt>
-              <dd className="mt-1 flex items-baseline gap-2">
-                <span className="whitespace-nowrap text-stat text-content">{formatDuration(part.seconds)}</span>
-                <span className="text-caption text-content-tertiary">
-                  {Math.round((part.seconds / tracked) * 100)}%
-                </span>
-              </dd>
-            </div>
-          ))}
-        </dl>
       </div>
 
       <div className="mt-7">

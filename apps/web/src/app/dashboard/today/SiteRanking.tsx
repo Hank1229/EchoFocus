@@ -14,6 +14,8 @@ interface Props {
   emptyLabel: string
   /** Formatted total for the listed sites, shown beside the heading. */
   total?: string
+  /** Single column, for narrow containers like the Guide's demo card. */
+  compact?: boolean
 }
 
 const BAR: Record<SiteCategory, string> = {
@@ -25,7 +27,7 @@ const BAR: Record<SiteCategory, string> = {
 
 // A ranked list set as a list: hairline rows; the bar carries both relative
 // weight and (by color) the category.
-export default function SiteRanking({ heading, sites, emptyLabel, total }: Props) {
+export default function SiteRanking({ heading, sites, emptyLabel, total, compact }: Props) {
   const ranked = [...sites].sort((a, b) => b.seconds - a.seconds).slice(0, 10)
   const leader = ranked[0]?.seconds ?? 1
 
@@ -39,7 +41,7 @@ export default function SiteRanking({ heading, sites, emptyLabel, total }: Props
       {ranked.length === 0 ? (
         <p className="mt-4 text-body text-content-secondary">{emptyLabel}</p>
       ) : (
-        <ul className="mt-3 grid border-t border-line lg:grid-cols-2 lg:gap-x-12">
+        <ul className={`mt-3 grid border-t border-line ${compact ? '' : 'lg:grid-cols-2 lg:gap-x-12'}`}>
           {ranked.map(site => (
             <li key={site.domain} className="flex items-center gap-4 border-b border-line py-2.5">
               <span className="min-w-0 flex-1 truncate text-body text-content">{site.domain}</span>

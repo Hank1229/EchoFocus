@@ -69,7 +69,7 @@ export default function GuideWalkthrough() {
 
   const pages = [
     // ── 1 · How tracking works ──────────────────────────────────────────────
-    <div key="how" className="grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-center">
+    <div key="how" className="grid gap-10 lg:gap-16 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
       <div>
         <h2 className="text-title text-content">{t.guide.howTitle}</h2>
         <p className="mt-4 max-w-[58ch] text-body text-content-secondary">{t.guide.howBody}</p>
@@ -82,14 +82,14 @@ export default function GuideWalkthrough() {
         <div className="mt-6 border-t border-line pt-4">
           <p className="text-caption text-content-tertiary">{t.guide.demoSites}</p>
           <div className="mt-2">
-            <SiteRanking heading="" sites={DEMO_SITES} emptyLabel={t.today.noData} />
+            <SiteRanking heading="" sites={DEMO_SITES} emptyLabel={t.today.noData} compact />
           </div>
         </div>
       </div>
     </div>,
 
     // ── 2 · The focus score ─────────────────────────────────────────────────
-    <div key="score" className="grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-center">
+    <div key="score" className="grid gap-10 lg:gap-16 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
       <div>
         <h2 className="text-title text-content">{t.guide.scoreTitle}</h2>
         <p className="mt-4 max-w-[58ch] text-body text-content-secondary">{t.guide.scoreBody}</p>
@@ -109,7 +109,7 @@ export default function GuideWalkthrough() {
     </div>,
 
     // ── 3 · The focus timer — the real component, hands-on ──────────────────
-    <div key="timer" className="grid gap-10 lg:grid-cols-[1fr_26rem] lg:items-center">
+    <div key="timer" className="grid gap-10 lg:gap-16 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start">
       <div>
         <h2 className="text-title text-content">{t.guide.timerTitle}</h2>
         <p className="mt-4 max-w-[58ch] text-body text-content-secondary">{t.guide.timerBody}</p>
@@ -118,7 +118,7 @@ export default function GuideWalkthrough() {
     </div>,
 
     // ── 4 · Categories & rules ──────────────────────────────────────────────
-    <div key="rules" className="grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-center">
+    <div key="rules" className="grid gap-10 lg:gap-16 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
       <div>
         <h2 className="text-title text-content">{t.guide.categoriesTitle}</h2>
         <ul className="mt-5 space-y-3">
@@ -209,7 +209,7 @@ export default function GuideWalkthrough() {
   ]
 
   return (
-    <div>
+    <div className="mx-auto w-full max-w-[64rem]">
       {/* Progress: dots you can press, plus the step count for orientation. */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2" role="tablist" aria-label={t.guide.title}>

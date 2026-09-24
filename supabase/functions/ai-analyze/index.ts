@@ -182,7 +182,7 @@ Write three short paragraphs, in this order:
 
 ${languageInstruction}
 Length: 150–250 words
-Format: Plain text, no Markdown formatting`
+Format: Plain text, no Markdown formatting, no emoji`
 }
 
 const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -239,7 +239,7 @@ Write four short paragraphs, in this order:
 
 ${languageInstruction}
 Length: 150–250 words
-Format: Plain text, no Markdown formatting`
+Format: Plain text, no Markdown formatting, no emoji`
 }
 
 // ── Gemini call with timeout; details are logged, never relayed ────────────

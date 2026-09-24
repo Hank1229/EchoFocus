@@ -132,9 +132,6 @@ export default async function TodayPage({
       day: 'numeric',
     })
 
-  const formatSyncTime = (iso: string) =>
-    new Date(iso).toLocaleString(dateLocale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-
   return (
     <>
       <DashboardHeader
@@ -144,7 +141,9 @@ export default async function TodayPage({
         context={
           <DateNav
             label={formatDate(displayDate)}
-            syncedLabel={row ? `${t.today.synced} ${formatSyncTime(row.synced_at)}` : null}
+            syncedAtIso={row?.synced_at ?? null}
+            syncedPrefix={t.today.synced}
+            locale={dateLocale}
             prevHref={prevDate ? `/dashboard/today?date=${prevDate}` : null}
             nextHref={nextDate ? `/dashboard/today?date=${nextDate}` : null}
             prevAriaLabel={t.today.previousDay}
