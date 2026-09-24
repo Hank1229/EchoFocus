@@ -201,7 +201,9 @@
     "earlierSnapshots": "較早的快照",
     "weeklyReview": "每週",
     "generateWeekly": "每週回顧",
-    "weeklyDesc": "把最近七天彙整成一份回顧。"
+    "weeklyDesc": "把最近七天彙整成一份回顧。",
+    "quotaDaily": "今日的生成次數已用完，明天會重置。",
+    "quotaWeekly": "本週摘要已生成，下週可再產生一次。"
   },
   "settings": {
     "title": "個人檔案",

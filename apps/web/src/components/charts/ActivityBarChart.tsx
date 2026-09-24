@@ -1,6 +1,7 @@
 'use client'
 
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { formatDuration } from '@echofocus/shared'
 
 interface DataPoint {
   date: string
@@ -39,7 +40,7 @@ const CustomTooltip = ({ active, payload, label }: {
         <p key={p.name} className="flex items-center gap-2 text-content-secondary">
           <span aria-hidden className="h-1.5 w-1.5 rounded-full" style={{ background: p.color }} />
           <span className="flex-1">{p.name}</span>
-          <span className="text-content">{formatHours(p.value)}</span>
+          <span className="text-content">{formatDuration(p.value)}</span>
         </p>
       ))}
     </div>

@@ -49,7 +49,7 @@ export type AiAnalysisOutcome =
   // Daily generation cap reached (429) — the Edge Function returns the
   // analysis already stored for today, which is still worth showing.
   | { status: 'cached'; analysisText: string; focusScore: number }
-  | { status: 'error'; reason: 'not-signed-in' | 'no-data' | 'request-failed'; message?: string }
+  | { status: 'error'; reason: 'not-signed-in' | 'no-data' | 'request-failed' | 'daily-quota' | 'weekly-quota'; message?: string }
 
 /**
  * POST a validated payload to the ai-analyze Edge Function.
@@ -92,6 +92,11 @@ async function postAnalysis(
       // score is only the fallback for older function deployments.
       const storedScore = typeof parsed.focus_score === 'number' ? parsed.focus_score : cachedFocusScore
       return { status: 'cached', analysisText: parsed.analysis_text, focusScore: storedScore }
+    }
+    if (res.status === 429) {
+      // Cap reached and nothing stored to show — the client owns the wording
+      // (localized, section-9 tone), never the server's English string.
+      return { status: 'error', reason: payload.type === 'weekly' ? 'weekly-quota' : 'daily-quota' }
     }
     return {
       status: 'error',

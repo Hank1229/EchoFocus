@@ -23,6 +23,7 @@ const HISTORY_BATCH_SIZE = 50
 // Per-user marker, set only after a clean full pass — an interrupted backfill
 // simply reruns on the next sign-in or startup (upserts are idempotent).
 const HISTORY_BACKFILLED_KEY = 'history_backfilled_user'
+export const BACKFILL_RESULT_KEY = 'history_backfill_result'
 
 // Only anonymized data is sent: domain names + durations + categories.
 // Raw URLs and page titles never leave the device.
@@ -185,7 +186,12 @@ export async function backfillHistoryIfNeeded(): Promise<{ backfilled: number; f
   if (failed === 0) {
     await chrome.storage.local.set({ [HISTORY_BACKFILLED_KEY]: userId })
     if (backfilled > 0) {
-      await chrome.storage.local.set({ [LAST_SYNC_KEY]: new Date().toISOString() })
+      await chrome.storage.local.set({
+        [LAST_SYNC_KEY]: new Date().toISOString(),
+        // Standing record for the options page — the transient progress
+        // message disappears, this stays.
+        [BACKFILL_RESULT_KEY]: { days: backfilled, at: new Date().toISOString() },
+      })
     }
   }
   return { backfilled, failed }

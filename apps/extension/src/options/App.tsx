@@ -5,7 +5,7 @@ import type { Settings, ClassificationRule, Category, MatchType, DailyAggregate 
 import { DEFAULT_SETTINGS } from '@echofocus/shared'
 import type { Session } from '@supabase/supabase-js'
 import { signInWithGoogle, signOut, getSession } from '../lib/auth'
-import { syncAggregateForDate, getLastSyncTime, postSignInBootstrap } from '../lib/sync'
+import { syncAggregateForDate, getLastSyncTime, postSignInBootstrap, BACKFILL_RESULT_KEY } from '../lib/sync'
 import { isDailySummaryEnabled, setDailySummaryEnabled } from '../background/notifications'
 import { mergeImportedRules } from './rules-import'
 import { getTodayDateString, getDateNDaysAgo } from '@echofocus/shared'
@@ -476,12 +476,19 @@ function AccountTab() {
   const [isSyncing, setIsSyncing] = useState(false)
   const [syncMessage, setSyncMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const [lastSync, setLastSync] = useState<string | null>(null)
+  const [backfillRecord, setBackfillRecord] = useState<{ days: number; at: string } | null>(null)
 
   useEffect(() => {
     const init = async () => {
-      const [s, ls] = await Promise.all([getSession(), getLastSyncTime()])
+      const [s, ls, stored] = await Promise.all([
+        getSession(),
+        getLastSyncTime(),
+        chrome.storage.local.get(BACKFILL_RESULT_KEY),
+      ])
       setSession(s)
       setLastSync(ls)
+      const record = stored[BACKFILL_RESULT_KEY] as { days: number; at: string } | undefined
+      if (record) setBackfillRecord(record)
       setIsLoading(false)
     }
     void init()
@@ -505,6 +512,9 @@ function AccountTab() {
     } else if (result && result.backfilled > 0) {
       setSyncMessage({ text: t.account.backfillDone.replace('{n}', String(result.backfilled)), ok: true })
       setLastSync(await getLastSyncTime())
+      const stored = await chrome.storage.local.get(BACKFILL_RESULT_KEY)
+      const record = stored[BACKFILL_RESULT_KEY] as { days: number; at: string } | undefined
+      if (record) setBackfillRecord(record)
     } else {
       setSyncMessage(null)
     }
@@ -568,6 +578,13 @@ function AccountTab() {
             {lastSync && (
               <p className="text-xs text-content-tertiary">
                 {t.account.lastSync} <span className="text-content-secondary">{formatSyncTime(lastSync)}</span>
+              </p>
+            )}
+            {backfillRecord && (
+              <p className="text-xs text-content-tertiary">
+                {t.account.backfillRecord
+                  .replace('{n}', String(backfillRecord.days))
+                  .replace('{date}', formatSyncTime(backfillRecord.at))}
               </p>
             )}
             {syncMessage && (

@@ -116,7 +116,8 @@
     "signOut": "登出",
     "backfilling": "正在補傳本機歷史資料…",
     "backfillDone": "已補傳 {n} 天的本機歷史資料。",
-    "backfillPartial": "部分日期尚未上傳成功，之後會自動重試。"
+    "backfillPartial": "部分日期尚未上傳成功，之後會自動重試。",
+    "backfillRecord": "歷史已補傳：{n} 天（{date}）"
   },
   "privacy": {
     "localStorage": "本地儲存",

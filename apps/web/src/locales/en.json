@@ -201,7 +201,9 @@
     "earlierSnapshots": "Earlier snapshots",
     "weeklyReview": "Weekly",
     "generateWeekly": "Weekly review",
-    "weeklyDesc": "Summarize the last seven days in one read."
+    "weeklyDesc": "Summarize the last seven days in one read.",
+    "quotaDaily": "Today's generation limit is used up. It resets tomorrow.",
+    "quotaWeekly": "This week’s summary is already generated. A new one unlocks next week."
   },
   "settings": {
     "title": "Profile",

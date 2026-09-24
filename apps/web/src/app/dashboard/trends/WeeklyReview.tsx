@@ -32,6 +32,7 @@ export default function WeeklyReview({ initialText, language }: Props) {
         case 'error':
           if (outcome.reason === 'not-signed-in') setError(t.aiInsights.pleaseSignIn)
           else if (outcome.reason === 'no-data') setError(t.aiInsights.noSyncedData)
+          else if (outcome.reason === 'weekly-quota') setError(t.aiInsights.quotaWeekly)
           else setError(`${t.aiInsights.analysisFailed}${outcome.message ?? t.aiInsights.unknownError}`)
           break
       }

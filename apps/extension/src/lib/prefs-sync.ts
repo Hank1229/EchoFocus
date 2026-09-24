@@ -448,6 +448,30 @@ async function flush(kind: Pushable): Promise<void> {
 // the nightly sync, on browser startup, and behind the manual "Sync now"
 // button. Signed out it does nothing at all — local rules and settings are the
 // user's data and stay exactly as they are.
+// Theme is deliberately OUTSIDE the reconcile throttle: switching it on the
+// dashboard should show on the very next popup open, and a one-column select
+// is too cheap to ration. The write lands in THEME_KEY, which every open
+// extension page follows via storage.onChanged.
+export async function pullThemeNow(): Promise<void> {
+  try {
+    const session = await getSession()
+    if (!session) return
+    const supabase = getSupabaseClient()
+    const result = await run<{ theme?: unknown }>(() =>
+      supabase
+        .from('user_preferences')
+        .select('theme')
+        .eq('user_id', session.user.id)
+        .maybeSingle(),
+    )
+    if (!result.ok || result.data === null) return
+    const parsed = themePreferenceSchema.safeParse(result.data.theme)
+    if (parsed.success) await chrome.storage.local.set({ [THEME_KEY]: parsed.data })
+  } catch (err) {
+    console.error('[EchoFocus] Theme pull failed:', err)
+  }
+}
+
 // Popup opens call this: fresh dashboard edits (pomodoro durations, theme)
 // should be live by the time the user starts a round, without hammering the
 // cloud on every open. The timestamp is written before the reconcile so two

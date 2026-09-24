@@ -234,21 +234,19 @@ describe('requestAiAnalysis — error and cap handling', () => {
     })
   })
 
-  it('treats a 429 with no stored analysis as a plain failure', async () => {
+  it('surfaces a 429 with no stored analysis as the quota reason — the client owns the wording', async () => {
     respondWith(429, JSON.stringify({ error: 'Daily limit' }))
     expect(await requestAiAnalysis('2026-03-14', 'en')).toEqual({
       status: 'error',
-      reason: 'request-failed',
-      message: 'Daily limit',
+      reason: 'daily-quota',
     })
   })
 
-  it('treats a 429 with an empty analysis string as a plain failure', async () => {
+  it('surfaces a 429 with an empty analysis string as the quota reason', async () => {
     respondWith(429, JSON.stringify({ analysis_text: '' }), 'Too Many Requests')
     expect(await requestAiAnalysis('2026-03-14', 'en')).toEqual({
       status: 'error',
-      reason: 'request-failed',
-      message: 'Too Many Requests',
+      reason: 'daily-quota',
     })
   })
 

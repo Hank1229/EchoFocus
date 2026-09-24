@@ -36,6 +36,7 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
         case 'error':
           if (outcome.reason === 'not-signed-in') setError(t.aiInsights.pleaseSignIn)
           else if (outcome.reason === 'no-data') setError(t.aiInsights.noSyncedData)
+          else if (outcome.reason === 'daily-quota') setError(t.aiInsights.quotaDaily)
           else setError(`${t.aiInsights.analysisFailed}${outcome.message ?? t.aiInsights.unknownError}`)
           break
       }

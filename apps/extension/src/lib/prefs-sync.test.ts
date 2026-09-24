@@ -8,7 +8,7 @@ vi.mock('./auth', () => ({ getSession: vi.fn(), refreshSession: vi.fn() }))
 
 import { getSupabaseClient } from './supabase'
 import { getSession, refreshSession } from './auth'
-import { pushRules, pushSettings, reconcileWithCloud, reconcileIfStale } from './prefs-sync'
+import { pushRules, pushSettings, reconcileWithCloud, reconcileIfStale, pullThemeNow } from './prefs-sync'
 import { getCustomRules, getSettings, saveCustomRules, saveSettings } from '../background/storage'
 
 const USER = 'user-1'
@@ -492,5 +492,32 @@ describe('theme and pomodoro extras on the preferences row', () => {
     await reconcileIfStale()
     expect(supabase.requests.length).toBeGreaterThan(afterFirst)
     vi.useRealTimers()
+  })
+})
+
+describe('pullThemeNow — outside the reconcile throttle', () => {
+  it('writes the cloud theme into storage on every call, throttle or not', async () => {
+    alreadyBootstrapped()
+    supabase.rows.user_preferences = [cloudPrefs({ theme: 'dark' })]
+
+    await pullThemeNow()
+    expect(chromeStub.store.theme).toBe('dark')
+
+    supabase.rows.user_preferences = [cloudPrefs({ theme: 'light' })]
+    const before = supabase.requests.length
+    await pullThemeNow()
+    expect(supabase.requests.length).toBeGreaterThan(before)
+    expect(chromeStub.store.theme).toBe('light')
+  })
+
+  it('leaves storage alone signed out or when the column is missing', async () => {
+    supabase.rows.user_preferences = [cloudPrefs()]
+    await pullThemeNow()
+    expect(chromeStub.store.theme).toBeUndefined()
+
+    vi.mocked(getSession).mockResolvedValue(null)
+    supabase.rows.user_preferences = [cloudPrefs({ theme: 'dark' })]
+    await pullThemeNow()
+    expect(chromeStub.store.theme).toBeUndefined()
   })
 })
