@@ -45,7 +45,7 @@ export default async function TrendsPreviewPage() {
             </div>
           }
         />
-        <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
+        <main className="mx-auto w-full max-w-[1200px] flex-1 px-6 pb-16 pt-8">
           <TrendsView
             days={7}
             avgScore={avgScore}

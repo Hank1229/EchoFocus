@@ -100,6 +100,7 @@ Hierarchy rules:
 - Spacing uses the 4px scale only: 4 / 8 / 12 / 16 / 20 / 24 / 32 / 48. Related elements get small gaps, sections get large gaps; whitespace does half the hierarchy work.
 - Radius: 8px cards, 6px buttons and inputs, full for pills and the score ring. These three values are the entire radius system.
 - Layering: surface color + 1px border. Exactly one shadow exists, reserved for floating elements (dropdowns, tooltips): `0 4px 12px rgba(0,0,0,.08)` (dark theme: .3). Cards have no shadow.
+- Dashboard content column: 1200px max width (header and main share it); the settings form stays on its narrower 48rem measure.
 - Alignment: left-align everything. Centering is allowed only in the popup's top status module and its three-category row beneath — they share one axis; everything below (distribution bar labels, site list) is left-aligned.
 
 ## 5. Motion (the engineering definition of "smooth")
@@ -144,7 +145,7 @@ The pomodoro timer has four states, distinguishable by color and motion without 
 | break | Same layout; ring and glow switch to --rest, glow opacity capped at 0.16, lighter than focusing |
 | paused | Keeps the focusing layout; ring turns --text-tertiary, glow and breathing stop, countdown digits drop to 0.6 opacity |
 
-The breathing glow is the only ambient animation allowed anywhere. Anything similar on any other screen is a violation.
+The breathing glow is the only ambient animation allowed anywhere; the sanction covers the Guide's interactive demo of this same timer component. Anything similar elsewhere is a violation.
 
 ## 7. Popup spec
 

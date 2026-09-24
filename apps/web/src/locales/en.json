@@ -515,6 +515,22 @@
     "localItems": "Every URL and page title;Every individual visit and its timestamps;Your raw browsing history",
     "cloudItems": "Preferences and site rules;Daily totals per category (domains + minutes only);AI analysis text",
     "setupChecklist": "Set your daily goal and idle timeout;Reclassify any site the defaults got wrong;Sign in to sync and unlock AI snapshots",
-    "checklistLinks": "General settings;Category rules;Account"
+    "checklistLinks": "General settings;Category rules;Account",
+    "timerTitle": "The focus timer",
+    "timerBody": "The extension popup carries a pomodoro timer: focus rounds and breaks alternate, the badge counts the minutes down, and a system notification marks each hand-off. Durations live in Settings; the defaults are 25 and 5.",
+    "timerDemoHint": "Press start — this is the extension's actual timer.",
+    "demoSites": "And a day builds up like this"
+  },
+  "timer": {
+    "todaysTotal": "Today's total",
+    "startFocus": "Start focus",
+    "pause": "Pause",
+    "resume": "Resume",
+    "skip": "Skip",
+    "endSession": "End",
+    "focusing": "Focusing",
+    "onBreak": "Break",
+    "timerPaused": "Paused",
+    "focusScore": "Focus score"
   }
 }

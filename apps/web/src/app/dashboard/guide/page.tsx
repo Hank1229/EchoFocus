@@ -20,7 +20,7 @@ export default async function GuidePage() {
         avatarUrl={user.user_metadata?.avatar_url as string | undefined}
       />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
+      <main className="mx-auto w-full max-w-[1200px] flex-1 px-6 pb-16 pt-8">
         <GuideWalkthrough />
       </main>
     </>

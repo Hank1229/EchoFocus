@@ -17,7 +17,7 @@ export default async function SettingsPreviewPage() {
       <DashboardSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <DashboardHeader title={t.settings.settingsTitle} userEmail="preview@echofocus.dev" />
-        <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
+        <main className="mx-auto w-full max-w-[1200px] flex-1 px-6 pb-16 pt-8">
           <div className="max-w-3xl">
             <p className="max-w-[62ch] text-body text-content-secondary">{t.settings.settingsIntro}</p>
             <dl className="mt-6">

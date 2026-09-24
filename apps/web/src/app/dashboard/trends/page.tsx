@@ -129,7 +129,7 @@ export default async function TrendsPage({
         }
       />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
+      <main className="mx-auto w-full max-w-[1200px] flex-1 px-6 pb-16 pt-8">
         {loadError ? (
           <p role="alert" className="max-w-xl text-body" style={{ color: 'var(--danger)' }}>
             {t.common.loadFailed}{loadError.message}

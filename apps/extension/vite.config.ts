@@ -11,6 +11,9 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
+      // Longest first — a bare '@echofocus/shared' prefix alias would splice
+      // subpaths onto index.ts ("index.ts/ui").
+      '@echofocus/shared/ui': path.resolve(__dirname, '../../packages/shared/src/ui/index.ts'),
       '@echofocus/shared': path.resolve(__dirname, '../../packages/shared/src/index.ts'),
       '@': path.resolve(__dirname, './src'),
     },

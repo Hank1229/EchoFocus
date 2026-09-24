@@ -151,6 +151,37 @@ body {
   }
 }
 
+/* Shared TimerModule support (Guide demo): the crossfade between the idle
+   and running views, and the timer's breathing glow — the one ambient
+   animation the product allows, here because this IS the timer, demoed. */
+.xfade {
+  transition: opacity var(--dur-slow) var(--ease);
+}
+.glow-focus {
+  animation: breathe-focus 4s ease-in-out infinite;
+}
+.glow-break {
+  animation: breathe-break 4s ease-in-out infinite;
+}
+@keyframes breathe-focus {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.24;
+  }
+}
+@keyframes breathe-break {
+  0%,
+  100% {
+    opacity: 0.08;
+  }
+  50% {
+    opacity: 0.16;
+  }
+}
+
 /* Chart tooltips fade in over --dur-base (DESIGN.md section 8). Recharts
    mounts the content on first hover, so an entrance animation is the hook. */
 .chart-tooltip {
@@ -171,5 +202,12 @@ body {
   *::after {
     transition-duration: 0ms !important;
     animation: none !important;
+  }
+  /* The glow holds as a static faint halo instead of breathing. */
+  .glow-focus {
+    opacity: 0.18;
+  }
+  .glow-break {
+    opacity: 0.12;
   }
 }

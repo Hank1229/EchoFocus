@@ -11,7 +11,7 @@ export default function PageSkeleton({ shape }: Props) {
   return (
     <>
       <div className="h-16 border-b border-line" />
-      <div className="mx-auto w-full max-w-5xl px-6 pt-8">
+      <div className="mx-auto w-full max-w-[1200px] px-6 pt-8">
         {shape === 'today' && (
           <>
             <div className="rounded-lg border border-line bg-surface p-6 sm:p-7">

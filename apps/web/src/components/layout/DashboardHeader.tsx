@@ -15,7 +15,7 @@ export default function DashboardHeader({ title, context, userEmail, avatarUrl }
 
   return (
     <header className="sticky top-0 z-10 border-b border-line bg-canvas">
-      <div className="mx-auto flex h-16 max-w-5xl items-center gap-4 px-6 sm:gap-6">
+      <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-4 px-6 sm:gap-6">
         <h1 className="flex-shrink-0 text-title text-content">{title}</h1>
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-4">

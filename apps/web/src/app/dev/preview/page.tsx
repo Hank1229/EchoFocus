@@ -62,7 +62,7 @@ export default async function PreviewPage() {
             />
           }
         />
-        <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-8">
+        <main className="mx-auto w-full max-w-[1200px] flex-1 px-6 pb-16 pt-8">
           <div className="space-y-10">
             <TodayReview
               totalSeconds={productive + distraction + neutral}

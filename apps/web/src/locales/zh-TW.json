@@ -515,6 +515,22 @@
     "localItems": "每個網址與頁面標題;每一次造訪與其時間戳;您的原始瀏覽紀錄",
     "cloudItems": "偏好設定與網站規則;每日各類別總時數（僅網域＋分鐘）;AI 分析文字",
     "setupChecklist": "設定每日目標與閒置判定;把預設分錯的網站重新分類;登入以同步並啟用 AI 快照",
-    "checklistLinks": "一般設定;類別規則;帳戶"
+    "checklistLinks": "一般設定;類別規則;帳戶",
+    "timerTitle": "專注計時器",
+    "timerBody": "擴充功能視窗內建番茄鐘：專注與休息輪替進行，圖示 badge 倒數剩餘分鐘，每次交接會發系統通知。時長在設定頁調整，預設 25 與 5 分鐘。",
+    "timerDemoHint": "按下開始體驗——這就是擴充功能裡的計時器本體。",
+    "demoSites": "一天的紀錄會像這樣累積"
+  },
+  "timer": {
+    "todaysTotal": "今日總計",
+    "startFocus": "開始專注",
+    "pause": "暫停",
+    "resume": "繼續",
+    "skip": "跳過",
+    "endSession": "結束",
+    "focusing": "專注中",
+    "onBreak": "休息中",
+    "timerPaused": "已暫停",
+    "focusScore": "專注分數"
   }
 }

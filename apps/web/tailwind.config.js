@@ -3,7 +3,7 @@ const { palette, ink, fonts } = require('../../packages/shared/src/constants/des
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'class',
-  content: ['./src/**/*.{ts,tsx}'],
+  content: ['./src/**/*.{ts,tsx}', '../../packages/shared/src/ui/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {

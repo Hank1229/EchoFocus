@@ -4,6 +4,7 @@ import { palette, ink, fonts } from '../../packages/shared/src/constants/design-
 export default {
   content: [
     './src/**/*.{ts,tsx,html}',
+    '../../packages/shared/src/ui/**/*.{ts,tsx}',
   ],
   theme: {
     extend: {

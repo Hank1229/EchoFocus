@@ -5,11 +5,20 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 import DayWaveform from '@/components/dashboard/DayWaveform'
+import SiteRanking from '../today/SiteRanking'
+import GuideTimerDemo from './GuideTimerDemo'
 import ScoreDial from '@/components/dashboard/ScoreDial'
 
 // The guide is a walkthrough again — one idea per page, a picture beside the
 // words, and a Next button — because being handed a wall of prose is how a
 // reader ends up knowing ABOUT the product without knowing how to work it.
+
+const DEMO_SITES = [
+  { domain: 'github.com', seconds: 9240, category: 'productive' as const },
+  { domain: 'youtube.com', seconds: 3420, category: 'distraction' as const },
+  { domain: 'docs.google.com', seconds: 2760, category: 'productive' as const },
+  { domain: 'gmail.com', seconds: 1560, category: 'neutral' as const },
+]
 
 const DEMO_HOURS = [
   0, 0, 0, 0, 0, 0, 0, 420,
@@ -17,7 +26,7 @@ const DEMO_HOURS = [
   3060, 1740, 660, 0, 900, 480, 0, 0,
 ]
 
-const STEPS = 5
+const STEPS = 6
 
 function split(list: string): string[] {
   return list.split(';').map(s => s.trim()).filter(Boolean)
@@ -70,6 +79,12 @@ export default function GuideWalkthrough() {
         <div className="mt-4">
           <DayWaveform hours={DEMO_HOURS} label={t.today.focusByHour} />
         </div>
+        <div className="mt-6 border-t border-line pt-4">
+          <p className="text-caption text-content-tertiary">{t.guide.demoSites}</p>
+          <div className="mt-2">
+            <SiteRanking heading="" sites={DEMO_SITES} emptyLabel={t.today.noData} />
+          </div>
+        </div>
       </div>
     </div>,
 
@@ -93,7 +108,16 @@ export default function GuideWalkthrough() {
       </div>
     </div>,
 
-    // ── 3 · Categories & rules ──────────────────────────────────────────────
+    // ── 3 · The focus timer — the real component, hands-on ──────────────────
+    <div key="timer" className="grid gap-10 lg:grid-cols-[1fr_26rem] lg:items-center">
+      <div>
+        <h2 className="text-title text-content">{t.guide.timerTitle}</h2>
+        <p className="mt-4 max-w-[58ch] text-body text-content-secondary">{t.guide.timerBody}</p>
+      </div>
+      <GuideTimerDemo />
+    </div>,
+
+    // ── 4 · Categories & rules ──────────────────────────────────────────────
     <div key="rules" className="grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-center">
       <div>
         <h2 className="text-title text-content">{t.guide.categoriesTitle}</h2>

@@ -163,7 +163,7 @@ export default async function SettingsPage({
         avatarUrl={avatarUrl}
       />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-6">
+      <main className="mx-auto w-full max-w-[1200px] flex-1 px-6 pb-16 pt-6">
         <SettingsTabs initialTab={asTab(tab)} panels={panels} />
       </main>
     </>
