@@ -18,7 +18,7 @@ import * as pomodoro from './pomodoro'
 import { requestAiAnalysis } from '../lib/ai'
 import { getTodayDateString } from '@echofocus/shared'
 import { drainSyncQueue, enqueueMissedSyncDates, backfillHistoryIfNeeded, postSignInBootstrap } from '../lib/sync'
-import { pushRules, pushSettings, reconcileWithCloud, reconcileIfStale, pullThemeNow } from '../lib/prefs-sync'
+import { pushRules, pushSettings, reconcileWithCloud, reconcileIfStale, pullInstantPrefs } from '../lib/prefs-sync'
 import { signInWithGoogle } from '../lib/auth'
 
 // ─── Message Types ─────────────────────────────────────────────────────────
@@ -39,6 +39,7 @@ type MessageType =
   | 'GET_POMODORO'
   | 'POMODORO_COMMAND'
   | 'SIGN_IN'
+  | 'REFRESH_CLOUD_PREFS'
 
 interface IncomingMessage {
   type: MessageType
@@ -253,6 +254,13 @@ export async function handleMessage(
       return { success: true, data: info }
     }
 
+    case 'REFRESH_CLOUD_PREFS': {
+      // The open popup polls this so a dashboard save (theme, durations)
+      // lands within a tick instead of waiting for a reopen.
+      await pullInstantPrefs()
+      return { success: true }
+    }
+
     case 'SIGN_IN': {
       // Answer immediately: the popup that asked is about to close when the
       // OAuth window takes focus. The flow finishes here in the worker; the
@@ -276,7 +284,7 @@ export async function handleMessage(
       // dashboard edits (durations, theme) are fresh before a round starts.
       // Fire-and-forget: the popup must not wait on the network.
       void reconcileIfStale().catch(() => undefined)
-      void pullThemeNow().catch(() => undefined)
+      void pullInstantPrefs().catch(() => undefined)
       return { success: true, data: await pomodoro.snapshot() }
     }
 

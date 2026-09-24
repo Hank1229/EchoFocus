@@ -118,7 +118,8 @@
     "backfilling": "Backing up your local history…",
     "backfillDone": "Backed up {n} days of local history.",
     "backfillPartial": "Some days could not be uploaded yet — they will retry automatically.",
-    "backfillRecord": "History backed up: {n} days ({date})"
+    "backfillRecord": "History backed up: {n} days ({date})",
+    "backfillSynced": "Local history is synced to the cloud."
   },
   "privacy": {
     "localStorage": "Local storage",

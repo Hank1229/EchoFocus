@@ -448,27 +448,41 @@ async function flush(kind: Pushable): Promise<void> {
 // the nightly sync, on browser startup, and behind the manual "Sync now"
 // button. Signed out it does nothing at all — local rules and settings are the
 // user's data and stay exactly as they are.
-// Theme is deliberately OUTSIDE the reconcile throttle: switching it on the
-// dashboard should show on the very next popup open, and a one-column select
-// is too cheap to ration. The write lands in THEME_KEY, which every open
+// Theme and pomodoro durations are deliberately OUTSIDE the reconcile
+// throttle: a dashboard save should reach an open popup within its poll tick
+// and a reopened one immediately, and this four-column select is too cheap
+// to ration. Writes land in the extras' storage keys, which every open
 // extension page follows via storage.onChanged.
-export async function pullThemeNow(): Promise<void> {
+const instantPrefsSchema = z.object({
+  theme: themePreferenceSchema.optional().catch(undefined),
+  pomodoro_focus_minutes: z.number().positive().optional().catch(undefined),
+  pomodoro_break_minutes: z.number().positive().optional().catch(undefined),
+  pomodoro_reminders_enabled: z.boolean().optional().catch(undefined),
+})
+
+export async function pullInstantPrefs(): Promise<void> {
   try {
     const session = await getSession()
     if (!session) return
     const supabase = getSupabaseClient()
-    const result = await run<{ theme?: unknown }>(() =>
+    const result = await run<Record<string, unknown>>(() =>
       supabase
         .from('user_preferences')
-        .select('theme')
+        .select('theme, pomodoro_focus_minutes, pomodoro_break_minutes, pomodoro_reminders_enabled')
         .eq('user_id', session.user.id)
         .maybeSingle(),
     )
     if (!result.ok || result.data === null) return
-    const parsed = themePreferenceSchema.safeParse(result.data.theme)
-    if (parsed.success) await chrome.storage.local.set({ [THEME_KEY]: parsed.data })
+    const parsed = instantPrefsSchema.safeParse(result.data)
+    if (!parsed.success) return
+    await adoptExtras({
+      theme: parsed.data.theme,
+      focusMinutes: parsed.data.pomodoro_focus_minutes,
+      breakMinutes: parsed.data.pomodoro_break_minutes,
+      remindersEnabled: parsed.data.pomodoro_reminders_enabled,
+    })
   } catch (err) {
-    console.error('[EchoFocus] Theme pull failed:', err)
+    console.error('[EchoFocus] Instant prefs pull failed:', err)
   }
 }
 

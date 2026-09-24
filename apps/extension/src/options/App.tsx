@@ -580,12 +580,16 @@ function AccountTab() {
                 {t.account.lastSync} <span className="text-content-secondary">{formatSyncTime(lastSync)}</span>
               </p>
             )}
-            {backfillRecord && (
+            {backfillRecord ? (
               <p className="text-xs text-content-tertiary">
                 {t.account.backfillRecord
                   .replace('{n}', String(backfillRecord.days))
                   .replace('{date}', formatSyncTime(backfillRecord.at))}
               </p>
+            ) : (
+              // Accounts backfilled before the record existed (or with
+              // nothing to upload) still deserve a statement, not a blank.
+              <p className="text-xs text-content-tertiary">{t.account.backfillSynced}</p>
             )}
             {syncMessage && (
               <p className={`text-xs ${syncMessage.ok ? 'text-accent' : 'text-danger'}`}>

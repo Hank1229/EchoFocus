@@ -8,7 +8,7 @@ vi.mock('./auth', () => ({ getSession: vi.fn(), refreshSession: vi.fn() }))
 
 import { getSupabaseClient } from './supabase'
 import { getSession, refreshSession } from './auth'
-import { pushRules, pushSettings, reconcileWithCloud, reconcileIfStale, pullThemeNow } from './prefs-sync'
+import { pushRules, pushSettings, reconcileWithCloud, reconcileIfStale, pullInstantPrefs } from './prefs-sync'
 import { getCustomRules, getSettings, saveCustomRules, saveSettings } from '../background/storage'
 
 const USER = 'user-1'
@@ -495,29 +495,38 @@ describe('theme and pomodoro extras on the preferences row', () => {
   })
 })
 
-describe('pullThemeNow — outside the reconcile throttle', () => {
-  it('writes the cloud theme into storage on every call, throttle or not', async () => {
+describe('pullInstantPrefs — outside the reconcile throttle', () => {
+  it('writes theme AND pomodoro prefs on every call, throttle or not', async () => {
     alreadyBootstrapped()
-    supabase.rows.user_preferences = [cloudPrefs({ theme: 'dark' })]
+    supabase.rows.user_preferences = [cloudPrefs({
+      theme: 'dark',
+      pomodoro_focus_minutes: 50,
+      pomodoro_break_minutes: 10,
+      pomodoro_reminders_enabled: false,
+    })]
 
-    await pullThemeNow()
+    await pullInstantPrefs()
     expect(chromeStub.store.theme).toBe('dark')
+    expect(chromeStub.store.pomodoro_settings).toEqual({ focusMinutes: 50, breakMinutes: 10 })
+    expect(chromeStub.store.pomodoro_reminders_enabled).toBe(false)
 
-    supabase.rows.user_preferences = [cloudPrefs({ theme: 'light' })]
+    supabase.rows.user_preferences = [cloudPrefs({ theme: 'light', pomodoro_focus_minutes: 30, pomodoro_break_minutes: 5, pomodoro_reminders_enabled: true })]
     const before = supabase.requests.length
-    await pullThemeNow()
+    await pullInstantPrefs()
     expect(supabase.requests.length).toBeGreaterThan(before)
     expect(chromeStub.store.theme).toBe('light')
+    expect(chromeStub.store.pomodoro_settings).toEqual({ focusMinutes: 30, breakMinutes: 5 })
   })
 
-  it('leaves storage alone signed out or when the column is missing', async () => {
+  it('leaves storage alone signed out or when the columns are missing', async () => {
     supabase.rows.user_preferences = [cloudPrefs()]
-    await pullThemeNow()
+    await pullInstantPrefs()
     expect(chromeStub.store.theme).toBeUndefined()
+    expect(chromeStub.store.pomodoro_settings).toBeUndefined()
 
     vi.mocked(getSession).mockResolvedValue(null)
     supabase.rows.user_preferences = [cloudPrefs({ theme: 'dark' })]
-    await pullThemeNow()
+    await pullInstantPrefs()
     expect(chromeStub.store.theme).toBeUndefined()
   })
 })

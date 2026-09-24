@@ -13,16 +13,29 @@ export async function getStoredTheme(): Promise<ThemePreference> {
   return parsed.success ? parsed.data : 'system'
 }
 
+const MIRROR_KEY = 'echofocus-theme'
+
 function stamp(preference: ThemePreference): void {
   const el = document.documentElement
   if (preference === 'system') delete el.dataset.theme
   else el.dataset.theme = preference
+  // Synchronous mirror for the pre-JS boot script (theme-boot.js): the next
+  // page open paints its first frame from this, then confirms against
+  // chrome.storage before React mounts.
+  try {
+    if (preference === 'system') localStorage.removeItem(MIRROR_KEY)
+    else localStorage.setItem(MIRROR_KEY, preference)
+  } catch {
+    // Storage full/unavailable — the boot script just falls back to the OS.
+  }
 }
 
-// Call once at page entry. Stamps the stored preference and follows any later
-// change (a sync pulling a new choice restyles already-open pages live).
-export function applyStoredTheme(): void {
-  void getStoredTheme().then(stamp)
+// Call once at page entry, and await it before mounting React: the returned
+// promise resolves after the stored preference is stamped, so the first
+// rendered frame is already themed. Later changes (a sync pulling a new
+// choice) restyle already-open pages live.
+export async function applyStoredTheme(): Promise<void> {
+  stamp(await getStoredTheme())
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local' || !(THEME_KEY in changes)) return
     const parsed = themePreferenceSchema.safeParse(changes[THEME_KEY].newValue)

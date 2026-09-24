@@ -44,6 +44,17 @@ export default function App() {
     return () => chrome.storage.onChanged.removeListener(listener)
   }, [])
 
+  // While the popup sits open, poll the cheap cloud prefs (theme, pomodoro
+  // durations) so a dashboard save lands within a tick — the popup has no
+  // push channel from the website.
+  useEffect(() => {
+    if (signedOut) return
+    const interval = setInterval(() => {
+      void sendMessage('REFRESH_CLOUD_PREFS')
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [signedOut])
+
   const toggleTracking = useCallback(async () => {
     await sendMessage('TOGGLE_TRACKING')
     await Promise.all([refreshAggregate(), refreshTrackingState()])

@@ -6,7 +6,7 @@ import './index.css'
 import { LanguageProvider } from '../lib/i18n'
 import { applyStoredTheme } from '../lib/theme'
 
-applyStoredTheme()
+await applyStoredTheme()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

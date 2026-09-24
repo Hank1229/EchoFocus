@@ -20,7 +20,9 @@ export function usePomodoro() {
 
   useEffect(() => {
     const listener = (changes: Record<string, chrome.storage.StorageChange>) => {
-      if ('pomodoro_state' in changes) {
+      // State transitions AND duration edits (synced from the dashboard)
+      // both re-read the snapshot so the ring's total stays honest.
+      if ('pomodoro_state' in changes || 'pomodoro_settings' in changes) {
         void sendMessage<PomodoroSnapshot>('GET_POMODORO').then(response => {
           if (response?.data) setPomodoro(response.data)
         })
