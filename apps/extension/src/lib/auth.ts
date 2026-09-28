@@ -79,9 +79,12 @@ export async function signInWithGoogle(): Promise<Session | null> {
   return sessionData.session
 }
 
+// Product rule: one account, signed in or out on BOTH surfaces together.
+// 'global' revokes every session for the user — the dashboard's included —
+// and the web app's per-request getUser() notices on its next navigation.
 export async function signOut(): Promise<void> {
   const supabase = getSupabaseClient()
-  await supabase.auth.signOut()
+  await supabase.auth.signOut({ scope: 'global' })
 }
 
 export async function getSession(): Promise<Session | null> {
@@ -103,4 +106,29 @@ export async function refreshSession(): Promise<Session | null> {
     return null
   }
   return data.session
+}
+
+const LAST_VERIFY_KEY = 'last_session_verify_at'
+
+// The other direction of the product rule: a dashboard sign-out revokes this
+// session server-side, but the stateless JWT keeps working locally until it
+// expires. Ask the auth server (which checks revocation) on popup opens,
+// throttled; a revoked session signs out locally, which flips every open
+// page via storage.onChanged and stops the sync chain at once. Network
+// failures must never sign the user out.
+export async function verifySessionAlive(minIntervalMs = 60_000): Promise<void> {
+  const supabase = getSupabaseClient()
+  const { data } = await supabase.auth.getSession()
+  if (!data.session) return
+
+  const stored = await chrome.storage.local.get(LAST_VERIFY_KEY)
+  const last = stored[LAST_VERIFY_KEY]
+  if (typeof last === 'number' && Date.now() - last < minIntervalMs) return
+  await chrome.storage.local.set({ [LAST_VERIFY_KEY]: Date.now() })
+
+  const { error } = await supabase.auth.getUser()
+  if (error && (error.status === 401 || error.status === 403)) {
+    console.warn('[EchoFocus] Session revoked elsewhere; signing out locally.')
+    await supabase.auth.signOut({ scope: 'local' })
+  }
 }

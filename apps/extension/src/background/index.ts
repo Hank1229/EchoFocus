@@ -19,7 +19,7 @@ import { requestAiAnalysis } from '../lib/ai'
 import { getTodayDateString } from '@echofocus/shared'
 import { drainSyncQueue, enqueueMissedSyncDates, backfillHistoryIfNeeded, postSignInBootstrap } from '../lib/sync'
 import { pushRules, pushSettings, reconcileWithCloud, reconcileIfStale, pullInstantPrefs } from '../lib/prefs-sync'
-import { signInWithGoogle } from '../lib/auth'
+import { signInWithGoogle, verifySessionAlive } from '../lib/auth'
 
 // ─── Message Types ─────────────────────────────────────────────────────────
 
@@ -285,6 +285,7 @@ export async function handleMessage(
       // Fire-and-forget: the popup must not wait on the network.
       void reconcileIfStale().catch(() => undefined)
       void pullInstantPrefs().catch(() => undefined)
+      void verifySessionAlive().catch(() => undefined)
       return { success: true, data: await pomodoro.snapshot() }
     }
 

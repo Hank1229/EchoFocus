@@ -11,7 +11,9 @@ export default function SignOutButton() {
 
   const handleSignOut = async () => {
     const supabase = createClient()
-    await supabase.auth.signOut()
+    // Product rule: one account, both surfaces together — global revokes the
+    // extension's session too; it notices on its next popup open.
+    await supabase.auth.signOut({ scope: 'global' })
     router.push('/')
     router.refresh()
   }

@@ -29,7 +29,9 @@ export default function App() {
   // caption line, no popup-blocking prompts). Clicking it hands the OAuth
   // flow to the worker — this popup closes when the auth window opens, so
   // the linking state is read back from storage on reopen.
-  const [signedOut, setSignedOut] = useState(false)
+  // null = not read yet. The gear treats anything but a CONFIRMED session
+  // as signed out, so it can never route an unknown state into a login wall.
+  const [signedOut, setSignedOut] = useState<boolean | null>(null)
   const [isLinking, setIsLinking] = useState(false)
   useEffect(() => {
     void chrome.storage.local.get(['supabase_session', 'signin_in_progress']).then(stored => {
@@ -48,7 +50,7 @@ export default function App() {
   // durations) so a dashboard save lands within a tick — the popup has no
   // push channel from the website.
   useEffect(() => {
-    if (signedOut) return
+    if (signedOut !== false) return
     const interval = setInterval(() => {
       void sendMessage('REFRESH_CLOUD_PREFS')
     }, 2500)
@@ -157,7 +159,7 @@ export default function App() {
           />
         </section>
 
-        {signedOut && (
+        {signedOut === true && (
           <button
             onClick={() => { setIsLinking(true); void sendMessage('SIGN_IN') }}
             disabled={isLinking}
@@ -197,9 +199,9 @@ export default function App() {
               options page is where every usable setting lives. */}
           <button
             onClick={() =>
-              signedOut
-                ? chrome.runtime.openOptionsPage()
-                : chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/settings` })
+              signedOut === false
+                ? chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/settings` })
+                : chrome.runtime.openOptionsPage()
             }
             className="pressable text-content-secondary hover:text-content"
             title={t.popup.openSettings}
