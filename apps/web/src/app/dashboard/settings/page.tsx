@@ -166,6 +166,9 @@ export default async function SettingsPage({
       <main className="mx-auto w-full max-w-[1200px] flex-1 px-6 pb-16 pt-6">
         <div className="mx-auto w-full max-w-3xl">
           <SettingsTabs initialTab={asTab(tab)} panels={panels} />
+          <p className="mt-10 border-t border-line pt-5 text-caption text-content-tertiary">
+            {t.settings.extensionOnlyNote}
+          </p>
         </div>
       </main>
     </>

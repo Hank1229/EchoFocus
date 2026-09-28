@@ -193,8 +193,14 @@ export default function App() {
           >
             {t.popup.viewFullAnalysis}
           </button>
+          {/* Signed out, the dashboard would only show a login wall — the
+              options page is where every usable setting lives. */}
           <button
-            onClick={() => chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/settings` })}
+            onClick={() =>
+              signedOut
+                ? chrome.runtime.openOptionsPage()
+                : chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/settings` })
+            }
             className="pressable text-content-secondary hover:text-content"
             title={t.popup.openSettings}
           >

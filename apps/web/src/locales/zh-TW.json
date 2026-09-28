@@ -283,7 +283,8 @@
     "pomodoroReminders": "回合結束提醒",
     "pomodoroRemindersDesc": "專注或休息結束時發送系統通知。",
     "pomodoroDndNote": "macOS 專注模式或勿擾開啟時,系統通知不會顯示。",
-    "pomodoroSyncNote": "儲存後,下次打開擴充功能視窗即生效。"
+    "pomodoroSyncNote": "儲存後,下次打開擴充功能視窗即生效。",
+    "extensionOnlyNote": "裝置層設定——追蹤開關、離線的規則編輯、本機資料匯出與刪除——在擴充功能的選項頁：右鍵點擊 EchoFocus 圖示，選「選項」。"
   },
   "rules": {
     "title": "網站規則",

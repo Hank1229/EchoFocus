@@ -149,6 +149,10 @@ echofocus/
 5. Use `chrome.storage.local` for browsing data, `chrome.storage.sync` for settings
 6. Handle the **5MB quota** for chrome.storage.local — implement cleanup
 
+### Git Process
+
+1. **Never `git add -A` while any change is awaiting the user's approval** — stage approved files explicitly by path, so a pending proposal can't ride along into a commit.
+
 ### Code Style
 
 1. **TypeScript strict mode** everywhere — no `any` types unless absolutely necessary

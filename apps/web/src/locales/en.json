@@ -283,7 +283,8 @@
     "pomodoroReminders": "End-of-round reminders",
     "pomodoroRemindersDesc": "System notifications when a focus round or break ends.",
     "pomodoroDndNote": "System notifications will not appear while macOS Focus or Do Not Disturb is on.",
-    "pomodoroSyncNote": "Saved values reach the extension popup the next time it opens."
+    "pomodoroSyncNote": "Saved values reach the extension popup the next time it opens.",
+    "extensionOnlyNote": "Device-level settings — the tracking switch, offline rule editing, and local data export or deletion — live in the extension's Options page: right-click the EchoFocus icon and choose Options."
   },
   "rules": {
     "title": "Site rules",
