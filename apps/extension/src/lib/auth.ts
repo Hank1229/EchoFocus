@@ -4,17 +4,21 @@ import { getSupabaseClient } from './supabase'
 // Sign in with Google using chrome.identity.launchWebAuthFlow + implicit flow.
 // Supabase must have the redirect URL in Auth → URL Configuration → Redirect URLs:
 //   https://nihkocbmifcdifhhhekcllpelkfeoggl.chromiumapp.org/
-export async function signInWithGoogle(): Promise<Session | null> {
+//
+// silent: the dashboard just signed in, so Google already holds a session and
+// consent — run the same flow in a hidden window with prompt=none. Google
+// answers with an error instead of UI when it would need the user (no
+// session, several accounts), which lands here as a redirect without tokens.
+export async function signInWithGoogle({ silent = false } = {}): Promise<Session | null> {
   const supabase = getSupabaseClient()
   const redirectTo = chrome.identity.getRedirectURL()
-
-  console.log('[EchoFocus] OAuth: redirectTo =', redirectTo)
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
       redirectTo,
       skipBrowserRedirect: true,
+      ...(silent && { queryParams: { prompt: 'none' } }),
     },
   })
 
@@ -23,16 +27,18 @@ export async function signInWithGoogle(): Promise<Session | null> {
     return null
   }
 
-  console.log('[EchoFocus] OAuth: opening auth URL via launchWebAuthFlow')
-
   let responseUrl: string | undefined
   try {
     responseUrl = await chrome.identity.launchWebAuthFlow({
       url: data.url,
-      interactive: true,
+      interactive: !silent,
     })
   } catch (err) {
-    console.error('[EchoFocus] OAuth: launchWebAuthFlow threw:', err)
+    if (silent) {
+      console.info('[EchoFocus] OAuth: silent sign-in needs the user; leaving the one-click button.')
+    } else {
+      console.error('[EchoFocus] OAuth: launchWebAuthFlow threw:', err)
+    }
     return null
   }
 
@@ -58,12 +64,14 @@ export async function signInWithGoogle(): Promise<Session | null> {
 
   if (!accessToken || !refreshToken) {
     // SECURITY: never log the redirect URL, hash, or query — they carry tokens.
-    console.error('[EchoFocus] OAuth: redirect completed but tokens were missing.',
-      'This usually means flowType is not "implicit" — check supabase.ts.')
+    if (silent) {
+      console.info('[EchoFocus] OAuth: silent sign-in declined by Google; leaving the one-click button.')
+    } else {
+      console.error('[EchoFocus] OAuth: redirect completed but tokens were missing.',
+        'This usually means flowType is not "implicit" — check supabase.ts.')
+    }
     return null
   }
-
-  console.log('[EchoFocus] OAuth: tokens received, calling setSession')
 
   const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
     access_token: accessToken,
@@ -79,12 +87,16 @@ export async function signInWithGoogle(): Promise<Session | null> {
   return sessionData.session
 }
 
-// Product rule: one account, signed in or out on BOTH surfaces together.
-// 'global' revokes every session for the user — the dashboard's included —
-// and the web app's per-request getUser() notices on its next navigation.
 export async function signOut(): Promise<void> {
   const supabase = getSupabaseClient()
   await supabase.auth.signOut({ scope: 'global' })
+}
+
+// The dashboard already revoked the account server-side; only this device's
+// copy is left to drop. storage.onChanged flips every open page.
+export async function signOutLocally(): Promise<void> {
+  const supabase = getSupabaseClient()
+  await supabase.auth.signOut({ scope: 'local' })
 }
 
 export async function getSession(): Promise<Session | null> {
@@ -129,6 +141,6 @@ export async function verifySessionAlive(minIntervalMs = 60_000): Promise<void> 
   const { error } = await supabase.auth.getUser()
   if (error && (error.status === 401 || error.status === 403)) {
     console.warn('[EchoFocus] Session revoked elsewhere; signing out locally.')
-    await supabase.auth.signOut({ scope: 'local' })
+    await signOutLocally()
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -30,6 +30,16 @@ export default function LoginPage() {
     }
     // On success, browser redirects automatically — no need to setIsLoading(false)
   }
+
+  // ?auto=1 is how the extension hands over after its own sign-in: the Google
+  // session is fresh, so the redirect passes through untouched. The query is
+  // dropped from history first so Back can't replay the sign-in; a cancelled
+  // or failed one lands on the plain login page, never here again.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('auto') !== '1') return
+    window.history.replaceState(null, '', '/login')
+    void handleGoogleLogin()
+  }, [])
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center px-4">

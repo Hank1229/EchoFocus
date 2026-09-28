@@ -37,6 +37,9 @@ export interface ChromeStub {
   lastFocusedWindowId: number
   idleDetectionIntervalSeconds: number | null
   createdTabUrls: string[]
+  /** tabs.update() calls in order — reuse-a-tab assertions read these. */
+  updatedTabs: Array<{ id: number; info: { url?: string; active?: boolean } }>
+  focusedWindowIds: number[]
   removedKeys: string[][]
   /** Enforced: a set() that would push the store past this rejects the way
    *  Chrome's does. Generous by default so existing tests never hit it. */
@@ -65,6 +68,8 @@ export function installChromeStub(): ChromeStub {
     lastFocusedWindowId: 1,
     idleDetectionIntervalSeconds: null,
     createdTabUrls: [],
+    updatedTabs: [],
+    focusedWindowIds: [],
     removedKeys: [],
     quotaBytes: 10485760,
     beforeSet: null,
@@ -174,17 +179,30 @@ export function installChromeStub(): ChromeStub {
       active?: boolean
       windowId?: number
       lastFocusedWindow?: boolean
+      url?: string
     }): Promise<StubTab[]> {
+      const urlPattern = info.url === undefined
+        ? null
+        : new RegExp('^' + info.url.split('*').map((s) => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$')
       return stub.tabs
         .filter((t) => (info.active === undefined ? true : t.active === info.active))
         .filter((t) => (info.windowId === undefined ? true : t.windowId === info.windowId))
         .filter((t) => (info.lastFocusedWindow ? t.windowId === stub.lastFocusedWindowId : true))
+        .filter((t) => (urlPattern ? urlPattern.test(t.url ?? '') : true))
         .map(clone)
     },
     async create(info: { url: string }): Promise<StubTab> {
       stub.createdTabUrls.push(info.url)
       const tab: StubTab = { id: 9999, windowId: stub.lastFocusedWindowId, active: true, url: info.url }
       return tab
+    },
+    async update(tabId: number, info: { url?: string; active?: boolean }): Promise<StubTab> {
+      stub.updatedTabs.push({ id: tabId, info: { ...info } })
+      const tab = stub.tabs.find((t) => t.id === tabId)
+      if (!tab) throw new Error(`No tab with id: ${tabId}`)
+      if (info.url !== undefined) tab.url = info.url
+      if (info.active !== undefined) tab.active = info.active
+      return clone(tab)
     },
     onActivated: { addListener: () => undefined },
     onUpdated: { addListener: () => undefined },
@@ -235,7 +253,16 @@ export function installChromeStub(): ChromeStub {
       async getLastFocused(): Promise<{ id: number; focused: boolean }> {
         return { ...stub.lastFocusedWindow }
       },
+      async update(windowId: number, _info: { focused?: boolean }): Promise<void> {
+        stub.focusedWindowIds.push(windowId)
+      },
       onFocusChanged: { addListener: () => undefined },
+    },
+    identity: {
+      getRedirectURL: () => 'https://echofocus-test.chromiumapp.org/',
+      async launchWebAuthFlow(_details: { url: string; interactive?: boolean }): Promise<string | undefined> {
+        return undefined
+      },
     },
     runtime: {
       id: 'echofocus-test',
@@ -244,6 +271,7 @@ export function installChromeStub(): ChromeStub {
       onInstalled: { addListener: () => undefined },
       onStartup: { addListener: () => undefined },
       onMessage: { addListener: () => undefined },
+      onMessageExternal: { addListener: () => undefined },
       onConnect: { addListener: () => undefined },
     },
   }

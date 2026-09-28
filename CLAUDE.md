@@ -213,6 +213,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key  # server-side only
+NEXT_PUBLIC_EXTENSION_ID=your-extension-id       # for the signed-in/out events to the extension
 ```
 
 ### Supabase Edge Functions (supabase/.env)
