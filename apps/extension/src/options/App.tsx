@@ -474,6 +474,7 @@ function AccountTab() {
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSigningIn, setIsSigningIn] = useState(false)
+  const [signInError, setSignInError] = useState<string | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
   const [syncMessage, setSyncMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const [lastSync, setLastSync] = useState<string | null>(null)
@@ -497,11 +498,17 @@ function AccountTab() {
 
   const handleSignIn = async () => {
     setIsSigningIn(true)
+    setSignInError(null)
     setSyncMessage(null)
-    const s = await signInWithGoogle()
-    setSession(s)
+    const outcome = await signInWithGoogle()
     setIsSigningIn(false)
-    if (!s) return
+    if (!('session' in outcome)) {
+      // Closing the Google window is the user's own answer; it needs no reply.
+      if (outcome.failure === 'busy') setSignInError(t.account.signInBusy)
+      if (outcome.failure === 'failed') setSignInError(t.account.signInFailed)
+      return
+    }
+    setSession(outcome.session)
 
     // The moment of signing in owes the user their pre-account history:
     // merge rules/preferences, carry the whole local archive up, drain the
@@ -648,6 +655,9 @@ function AccountTab() {
                 <><GoogleIcon />{t.account.signInWithGoogle}</>
               )}
             </button>
+            {signInError && (
+              <p role="alert" className="text-xs text-danger">{signInError}</p>
+            )}
           </section>
         </>
       )}

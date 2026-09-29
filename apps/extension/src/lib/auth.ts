@@ -9,7 +9,22 @@ import { getSupabaseClient } from './supabase'
 // consent — run the same flow in a hidden window with prompt=none. Google
 // answers with an error instead of UI when it would need the user (no
 // session, several accounts), which lands here as a redirect without tokens.
-export async function signInWithGoogle({ silent = false } = {}): Promise<Session | null> {
+//
+// A failure says why, so the button that started it can tell the user.
+// 'busy': Chrome runs one auth flow per extension at a time and one is still
+// open — often a window the user lost track of — so nothing new can start
+// until that one is finished or closed.
+export type SignInFailure = 'busy' | 'cancelled' | 'failed'
+export type SignInOutcome = { session: Session } | { failure: SignInFailure }
+
+function flowFailure(err: unknown): SignInFailure {
+  const message = err instanceof Error ? err.message : String(err)
+  if (message.includes('Only one web auth flow')) return 'busy'
+  if (message.includes('did not approve')) return 'cancelled'
+  return 'failed'
+}
+
+export async function signInWithGoogle({ silent = false } = {}): Promise<SignInOutcome> {
   const supabase = getSupabaseClient()
   const redirectTo = chrome.identity.getRedirectURL()
 
@@ -24,7 +39,7 @@ export async function signInWithGoogle({ silent = false } = {}): Promise<Session
 
   if (error || !data.url) {
     console.error('[EchoFocus] OAuth: signInWithOAuth error:', error)
-    return null
+    return { failure: 'failed' }
   }
 
   let responseUrl: string | undefined
@@ -39,12 +54,12 @@ export async function signInWithGoogle({ silent = false } = {}): Promise<Session
     } else {
       console.error('[EchoFocus] OAuth: launchWebAuthFlow threw:', err)
     }
-    return null
+    return { failure: flowFailure(err) }
   }
 
   if (!responseUrl) {
     console.error('[EchoFocus] OAuth: launchWebAuthFlow returned empty URL')
-    return null
+    return { failure: 'failed' }
   }
 
   // Chrome only resolves launchWebAuthFlow at the extension's own
@@ -52,7 +67,7 @@ export async function signInWithGoogle({ silent = false } = {}): Promise<Session
   // it here too so token parsing never runs on an unexpected URL.
   if (!responseUrl.startsWith(redirectTo)) {
     console.error('[EchoFocus] OAuth: response URL origin mismatch')
-    return null
+    return { failure: 'failed' }
   }
 
   const url = new URL(responseUrl)
@@ -70,7 +85,7 @@ export async function signInWithGoogle({ silent = false } = {}): Promise<Session
       console.error('[EchoFocus] OAuth: redirect completed but tokens were missing.',
         'This usually means flowType is not "implicit" — check supabase.ts.')
     }
-    return null
+    return { failure: 'failed' }
   }
 
   const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
@@ -78,13 +93,13 @@ export async function signInWithGoogle({ silent = false } = {}): Promise<Session
     refresh_token: refreshToken,
   })
 
-  if (sessionError) {
+  if (sessionError || !sessionData.session) {
     console.error('[EchoFocus] OAuth: setSession error:', sessionError)
-    return null
+    return { failure: 'failed' }
   }
 
   console.log('[EchoFocus] OAuth: sign-in successful')
-  return sessionData.session
+  return { session: sessionData.session }
 }
 
 export async function signOut(): Promise<void> {

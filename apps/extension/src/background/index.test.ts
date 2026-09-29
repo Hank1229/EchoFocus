@@ -10,7 +10,7 @@ vi.mock('../lib/ai', () => ({
 // SIGN_IN hands the OAuth flow to the worker; neither the identity API nor
 // the network exist here.
 vi.mock('../lib/auth', () => ({
-  signInWithGoogle: vi.fn(async () => ({ user: { id: 'user-1' } })),
+  signInWithGoogle: vi.fn(async () => ({ session: { user: { id: 'user-1' } } })),
   signOutLocally: vi.fn(async () => undefined),
   getSession: vi.fn(async () => null),
   refreshSession: vi.fn(async () => false),
@@ -57,7 +57,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   // clearAllMocks keeps a test's mockResolvedValue() override; re-seed the
   // sign-in defaults so a cancelled-OAuth test can't leak into the next one.
-  vi.mocked(auth.signInWithGoogle).mockResolvedValue({ user: { id: 'user-1' } } as never)
+  vi.mocked(auth.signInWithGoogle).mockResolvedValue({ session: { user: { id: 'user-1' } } } as never)
   vi.mocked(auth.getSession).mockResolvedValue(null)
   vi.mocked(sync.postSignInBootstrap).mockResolvedValue({ backfilled: 3, failed: 0 })
   vi.useFakeTimers({ toFake: ['Date'] })
@@ -161,7 +161,7 @@ describe('SIGN_IN (one-click from the popup)', () => {
   })
 
   it('a cancelled OAuth clears the progress flag and skips the bootstrap', async () => {
-    vi.mocked(auth.signInWithGoogle).mockResolvedValue(null)
+    vi.mocked(auth.signInWithGoogle).mockResolvedValue({ failure: 'cancelled' })
 
     await handleMessage({ type: 'SIGN_IN' })
     await flushSignInFlow()
@@ -220,7 +220,7 @@ describe('dashboard events (runtime.onMessageExternal)', () => {
   })
 
   it('a failed silent sign-in clears the progress flag so the popup offers the button again', async () => {
-    vi.mocked(auth.signInWithGoogle).mockResolvedValue(null)
+    vi.mocked(auth.signInWithGoogle).mockResolvedValue({ failure: 'cancelled' })
 
     await dashboardEvent({ event: 'signed-in' }, fromDashboard)
     await flushSignInFlow()
@@ -240,7 +240,7 @@ describe('dashboard events (runtime.onMessageExternal)', () => {
   })
 
   it('probes Google at most once a minute while signed out', async () => {
-    vi.mocked(auth.signInWithGoogle).mockResolvedValue(null)
+    vi.mocked(auth.signInWithGoogle).mockResolvedValue({ failure: 'cancelled' })
 
     await dashboardEvent({ event: 'signed-in' }, fromDashboard)
     await flushSignInFlow()
@@ -255,12 +255,12 @@ describe('dashboard events (runtime.onMessageExternal)', () => {
   })
 
   it('the popup button during a silent attempt joins it instead of starting a second flow', async () => {
-    let finish: (value: null) => void = () => undefined
+    let finish: (value: auth.SignInOutcome) => void = () => undefined
     vi.mocked(auth.signInWithGoogle).mockReturnValue(new Promise((resolve) => { finish = resolve }))
 
     await dashboardEvent({ event: 'signed-in' }, fromDashboard)
     await handleMessage({ type: 'SIGN_IN' })
-    finish(null)
+    finish({ failure: 'failed' })
     await flushSignInFlow()
 
     expect(auth.signInWithGoogle).toHaveBeenCalledTimes(1)
@@ -283,5 +283,18 @@ describe('dashboard events (runtime.onMessageExternal)', () => {
     await flushSignInFlow()
     expect(auth.signInWithGoogle).not.toHaveBeenCalled()
     expect(auth.signOutLocally).not.toHaveBeenCalled()
+  })
+})
+
+describe('worker startup', () => {
+  // The flow that set this flag lived in the previous worker's memory. Left
+  // alone, the popup would sit on "connecting" with no flow behind it.
+  it('drops a sign-in flag left by a previous worker', async () => {
+    chromeStub.store.signin_in_progress = Date.now()
+    vi.resetModules()
+    await import('./index')
+    await flushSignInFlow()
+
+    expect(chromeStub.store.signin_in_progress).toBeUndefined()
   })
 })

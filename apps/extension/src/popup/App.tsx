@@ -12,6 +12,7 @@ import type { Category } from '@echofocus/shared'
 import { useLocale, type Language } from '../lib/i18n'
 import { DASHBOARD_URL } from '../lib/config'
 import { sendMessage } from '../lib/messaging'
+import { isSignInPending } from '../lib/signin-flag'
 
 const DOTS: Record<Category, string> = {
   productive: 'var(--productive)',
@@ -36,11 +37,11 @@ export default function App() {
   useEffect(() => {
     void chrome.storage.local.get(['supabase_session', 'signin_in_progress']).then(stored => {
       setSignedOut(stored.supabase_session === undefined)
-      setIsLinking(stored.signin_in_progress === true)
+      setIsLinking(isSignInPending(stored.signin_in_progress))
     })
     const listener = (changes: Record<string, chrome.storage.StorageChange>) => {
       if ('supabase_session' in changes) setSignedOut(changes.supabase_session.newValue === undefined)
-      if ('signin_in_progress' in changes) setIsLinking(changes.signin_in_progress.newValue === true)
+      if ('signin_in_progress' in changes) setIsLinking(isSignInPending(changes.signin_in_progress.newValue))
     }
     chrome.storage.onChanged.addListener(listener)
     return () => chrome.storage.onChanged.removeListener(listener)

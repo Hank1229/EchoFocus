@@ -54,6 +54,9 @@ interface IncomingMessage {
 // awaits `ready` first, so no handler can observe pre-restore state and the
 // dangling-session finalization can never run twice.
 const ready: Promise<void> = (async () => {
+  // A sign-in flow lives in one worker's memory; a flag this worker finds on
+  // waking belongs to a flow that died with the previous one.
+  await chrome.storage.local.remove('signin_in_progress')
   await restoreState()
   await ensureHeartbeatAlarm()
 })().catch((err) => {
@@ -304,10 +307,10 @@ let signInInFlight: Promise<void> | null = null
 function signIn({ silent }: { silent: boolean }): Promise<void> {
   if (signInInFlight) return signInInFlight
   signInInFlight = (async () => {
-    await chrome.storage.local.set({ signin_in_progress: true })
+    await chrome.storage.local.set({ signin_in_progress: Date.now() })
     try {
-      const session = await signInWithGoogle({ silent })
-      if (!session) return
+      const outcome = await signInWithGoogle({ silent })
+      if (!('session' in outcome)) return
       try {
         await postSignInBootstrap()
       } catch (err) {

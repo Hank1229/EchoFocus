@@ -107,6 +107,8 @@
     "privacyNote": "僅同步匿名統計（網域 + 時長）。原始網址永遠不會離開您的裝置。",
     "signInWithGoogle": "使用 Google 登入",
     "signingIn": "登入中…",
+    "signInBusy": "已經有一個 Google 登入視窗開著。請完成或關閉它，再試一次。",
+    "signInFailed": "登入沒有完成，請再試一次。",
     "dataSync": "資料同步",
     "autoSyncNote": "每日凌晨 00:05 自動同步。僅上傳匿名統計 — 原始瀏覽資料始終保留在您的裝置上。",
     "lastSync": "上次同步：",

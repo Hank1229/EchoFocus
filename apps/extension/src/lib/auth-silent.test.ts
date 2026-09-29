@@ -49,12 +49,12 @@ describe('signInWithGoogle — silent mode', () => {
     expect(oauthOptions?.queryParams).toBeUndefined()
   })
 
-  it('a declined silent flow (Chrome rejects, or Google redirects without tokens) is a quiet null', async () => {
+  it('a declined silent flow (Chrome rejects, or Google redirects without tokens) is a quiet failure', async () => {
     flowResponse = new Error('User interaction required.')
-    expect(await signInWithGoogle({ silent: true })).toBeNull()
+    expect(await signInWithGoogle({ silent: true })).toEqual({ failure: 'failed' })
 
     flowResponse = 'https://echofocus-test.chromiumapp.org/#error=interaction_required'
-    expect(await signInWithGoogle({ silent: true })).toBeNull()
+    expect(await signInWithGoogle({ silent: true })).toEqual({ failure: 'failed' })
 
     expect(setSessionCalls).toBe(0)
     expect(console.error).not.toHaveBeenCalled()
@@ -62,8 +62,22 @@ describe('signInWithGoogle — silent mode', () => {
 
   it('a completed silent flow sets the session like the interactive one', async () => {
     flowResponse = 'https://echofocus-test.chromiumapp.org/#access_token=a&refresh_token=r'
-    const session = await signInWithGoogle({ silent: true })
-    expect(session).toEqual({ user: { id: 'u' } })
+    const outcome = await signInWithGoogle({ silent: true })
+    expect(outcome).toEqual({ session: { user: { id: 'u' } } })
     expect(setSessionCalls).toBe(1)
+  })
+})
+
+describe('signInWithGoogle — why a sign-in failed', () => {
+  // Chrome allows one auth flow per extension. A window left open blocks every
+  // later press, and a bare null made that press look like nothing happened.
+  it('reports busy when Chrome refuses a second flow while one is still open', async () => {
+    flowResponse = new Error('Only one web auth flow is allowed at a time.')
+    expect(await signInWithGoogle()).toEqual({ failure: 'busy' })
+  })
+
+  it('reports cancelled when the user closes the Google window', async () => {
+    flowResponse = new Error('The user did not approve access.')
+    expect(await signInWithGoogle()).toEqual({ failure: 'cancelled' })
   })
 })
