@@ -30,8 +30,7 @@ export default function App() {
   // caption line, no popup-blocking prompts). Clicking it hands the OAuth
   // flow to the worker — this popup closes when the auth window opens, so
   // the linking state is read back from storage on reopen.
-  // null = not read yet. The gear treats anything but a CONFIRMED session
-  // as signed out, so it can never route an unknown state into a login wall.
+  // null = not read yet, so the nudge never flashes before storage answers.
   const [signedOut, setSignedOut] = useState<boolean | null>(null)
   const [isLinking, setIsLinking] = useState(false)
   useEffect(() => {
@@ -196,14 +195,10 @@ export default function App() {
           >
             {t.popup.viewFullAnalysis}
           </button>
-          {/* Signed out, the dashboard would only show a login wall — the
-              options page is where every usable setting lives. */}
+          {/* Settings live on the dashboard; its footer links the few that
+              stay extension-only. */}
           <button
-            onClick={() =>
-              signedOut === false
-                ? chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/settings` })
-                : chrome.runtime.openOptionsPage()
-            }
+            onClick={() => chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/settings` })}
             className="pressable text-content-secondary hover:text-content"
             title={t.popup.openSettings}
           >

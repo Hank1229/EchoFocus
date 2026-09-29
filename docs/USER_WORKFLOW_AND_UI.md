@@ -242,7 +242,7 @@ DailyAggregate (local) → ai.ts → Edge Function ai-analyze
 
 ### WF-09 Manage Custom Rules (Extension Options)
 
-**Trigger:** User opens Options (right-click extension → Options, or gear icon in popup footer).
+**Trigger:** User opens Options (right-click extension → Options). The popup's gear opens Dashboard Settings, whose footer points here for the extension-only settings.
 
 **Steps:**
 
