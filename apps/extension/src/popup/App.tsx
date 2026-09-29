@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Moon, Settings as SettingsIcon } from 'lucide-react'
+import { LogIn, Moon, Settings as SettingsIcon } from 'lucide-react'
 import iconSrc from '../assets/icon-32.png'
 import { useTodayStats } from './hooks/useTodayStats'
 import { usePomodoro } from './hooks/usePomodoro'
@@ -14,6 +14,11 @@ import { DASHBOARD_URL } from '../lib/config'
 import { sendMessage } from '../lib/messaging'
 import { isSignInPending } from '../lib/signin-flag'
 
+const LANGUAGES: { value: Language; short: string; name: string }[] = [
+  { value: 'en', short: 'EN', name: 'English' },
+  { value: 'zh-TW', short: '繁', name: '繁體中文' },
+]
+
 const DOTS: Record<Category, string> = {
   productive: 'var(--productive)',
   distraction: 'var(--rest)',
@@ -26,10 +31,10 @@ export default function App() {
   const { aggregate, trackingState, currentSession, isLoading, refreshAggregate, refreshTrackingState } = useTodayStats()
   const { pomodoro, remainingMs, command } = usePomodoro()
 
-  // Quiet sign-in nudge: shown only while signed out (DESIGN.md tone — one
-  // caption line, no popup-blocking prompts). Clicking it hands the OAuth
-  // flow to the worker — this popup closes when the auth window opens, so
-  // the linking state is read back from storage on reopen.
+  // Sign-in entry, shown only while signed out, directly under the header:
+  // the popup outgrows Chrome's 600px cap, so anything lower needs a scroll.
+  // Clicking it hands the OAuth flow to the worker — this popup closes when
+  // the auth window opens, so the linking state is read back on reopen.
   // null = not read yet, so the nudge never flashes before storage answers.
   const [signedOut, setSignedOut] = useState<boolean | null>(null)
   const [isLinking, setIsLinking] = useState(false)
@@ -61,10 +66,6 @@ export default function App() {
     await sendMessage('TOGGLE_TRACKING')
     await Promise.all([refreshAggregate(), refreshTrackingState()])
   }, [refreshAggregate, refreshTrackingState])
-
-  const toggleLanguage = () => {
-    setLanguage(language === 'en' ? 'zh-TW' : 'en' as Language)
-  }
 
   const isTracking = trackingState?.isTracking ?? false
   const topDomains = aggregate?.topDomains ?? []
@@ -116,6 +117,19 @@ export default function App() {
       </header>
 
       <div className="flex flex-col gap-4 px-4 py-3">
+        {signedOut === true && (
+          // Outline, not solid: the idle module's "Start focus" is the one
+          // filled accent button, and two would fight for the same glance.
+          <button
+            onClick={() => { setIsLinking(true); void sendMessage('SIGN_IN') }}
+            disabled={isLinking}
+            className="pressable flex w-full items-center justify-center gap-2 rounded-md border border-accent bg-surface px-3 py-2 text-label text-accent hover:bg-surface-hover disabled:cursor-default disabled:opacity-60"
+          >
+            <LogIn size={14} strokeWidth={1.5} aria-hidden="true" />
+            {isLinking ? t.popup.connecting : t.popup.signInHint}
+          </button>
+        )}
+
         {currentSession?.domain && (
           <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2">
             <span
@@ -158,16 +172,6 @@ export default function App() {
             currentElapsedSeconds={currentElapsed}
           />
         </section>
-
-        {signedOut === true && (
-          <button
-            onClick={() => { setIsLinking(true); void sendMessage('SIGN_IN') }}
-            disabled={isLinking}
-            className="pressable text-left text-caption text-content-tertiary hover:text-accent disabled:opacity-60"
-          >
-            {isLinking ? t.popup.connecting : t.popup.signInHint}
-          </button>
-        )}
       </div>
 
       <footer className="mt-auto flex items-center justify-between border-t border-line px-4 py-3">
@@ -175,23 +179,33 @@ export default function App() {
           <span className="text-caption text-content-tertiary">
             {new Date().toLocaleDateString(dateLocale, { month: 'long', day: 'numeric' })}
           </span>
-          <button
-            onClick={toggleLanguage}
-            className="pressable text-caption text-content-tertiary hover:text-content-secondary"
-            title={language === 'en' ? '切換至繁體中文' : 'Switch to English'}
-          >
-            {language === 'en' ? 'EN' : '繁'}
-          </button>
+          <div role="group" aria-label={t.general.language} className="flex items-center rounded-full border border-line p-0.5">
+            {LANGUAGES.map(({ value, short, name }) => (
+              <button
+                key={value}
+                onClick={() => setLanguage(value)}
+                aria-pressed={language === value}
+                title={name}
+                className={`pressable rounded-full px-2 py-0.5 text-caption ${
+                  language === value
+                    ? 'bg-accent-subtle text-accent'
+                    : 'text-content-secondary hover:bg-surface-hover hover:text-content'
+                }`}
+              >
+                {short}
+              </button>
+            ))}
+          </div>
           {trackingState?.isIdle && (
             <span className="flex items-center gap-1 text-caption text-content-tertiary">
               <Moon size={12} strokeWidth={1.5} /> {t.popup.idle}
             </span>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="-mr-1.5 flex items-center gap-1">
           <button
             onClick={() => chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/today` })}
-            className="pressable text-label text-accent"
+            className="pressable rounded-md px-2 py-1 text-label text-accent hover:bg-surface-hover"
           >
             {t.popup.viewFullAnalysis}
           </button>
@@ -199,7 +213,7 @@ export default function App() {
               stay extension-only. */}
           <button
             onClick={() => chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/settings` })}
-            className="pressable text-content-secondary hover:text-content"
+            className="pressable rounded-md p-1.5 text-content-secondary hover:bg-surface-hover hover:text-content"
             title={t.popup.openSettings}
           >
             <SettingsIcon size={16} strokeWidth={1.5} />

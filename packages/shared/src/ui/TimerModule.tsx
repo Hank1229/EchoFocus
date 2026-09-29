@@ -83,7 +83,7 @@ export function TimerModule({ score, totalSeconds, snapshot, remainingMs, string
               paused={paused}
               strings={strings}
             />
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => onCommand(paused ? 'resume' : 'pause')}
                 className="pressable rounded-md bg-accent-subtle px-4 py-1.5 text-label text-accent"
@@ -92,13 +92,13 @@ export function TimerModule({ score, totalSeconds, snapshot, remainingMs, string
               </button>
               <button
                 onClick={() => onCommand('skip')}
-                className="pressable rounded-md px-3 py-1.5 text-label text-content-secondary hover:bg-surface-hover"
+                className="pressable rounded-md border border-line px-3 py-1.5 text-label text-content-secondary hover:border-line-strong hover:bg-surface-hover hover:text-content"
               >
                 {strings.skip}
               </button>
               <button
                 onClick={() => onCommand('stop')}
-                className="pressable rounded-md px-3 py-1.5 text-caption text-content-tertiary hover:bg-surface-hover"
+                className="pressable rounded-md border border-line px-3 py-1.5 text-caption text-content-secondary hover:border-line-strong hover:bg-surface-hover hover:text-content"
               >
                 {strings.endSession}
               </button>

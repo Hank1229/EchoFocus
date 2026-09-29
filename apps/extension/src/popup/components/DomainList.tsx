@@ -44,10 +44,7 @@ export default function DomainList({ domains, currentDomain, currentElapsedSecon
   return (
     <div className="flex flex-col">
       {topFive.map(domain => (
-        <div
-          key={domain.domain}
-          className="pressable flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-surface-hover"
-        >
+        <div key={domain.domain} className="flex items-center gap-2 py-1.5">
           <span
             aria-hidden="true"
             className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
