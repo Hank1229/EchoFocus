@@ -101,11 +101,6 @@ export const aiAnalysisRequestSchema = z.union([
   z.object({ date: dateStringSchema, language: z.string().optional() }),
 ])
 
-// What the dashboard page may tell the extension (runtime.onMessageExternal).
-// Events only — each surface holds its own Supabase session, nothing else
-// crosses.
-export const dashboardEventSchema = z.object({ event: z.enum(['signed-in', 'signed-out']) })
-
 export const themePreferenceSchema = z.enum(['light', 'dark', 'system'])
 
 export type ThemePreference = z.infer<typeof themePreferenceSchema>

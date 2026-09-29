@@ -13,14 +13,13 @@ import {
 import { applySettings } from './settings'
 import { setupAlarms, ensureHeartbeatAlarm, handleAlarm } from './alarms'
 import { openDailySummary } from './notifications'
-import { partialSettingsSchema, classificationRuleArraySchema, dateStringSchema, aiAnalysisRequestSchema, pomodoroCommandSchema, dashboardEventSchema } from '../lib/schemas'
+import { partialSettingsSchema, classificationRuleArraySchema, dateStringSchema, aiAnalysisRequestSchema, pomodoroCommandSchema } from '../lib/schemas'
 import * as pomodoro from './pomodoro'
 import { requestAiAnalysis } from '../lib/ai'
 import { getTodayDateString } from '@echofocus/shared'
 import { drainSyncQueue, enqueueMissedSyncDates, backfillHistoryIfNeeded, postSignInBootstrap } from '../lib/sync'
 import { pushRules, pushSettings, reconcileWithCloud, reconcileIfStale, pullInstantPrefs } from '../lib/prefs-sync'
-import { signInWithGoogle, signOutLocally, getSession, verifySessionAlive } from '../lib/auth'
-import { openSignedInDashboard, DASHBOARD_ORIGIN } from '../lib/dashboard-tab'
+import { signInWithGoogle, verifySessionAlive } from '../lib/auth'
 
 // ─── Message Types ─────────────────────────────────────────────────────────
 
@@ -269,7 +268,7 @@ export async function handleMessage(
       // Answer immediately: the popup that asked is about to close when the
       // OAuth window takes focus. The flow finishes here in the worker; the
       // popup reads signin_in_progress / the stored session when it reopens.
-      void signIn({ silent: false })
+      void signIn()
       return { success: true }
     }
 
@@ -300,74 +299,26 @@ export async function handleMessage(
 
 let signInInFlight: Promise<void> | null = null
 
-// One flow at a time — a silent attempt the dashboard kicked off must not race
-// the popup's one-click button. The dashboard opens ONLY after a sign-in the
-// user asked for on this side: a silent one exists because the dashboard is
-// already signed in, and opening it again would loop the two surfaces.
-function signIn({ silent }: { silent: boolean }): Promise<void> {
+// One flow at a time: a popup reopened mid-flow joins the running one instead
+// of asking Chrome for a second, which it refuses.
+function signIn(): Promise<void> {
   if (signInInFlight) return signInInFlight
   signInInFlight = (async () => {
     await chrome.storage.local.set({ signin_in_progress: Date.now() })
     try {
-      const outcome = await signInWithGoogle({ silent })
+      const outcome = await signInWithGoogle()
       if (!('session' in outcome)) return
       try {
         await postSignInBootstrap()
       } catch (err) {
         console.error('[EchoFocus] Post-sign-in bootstrap failed:', err)
       }
-      if (!silent) await openSignedInDashboard()
     } finally {
       await chrome.storage.local.remove('signin_in_progress')
       signInInFlight = null
     }
   })()
   return signInInFlight
-}
-
-const SILENT_SIGN_IN_RETRY_MS = 60_000
-
-// Every dashboard page load announces itself; one hidden OAuth probe a minute
-// is plenty while the extension stays signed out.
-async function silentSignInDue(): Promise<boolean> {
-  const { last_silent_signin_at: last } = await chrome.storage.local.get('last_silent_signin_at')
-  if (typeof last === 'number' && Date.now() - last < SILENT_SIGN_IN_RETRY_MS) return false
-  await chrome.storage.local.set({ last_silent_signin_at: Date.now() })
-  return true
-}
-
-// ─── Dashboard Events (runtime.onMessageExternal) ─────────────────────────
-
-chrome.runtime.onMessageExternal.addListener((message: unknown, sender, sendResponse) => {
-  dashboardEvent(message, sender)
-    .then(sendResponse)
-    .catch((err) => {
-      console.error('[EchoFocus] Dashboard event failed:', err)
-      sendResponse({ ok: false })
-    })
-  return true
-})
-
-// The manifest's externally_connectable is the only gate Chrome enforces;
-// check the origin here too. Events carry no tokens — each surface keeps its
-// own Supabase session, so "signed-in" means "go get your own, silently".
-export async function dashboardEvent(
-  message: unknown,
-  sender: chrome.runtime.MessageSender,
-): Promise<{ ok: boolean }> {
-  await ready
-  if (sender.origin !== DASHBOARD_ORIGIN) return { ok: false }
-  const parsed = dashboardEventSchema.safeParse(message)
-  if (!parsed.success) return { ok: false }
-
-  if (parsed.data.event === 'signed-out') {
-    await signOutLocally()
-    return { ok: true }
-  }
-
-  if (await getSession()) return { ok: true }
-  if (await silentSignInDue()) void signIn({ silent: true })
-  return { ok: true }
 }
 
 // Keep service worker alive during message handling (belt-and-suspenders)

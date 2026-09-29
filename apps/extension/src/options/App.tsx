@@ -5,7 +5,6 @@ import type { Settings, ClassificationRule, Category, MatchType, DailyAggregate 
 import { DEFAULT_SETTINGS } from '@echofocus/shared'
 import type { Session } from '@supabase/supabase-js'
 import { signInWithGoogle, signOut, getSession } from '../lib/auth'
-import { openSignedInDashboard } from '../lib/dashboard-tab'
 import { syncAggregateForDate, getLastSyncTime, postSignInBootstrap, BACKFILL_RESULT_KEY } from '../lib/sync'
 import { isDailySummaryEnabled, setDailySummaryEnabled } from '../background/notifications'
 import { mergeImportedRules } from './rules-import'
@@ -526,9 +525,6 @@ function AccountTab() {
     } else {
       setSyncMessage(null)
     }
-    // The user pressed sign-in here, so the dashboard they unlocked opens
-    // itself — the one place this happens without a click on the other side.
-    await openSignedInDashboard()
   }
 
   const handleSignOut = async () => {

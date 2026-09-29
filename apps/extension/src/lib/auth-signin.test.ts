@@ -13,7 +13,6 @@ let setSessionCalls: number
 
 beforeEach(() => {
   installChromeStub()
-  vi.spyOn(console, 'info').mockImplementation(() => undefined)
   vi.spyOn(console, 'log').mockImplementation(() => undefined)
   vi.spyOn(console, 'error').mockImplementation(() => undefined)
   oauthOptions = undefined
@@ -36,35 +35,23 @@ beforeEach(() => {
   } as never)
 })
 
-describe('signInWithGoogle — silent mode', () => {
-  it('runs hidden with prompt=none so Google answers instead of asking', async () => {
-    await signInWithGoogle({ silent: true })
-    expect(flowRequests).toEqual([{ url: 'https://auth.test/authorize', interactive: false }])
-    expect(oauthOptions?.queryParams).toEqual({ prompt: 'none' })
-  })
-
-  it('interactive by default, with no prompt override', async () => {
+describe('signInWithGoogle', () => {
+  it('runs an interactive flow with no prompt override', async () => {
     await signInWithGoogle()
-    expect(flowRequests[0].interactive).toBe(true)
+    expect(flowRequests).toEqual([{ url: 'https://auth.test/authorize', interactive: true }])
     expect(oauthOptions?.queryParams).toBeUndefined()
   })
 
-  it('a declined silent flow (Chrome rejects, or Google redirects without tokens) is a quiet failure', async () => {
-    flowResponse = new Error('User interaction required.')
-    expect(await signInWithGoogle({ silent: true })).toEqual({ failure: 'failed' })
-
-    flowResponse = 'https://echofocus-test.chromiumapp.org/#error=interaction_required'
-    expect(await signInWithGoogle({ silent: true })).toEqual({ failure: 'failed' })
-
-    expect(setSessionCalls).toBe(0)
-    expect(console.error).not.toHaveBeenCalled()
+  it('a completed flow sets the session', async () => {
+    flowResponse = 'https://echofocus-test.chromiumapp.org/#access_token=a&refresh_token=r'
+    expect(await signInWithGoogle()).toEqual({ session: { user: { id: 'u' } } })
+    expect(setSessionCalls).toBe(1)
   })
 
-  it('a completed silent flow sets the session like the interactive one', async () => {
-    flowResponse = 'https://echofocus-test.chromiumapp.org/#access_token=a&refresh_token=r'
-    const outcome = await signInWithGoogle({ silent: true })
-    expect(outcome).toEqual({ session: { user: { id: 'u' } } })
-    expect(setSessionCalls).toBe(1)
+  it('a redirect without tokens is a failure and never sets a session', async () => {
+    flowResponse = 'https://echofocus-test.chromiumapp.org/#error=access_denied'
+    expect(await signInWithGoogle()).toEqual({ failure: 'failed' })
+    expect(setSessionCalls).toBe(0)
   })
 })
 

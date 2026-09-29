@@ -32,7 +32,6 @@ flowchart LR
   SW -- "daily aggregates only\n(domains + durations)" --> DB
   SW <-- "settings & rules sync" --> DB
   DASH <--> DB
-  DASH <-. "signed-in / signed-out\nevents only, never a token" .-> SW
   DASH -- "aggregate payload" --> EF
   EF -- "prompt (no URLs)" --> GEMINI["Gemini API"]
   EF --> DB
@@ -44,7 +43,7 @@ flowchart LR
 
 **Local-first, sign-in backfills.** The full product — tracking, scoring, timer — works with no account, storing everything locally. Signing in unlocks the dashboard and sync, and `postSignInBootstrap()` uploads the entire local archive (365-day scan, batched upserts) so a try-first-register-later user never starts from zero.
 
-**Sign in once, but never share a session.** Signing in on either surface signs in the other, yet no token ever crosses between them: two clients on one Supabase refresh-token family would trip reuse detection. Instead the dashboard and the extension exchange only `signed-in` / `signed-out` events over `externally_connectable` (origin re-checked in the worker, payload zod-validated), and each surface fetches its own session — the extension via a hidden `prompt=none` OAuth flow on the Google session the dashboard just created, the dashboard via `/login?auto=1` opened by the extension. Sign-out is global on both sides, with a throttled server-side session check on popup open as the fallback path.
+**Two sessions, one sign-out.** The extension and the dashboard each hold their own Supabase session and sign in with one click apiece; sharing a session would put two clients on one refresh-token family and trip reuse detection. Sign-out is shared without any channel between them: both sides revoke globally, and the popup checks its session server-side (throttled) when it opens, so a dashboard sign-out reaches the extension on its next open. A zero-click variant — dashboard events over `externally_connectable` plus a hidden `prompt=none` OAuth probe — was built, verified end to end, and removed: in a real profile Google declined the hidden probe even with the dashboard freshly signed in.
 
 **Settings sync accepts last-writer-wins.** Options and Dashboard Settings edit the same cloud row; a "local non-default wins" merge runs only on first contact. Concurrent cross-device edits resolve LWW — a documented trade-off chosen over conditional-write machinery for a single-user product.
 
@@ -74,4 +73,4 @@ pnpm typecheck         # all packages
 pnpm -r test           # all suites
 ```
 
-Environment variables: see `apps/web/.env.local` (Supabase URL + anon key, plus `NEXT_PUBLIC_EXTENSION_ID` so the dashboard can reach the extension's event channel) and `apps/extension/.env` (Supabase URL + anon key); edge function secrets (`GEMINI_API_KEY`) are set in Supabase. Database migrations live in `supabase/migrations/`.
+Environment variables: see `apps/web/.env.local` and `apps/extension/.env` (Supabase URL + anon key); edge function secrets (`GEMINI_API_KEY`) are set in Supabase. Database migrations live in `supabase/migrations/`.

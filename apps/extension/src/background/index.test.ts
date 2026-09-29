@@ -11,7 +11,6 @@ vi.mock('../lib/ai', () => ({
 // the network exist here.
 vi.mock('../lib/auth', () => ({
   signInWithGoogle: vi.fn(async () => ({ session: { user: { id: 'user-1' } } })),
-  signOutLocally: vi.fn(async () => undefined),
   getSession: vi.fn(async () => null),
   refreshSession: vi.fn(async () => false),
   verifySessionAlive: vi.fn(async () => undefined),
@@ -27,7 +26,7 @@ vi.mock('../lib/sync', () => ({
 import * as ai from '../lib/ai'
 import * as auth from '../lib/auth'
 import * as sync from '../lib/sync'
-import { handleMessage, dashboardEvent } from './index'
+import { handleMessage } from './index'
 
 // Macrotask turns drain every microtask the worker-side flow chains (storage
 // writes, tab queries) — a fixed microtask count went stale as the flow grew,
@@ -58,7 +57,6 @@ beforeEach(() => {
   // clearAllMocks keeps a test's mockResolvedValue() override; re-seed the
   // sign-in defaults so a cancelled-OAuth test can't leak into the next one.
   vi.mocked(auth.signInWithGoogle).mockResolvedValue({ session: { user: { id: 'user-1' } } } as never)
-  vi.mocked(auth.getSession).mockResolvedValue(null)
   vi.mocked(sync.postSignInBootstrap).mockResolvedValue({ backfilled: 3, failed: 0 })
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date(2026, 2, 14, 12, 0, 0)) // 2026-03-14 local noon
@@ -145,19 +143,16 @@ describe('REQUEST_AI_ANALYSIS payload validation', () => {
   })
 })
 
-const DASHBOARD = 'https://echo-focus-web.vercel.app'
-const AUTO_LOGIN = `${DASHBOARD}/login?auto=1`
-const fromDashboard = { origin: DASHBOARD } as chrome.runtime.MessageSender
-
 describe('SIGN_IN (one-click from the popup)', () => {
   it('acknowledges immediately and completes OAuth + bootstrap in the worker', async () => {
     const res = await handleMessage({ type: 'SIGN_IN' })
     expect(res.success).toBe(true)
 
     await flushSignInFlow()
-    expect(auth.signInWithGoogle).toHaveBeenCalledWith({ silent: false })
+    expect(auth.signInWithGoogle).toHaveBeenCalledTimes(1)
     expect(sync.postSignInBootstrap).toHaveBeenCalled()
     expect(chromeStub.store.signin_in_progress).toBeUndefined()
+    expect(chromeStub.createdTabUrls).toEqual([])
   })
 
   it('a cancelled OAuth clears the progress flag and skips the bootstrap', async () => {
@@ -168,121 +163,29 @@ describe('SIGN_IN (one-click from the popup)', () => {
 
     expect(sync.postSignInBootstrap).not.toHaveBeenCalled()
     expect(chromeStub.store.signin_in_progress).toBeUndefined()
-    expect(chromeStub.createdTabUrls).toEqual([])
   })
 
-  it('opens the dashboard signed in once the bootstrap is done', async () => {
-    await handleMessage({ type: 'SIGN_IN' })
-    await flushSignInFlow()
-
-    expect(chromeStub.createdTabUrls).toEqual([AUTO_LOGIN])
-  })
-
-  it('reuses an existing dashboard tab: focuses it and reloads through auto-login', async () => {
-    chromeStub.tabs = [
-      { id: 1, windowId: 7, active: true, url: 'https://github.com/' },
-      { id: 2, windowId: 7, active: false, url: `${DASHBOARD}/dashboard/trends` },
-    ]
-
-    await handleMessage({ type: 'SIGN_IN' })
-    await flushSignInFlow()
-
-    expect(chromeStub.createdTabUrls).toEqual([])
-    expect(chromeStub.updatedTabs).toEqual([{ id: 2, info: { url: AUTO_LOGIN, active: true } }])
-    expect(chromeStub.focusedWindowIds).toEqual([7])
-  })
-
-  it('still opens the dashboard when the bootstrap throws — the sign-in itself succeeded', async () => {
+  it('a bootstrap that throws still clears the progress flag', async () => {
     vi.mocked(sync.postSignInBootstrap).mockRejectedValue(new Error('offline'))
     vi.spyOn(console, 'error').mockImplementation(() => undefined)
 
     await handleMessage({ type: 'SIGN_IN' })
     await flushSignInFlow()
 
-    expect(chromeStub.createdTabUrls).toEqual([AUTO_LOGIN])
-    expect(chromeStub.store.signin_in_progress).toBeUndefined()
-  })
-})
-
-describe('dashboard events (runtime.onMessageExternal)', () => {
-  it('signed-in from the dashboard runs a SILENT sign-in and opens no tab', async () => {
-    const res = await dashboardEvent({ event: 'signed-in' }, fromDashboard)
-    expect(res).toEqual({ ok: true })
-
-    await flushSignInFlow()
-    expect(auth.signInWithGoogle).toHaveBeenCalledWith({ silent: true })
-    expect(sync.postSignInBootstrap).toHaveBeenCalled()
-    // Lock: the dashboard caused this sign-in, so it must never open the
-    // dashboard back — that is the loop between the two surfaces.
-    expect(chromeStub.createdTabUrls).toEqual([])
-    expect(chromeStub.updatedTabs).toEqual([])
     expect(chromeStub.store.signin_in_progress).toBeUndefined()
   })
 
-  it('a failed silent sign-in clears the progress flag so the popup offers the button again', async () => {
-    vi.mocked(auth.signInWithGoogle).mockResolvedValue({ failure: 'cancelled' })
-
-    await dashboardEvent({ event: 'signed-in' }, fromDashboard)
-    await flushSignInFlow()
-
-    expect(chromeStub.store.signin_in_progress).toBeUndefined()
-    expect(sync.postSignInBootstrap).not.toHaveBeenCalled()
-    expect(chromeStub.createdTabUrls).toEqual([])
-  })
-
-  it('does nothing when the extension is already signed in', async () => {
-    vi.mocked(auth.getSession).mockResolvedValue({ user: { id: 'user-1' } } as never)
-
-    await dashboardEvent({ event: 'signed-in' }, fromDashboard)
-    await flushSignInFlow()
-
-    expect(auth.signInWithGoogle).not.toHaveBeenCalled()
-  })
-
-  it('probes Google at most once a minute while signed out', async () => {
-    vi.mocked(auth.signInWithGoogle).mockResolvedValue({ failure: 'cancelled' })
-
-    await dashboardEvent({ event: 'signed-in' }, fromDashboard)
-    await flushSignInFlow()
-    await dashboardEvent({ event: 'signed-in' }, fromDashboard)
-    await flushSignInFlow()
-    expect(auth.signInWithGoogle).toHaveBeenCalledTimes(1)
-
-    vi.setSystemTime(new Date(2026, 2, 14, 12, 1, 1))
-    await dashboardEvent({ event: 'signed-in' }, fromDashboard)
-    await flushSignInFlow()
-    expect(auth.signInWithGoogle).toHaveBeenCalledTimes(2)
-  })
-
-  it('the popup button during a silent attempt joins it instead of starting a second flow', async () => {
+  it('a second press while a flow runs joins it instead of starting another', async () => {
     let finish: (value: auth.SignInOutcome) => void = () => undefined
     vi.mocked(auth.signInWithGoogle).mockReturnValue(new Promise((resolve) => { finish = resolve }))
 
-    await dashboardEvent({ event: 'signed-in' }, fromDashboard)
+    await handleMessage({ type: 'SIGN_IN' })
     await handleMessage({ type: 'SIGN_IN' })
     finish({ failure: 'failed' })
     await flushSignInFlow()
 
     expect(auth.signInWithGoogle).toHaveBeenCalledTimes(1)
     expect(chromeStub.store.signin_in_progress).toBeUndefined()
-  })
-
-  it('signed-out drops this device\'s session right away', async () => {
-    const res = await dashboardEvent({ event: 'signed-out' }, fromDashboard)
-    expect(res).toEqual({ ok: true })
-    expect(auth.signOutLocally).toHaveBeenCalled()
-  })
-
-  it('rejects any other origin and any other shape without touching auth', async () => {
-    const wrongOrigin = { origin: 'https://evil.example' } as chrome.runtime.MessageSender
-    expect(await dashboardEvent({ event: 'signed-in' }, wrongOrigin)).toEqual({ ok: false })
-    expect(await dashboardEvent({ event: 'signed-out' }, wrongOrigin)).toEqual({ ok: false })
-    expect(await dashboardEvent({ event: 'steal-tokens' }, fromDashboard)).toEqual({ ok: false })
-    expect(await dashboardEvent('signed-in', fromDashboard)).toEqual({ ok: false })
-
-    await flushSignInFlow()
-    expect(auth.signInWithGoogle).not.toHaveBeenCalled()
-    expect(auth.signOutLocally).not.toHaveBeenCalled()
   })
 })
 

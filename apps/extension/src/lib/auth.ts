@@ -5,11 +5,6 @@ import { getSupabaseClient } from './supabase'
 // Supabase must have the redirect URL in Auth → URL Configuration → Redirect URLs:
 //   https://nihkocbmifcdifhhhekcllpelkfeoggl.chromiumapp.org/
 //
-// silent: the dashboard just signed in, so Google already holds a session and
-// consent — run the same flow in a hidden window with prompt=none. Google
-// answers with an error instead of UI when it would need the user (no
-// session, several accounts), which lands here as a redirect without tokens.
-//
 // A failure says why, so the button that started it can tell the user.
 // 'busy': Chrome runs one auth flow per extension at a time and one is still
 // open — often a window the user lost track of — so nothing new can start
@@ -24,7 +19,7 @@ function flowFailure(err: unknown): SignInFailure {
   return 'failed'
 }
 
-export async function signInWithGoogle({ silent = false } = {}): Promise<SignInOutcome> {
+export async function signInWithGoogle(): Promise<SignInOutcome> {
   const supabase = getSupabaseClient()
   const redirectTo = chrome.identity.getRedirectURL()
 
@@ -33,7 +28,6 @@ export async function signInWithGoogle({ silent = false } = {}): Promise<SignInO
     options: {
       redirectTo,
       skipBrowserRedirect: true,
-      ...(silent && { queryParams: { prompt: 'none' } }),
     },
   })
 
@@ -46,14 +40,10 @@ export async function signInWithGoogle({ silent = false } = {}): Promise<SignInO
   try {
     responseUrl = await chrome.identity.launchWebAuthFlow({
       url: data.url,
-      interactive: !silent,
+      interactive: true,
     })
   } catch (err) {
-    if (silent) {
-      console.info('[EchoFocus] OAuth: silent sign-in needs the user; leaving the one-click button.')
-    } else {
-      console.error('[EchoFocus] OAuth: launchWebAuthFlow threw:', err)
-    }
+    console.error('[EchoFocus] OAuth: launchWebAuthFlow threw:', err)
     return { failure: flowFailure(err) }
   }
 
@@ -79,12 +69,8 @@ export async function signInWithGoogle({ silent = false } = {}): Promise<SignInO
 
   if (!accessToken || !refreshToken) {
     // SECURITY: never log the redirect URL, hash, or query — they carry tokens.
-    if (silent) {
-      console.info('[EchoFocus] OAuth: silent sign-in declined by Google; leaving the one-click button.')
-    } else {
-      console.error('[EchoFocus] OAuth: redirect completed but tokens were missing.',
-        'This usually means flowType is not "implicit" — check supabase.ts.')
-    }
+    console.error('[EchoFocus] OAuth: redirect completed but tokens were missing.',
+      'This usually means flowType is not "implicit" — check supabase.ts.')
     return { failure: 'failed' }
   }
 
