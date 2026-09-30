@@ -140,6 +140,23 @@ body {
   }
 }
 
+/* A dark favicon (GitHub's black mark cached from a light-mode visit) vanishes
+   on the dark surface, so in dark themes only those get a light chip. An
+   outline, not a shadow: the one shadow is reserved for floating elements.
+   Declared twice for the same reason as the dark token block above. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .favicon[data-dark-icon] {
+    background: var(--text);
+    outline: 2px solid var(--text);
+    border-radius: 6px;
+  }
+}
+:root[data-theme='dark'] .favicon[data-dark-icon] {
+  background: var(--text);
+  outline: 2px solid var(--text);
+  border-radius: 6px;
+}
+
 /* The timer's breathing glow — the product's only ambient animation.
    Focusing breathes 0.12–0.24; the break is capped lighter at 0.16. */
 .glow-focus {

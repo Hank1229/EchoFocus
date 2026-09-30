@@ -5,6 +5,7 @@ import { formatDuration, getTodayDateString } from '@echofocus/shared'
 import { useLocale } from '../../lib/i18n'
 import { categoriesLink } from '../../lib/options-link'
 import { trackingEntryArraySchema } from '../../lib/schemas'
+import { isDarkIcon } from '../../lib/icon-tone'
 import CategoryDot from './CategoryDot'
 
 interface DomainListProps {
@@ -40,8 +41,24 @@ function useVisitedUrls(): Record<string, string> | null {
 // Chrome's own favicon cache through the _favicon endpoint: read on this
 // device, no request leaves the browser. A site missing from the cache comes
 // back as Chrome's grey globe; only a failed load falls back to ours.
+// Any failure reading the pixels means "not dark": no chip, nothing thrown.
+function readsDark(img: HTMLImageElement): boolean {
+  try {
+    const canvas = document.createElement('canvas')
+    canvas.width = img.naturalWidth
+    canvas.height = img.naturalHeight
+    const context = canvas.getContext('2d')
+    if (!context || canvas.width === 0) return false
+    context.drawImage(img, 0, 0)
+    return isDarkIcon(context.getImageData(0, 0, canvas.width, canvas.height).data)
+  } catch {
+    return false
+  }
+}
+
 function Favicon({ pageUrl }: { pageUrl: string | null }) {
   const [failed, setFailed] = useState(false)
+  const [dark, setDark] = useState(false)
   // The slot is held at 16px while today's URLs load, so nothing shifts.
   if (pageUrl === null) return <span aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
   if (failed) {
@@ -51,7 +68,16 @@ function Favicon({ pageUrl }: { pageUrl: string | null }) {
   src.searchParams.set('pageUrl', pageUrl)
   src.searchParams.set('size', '32')
   return (
-    <img src={src.toString()} alt="" width={16} height={16} className="h-4 w-4 flex-shrink-0" onError={() => setFailed(true)} />
+    <img
+      src={src.toString()}
+      alt=""
+      width={16}
+      height={16}
+      data-dark-icon={dark || undefined}
+      className="favicon h-4 w-4 flex-shrink-0"
+      onLoad={e => setDark(readsDark(e.currentTarget))}
+      onError={() => setFailed(true)}
+    />
   )
 }
 
