@@ -28,7 +28,8 @@
     "timerPaused": "Paused",
     "viewFullAnalysis": "View full analysis",
     "signInHint": "Sign in for AI insights and cross-device sync",
-    "connecting": "Connecting…"
+    "connecting": "Connecting…",
+    "recategorizeHint": "Click to change category"
   },
   "options": {
     "title": "EchoFocus Settings",

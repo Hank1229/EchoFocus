@@ -149,7 +149,7 @@ The breathing glow is the only ambient animation allowed anywhere; the sanction 
 
 ## 7. Popup spec
 
-Width 380px, top to bottom:
+Width 360px, top to bottom:
 
 1. Header: logo + tracking toggle
 2. Current site row (domain + category color dot for the current session)

@@ -2,12 +2,14 @@ import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { ArrowUpRight, Check, Download, Lock, Upload, X } from 'lucide-react'
 import iconSrc from '../assets/icon-32.png'
 import type { Settings, ClassificationRule, Category, MatchType, DailyAggregate } from '@echofocus/shared'
-import { DEFAULT_SETTINGS } from '@echofocus/shared'
+import { DEFAULT_SETTINGS, categorizeDomain } from '@echofocus/shared'
 import type { Session } from '@supabase/supabase-js'
 import { signInWithGoogle, signOut, getSession } from '../lib/auth'
 import { syncAggregateForDate, getLastSyncTime, postSignInBootstrap, BACKFILL_RESULT_KEY } from '../lib/sync'
 import { isDailySummaryEnabled, setDailySummaryEnabled } from '../background/notifications'
 import { mergeImportedRules } from './rules-import'
+import { addRule } from './rule-list'
+import { parseOptionsHash } from '../lib/options-link'
 import { getTodayDateString, getDateNDaysAgo } from '@echofocus/shared'
 import { useLocale, type Language } from '../lib/i18n'
 import { DASHBOARD_URL } from '../lib/config'
@@ -16,6 +18,11 @@ import { sendMessage } from '../lib/messaging'
 const APP_VERSION = '1.0.0'
 
 type Tab = 'general' | 'categories' | 'privacy' | 'account' | 'about'
+const TABS: Tab[] = ['general', 'categories', 'privacy', 'account', 'about']
+
+function isTab(value: string | null): value is Tab {
+  return TABS.includes(value as Tab)
+}
 
 const CATEGORY_COLORS: Record<Category, string> = {
   productive: 'text-productive',
@@ -216,7 +223,9 @@ function GeneralTab() {
 
 // ─── Categories Tab ───────────────────────────────────────────────────────
 
-function CategoriesTab() {
+// focusDomain comes from a popup site row: the form opens prefilled with that
+// domain and its current category, ready for a new one to be picked.
+function CategoriesTab({ focusDomain }: { focusDomain: string | null }) {
   const { t } = useLocale()
   const [rules, setRules] = useState<ClassificationRule[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -225,11 +234,13 @@ function CategoriesTab() {
   const [saveFailed, setSaveFailed] = useState(false)
 
   // New rule form state
-  const [newPattern, setNewPattern] = useState('')
+  const [newPattern, setNewPattern] = useState(focusDomain ?? '')
   const [newMatchType, setNewMatchType] = useState<MatchType>('exact')
   const [newCategory, setNewCategory] = useState<Category>('productive')
 
   const fileInput = useRef<HTMLInputElement>(null)
+  const categorySelect = useRef<HTMLSelectElement>(null)
+  const focusedRule = useRef<HTMLLIElement>(null)
   const [importMessage, setImportMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
   const CATEGORY_LABELS: Record<Category, string> = {
@@ -253,6 +264,16 @@ function CategoriesTab() {
 
   useEffect(() => { void load() }, [load])
 
+  // Once the rules are in, the domain's current category is known: preselect
+  // it, then hand focus to the dropdown the user came here to change.
+  useEffect(() => {
+    if (isLoading || !focusDomain) return
+    setNewCategory(categorizeDomain(focusDomain, rules))
+    focusedRule.current?.scrollIntoView({ block: 'center' })
+    categorySelect.current?.focus()
+    // Only on arrival; later rule edits must not steal the user's selection.
+  }, [isLoading, focusDomain])
+
   // Returns whether the worker confirmed the write, so the callers that show
   // their own message don't claim success on top of a failed save.
   const saveRules = async (updated: ClassificationRule[]): Promise<boolean> => {
@@ -271,7 +292,7 @@ function CategoriesTab() {
     return true
   }
 
-  const addRule = async () => {
+  const saveNewRule = async () => {
     const pattern = newPattern.trim().toLowerCase()
     if (!pattern) return
     const rule: ClassificationRule = {
@@ -282,7 +303,7 @@ function CategoriesTab() {
       isDefault: false,
       createdAt: Date.now(),
     }
-    const updated = [rule, ...rules]
+    const updated = addRule(rules, rule)
     setRules(updated)
     if (await saveRules(updated)) setNewPattern('')
   }
@@ -352,7 +373,7 @@ function CategoriesTab() {
             type="text"
             value={newPattern}
             onChange={e => setNewPattern(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') void addRule() }}
+            onKeyDown={e => { if (e.key === 'Enter') void saveNewRule() }}
             placeholder={t.categories.patternPlaceholder}
             className="w-full bg-surface-hover border border-line-strong rounded-lg px-3 py-2 text-sm text-content placeholder:text-content-tertiary focus:outline-none focus:border-accent"
           />
@@ -363,14 +384,14 @@ function CategoriesTab() {
                 <option key={v} value={v}>{label}</option>
               ))}
             </select>
-            <select value={newCategory} onChange={e => setNewCategory(e.target.value as Category)}
+            <select ref={categorySelect} value={newCategory} onChange={e => setNewCategory(e.target.value as Category)}
               className="flex-1 bg-surface-hover border border-line-strong rounded-lg px-3 py-2 text-sm text-content focus:outline-none focus:border-accent">
               {(Object.entries(CATEGORY_LABELS) as [Category, string][]).map(([v, label]) => (
                 <option key={v} value={v}>{label}</option>
               ))}
             </select>
           </div>
-          <button onClick={() => void addRule()} disabled={!newPattern.trim() || isSaving}
+          <button onClick={() => void saveNewRule()} disabled={!newPattern.trim() || isSaving}
             className="w-full py-2 bg-accent hover:bg-accent disabled:opacity-50 text-accent-ink text-sm font-semibold rounded-lg transition-colors">
             {t.categories.addRule}
           </button>
@@ -400,8 +421,11 @@ function CategoriesTab() {
           </div>
         ) : (
           <ul className="divide-y divide-line">
-            {rules.map(rule => (
-              <li key={rule.id} className="flex items-center gap-3 px-5 py-3">
+            {rules.map(rule => {
+              const isFocused = rule.matchType === 'exact' && rule.pattern === focusDomain
+              return (
+              <li key={rule.id} ref={isFocused ? focusedRule : undefined}
+                className={`flex items-center gap-3 px-5 py-3 ${isFocused ? 'bg-accent-subtle' : ''}`}>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-content truncate">{rule.pattern}</p>
                   <p className="text-xs text-content-tertiary mt-0.5">{MATCH_TYPE_LABELS[rule.matchType]}</p>
@@ -415,7 +439,8 @@ function CategoriesTab() {
                   <X size={15} strokeWidth={2} />
                 </button>
               </li>
-            ))}
+              )
+            })}
           </ul>
         )}
       </section>
@@ -945,7 +970,9 @@ function AboutTab() {
 
 export default function App() {
   const { t } = useLocale()
-  const [activeTab, setActiveTab] = useState<Tab>('general')
+  const [link] = useState(() => parseOptionsHash(window.location.hash))
+  const [activeTab, setActiveTab] = useState<Tab>(isTab(link.tab) ? link.tab : 'general')
+  const [focusDomain, setFocusDomain] = useState(link.domain)
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'general', label: t.options.tabs.general },
@@ -972,7 +999,7 @@ export default function App() {
           {tabs.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => { setActiveTab(tab.id); setFocusDomain(null) }}
               className={`px-5 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
                 activeTab === tab.id
                   ? 'border-accent text-accent'
@@ -986,7 +1013,7 @@ export default function App() {
 
         {/* Tab content */}
         {activeTab === 'general' && <GeneralTab />}
-        {activeTab === 'categories' && <CategoriesTab />}
+        {activeTab === 'categories' && <CategoriesTab focusDomain={focusDomain} />}
         {activeTab === 'privacy' && <PrivacyTab />}
         {activeTab === 'account' && <AccountTab />}
         {activeTab === 'about' && <AboutTab />}

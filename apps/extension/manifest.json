@@ -9,7 +9,8 @@
     "alarms",
     "idle",
     "identity",
-    "notifications"
+    "notifications",
+    "favicon"
   ],
   "background": {
     "service_worker": "src/background/index.ts",

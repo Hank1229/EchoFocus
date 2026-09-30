@@ -6,9 +6,9 @@ import { usePomodoro } from './hooks/usePomodoro'
 import StatusModule from './components/StatusModule'
 import { CategoryColumns } from './components/StatsBar'
 import DomainList from './components/DomainList'
+import CategoryDot from './components/CategoryDot'
 import TrackingToggle from './components/TrackingToggle'
 import PopupWaveform from './components/PopupWaveform'
-import type { Category } from '@echofocus/shared'
 import { useLocale, type Language } from '../lib/i18n'
 import { DASHBOARD_URL } from '../lib/config'
 import { sendMessage } from '../lib/messaging'
@@ -18,13 +18,6 @@ const LANGUAGES: { value: Language; short: string; name: string }[] = [
   { value: 'en', short: 'EN', name: 'English' },
   { value: 'zh-TW', short: '繁', name: '繁體中文' },
 ]
-
-const DOTS: Record<Category, string> = {
-  productive: 'var(--productive)',
-  distraction: 'var(--rest)',
-  neutral: 'var(--neutral)',
-  uncategorized: 'var(--neutral)',
-}
 
 export default function App() {
   const { t, language, setLanguage } = useLocale()
@@ -123,7 +116,7 @@ export default function App() {
           <button
             onClick={() => { setIsLinking(true); void sendMessage('SIGN_IN') }}
             disabled={isLinking}
-            className="pressable flex w-full items-center justify-center gap-2 rounded-md border border-accent bg-surface px-3 py-2 text-label text-accent hover:bg-surface-hover disabled:cursor-default disabled:opacity-60"
+            className="pressable flex w-full items-center justify-center gap-1.5 rounded-md border border-accent bg-surface px-2 py-2 text-label text-accent hover:bg-surface-hover disabled:cursor-default disabled:opacity-60"
           >
             <LogIn size={14} strokeWidth={1.5} aria-hidden="true" />
             {isLinking ? t.popup.connecting : t.popup.signInHint}
@@ -132,11 +125,7 @@ export default function App() {
 
         {currentSession?.domain && (
           <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2">
-            <span
-              aria-hidden="true"
-              className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
-              style={{ background: currentCategory ? DOTS[currentCategory] : 'var(--neutral)' }}
-            />
+            <CategoryDot category={currentCategory} />
             <span className="flex-shrink-0 text-caption text-content-secondary">{t.popup.now}</span>
             <span className="truncate text-body text-content">{currentSession.domain}</span>
             <span className="ml-auto flex-shrink-0 text-caption text-content-tertiary">
@@ -177,7 +166,8 @@ export default function App() {
       <footer className="mt-auto flex items-center justify-between border-t border-line px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="text-caption text-content-tertiary">
-            {new Date().toLocaleDateString(dateLocale, { month: 'long', day: 'numeric' })}
+            {/* Short month: at 360px the English footer needs "Sep" to fit beside the idle mark. */}
+            {new Date().toLocaleDateString(dateLocale, { month: 'short', day: 'numeric' })}
           </span>
           <div role="group" aria-label={t.general.language} className="flex items-center rounded-full border border-line p-0.5">
             {LANGUAGES.map(({ value, short, name }) => (

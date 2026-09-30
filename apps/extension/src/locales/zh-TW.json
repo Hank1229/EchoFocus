@@ -28,7 +28,8 @@
     "timerPaused": "已暫停",
     "viewFullAnalysis": "查看完整分析",
     "signInHint": "登入以取得 AI 洞察與跨裝置同步",
-    "connecting": "連結中…"
+    "connecting": "連結中…",
+    "recategorizeHint": "點擊修改分類"
   },
   "options": {
     "title": "EchoFocus 設定",

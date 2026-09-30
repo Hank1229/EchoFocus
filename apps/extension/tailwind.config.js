@@ -40,7 +40,7 @@ export default {
       fontFamily: { display: fonts.display },
       transitionTimingFunction: { silk: 'cubic-bezier(0.22, 1, 0.36, 1)' },
       width: {
-        popup: '380px',
+        popup: '360px',
       },
     },
   },
