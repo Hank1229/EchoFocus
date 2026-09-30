@@ -128,6 +128,10 @@ echofocus/
 4. **Settings ownership.** The extension Options page is the device-level editor and the only one that works signed out. Signed in, Options and Dashboard Settings edit the same user_preferences row (cloud authoritative). "Local non-default wins" applies only to the first-contact bootstrap merge.
 5. **Concurrent-edit trade-off (accepted).** Cross-surface settings writes resolve last-writer-wins: a device pushing stale values can overwrite a newer cloud row in the window before its next pull. Accepted deliberately (single user, narrow window); escalate to conditional writes only if real multi-device conflicts appear.
 
+## Known Limitations (accepted)
+
+1. **Dashboard rule edits don't re-sort today.** A rule saved in the extension's Options re-sorts today's recorded time and the live session at once (`SAVE_CUSTOM_RULES` → `reclassifyToday()` in background/tracker.ts). Rules edited on the Dashboard reach the extension through the settings sync, which does not re-sort, so today's dots and category totals keep the old category until new time is recorded. Earlier days are never re-sorted, from either surface.
+
 ---
 
 ## Critical Rules
