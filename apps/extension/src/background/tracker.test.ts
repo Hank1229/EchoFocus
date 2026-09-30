@@ -1019,3 +1019,49 @@ describe('session info for the popup', () => {
     expect(tracker.getInMemoryState().activeDomain).toBe('github.com')
   })
 })
+
+describe('rule edits re-sort today', () => {
+  const TODAY = '2026-03-14'
+  const YESTERDAY = '2026-03-13'
+  const githubIsDistraction = [
+    { id: 'r1', pattern: 'github.com', matchType: 'exact' as const, category: 'distraction' as const, isDefault: false, createdAt: BASE },
+  ]
+
+  it("moves today's recorded time and the live session to the new category at once", async () => {
+    const tracker = await loadTracker()
+    setActiveTab('https://github.com/')
+    await tracker.handleTabActivated({ tabId: 1, windowId: 1 })
+    awake(BASE + 120_000)
+    // Switching to another github tab finalizes 120s and leaves a live session.
+    setActiveTab('https://github.com/pulls', 'pulls', { id: 2 })
+    await tracker.handleTabActivated({ tabId: 2, windowId: 1 })
+    expect(aggregateOn(TODAY)).toMatchObject({ productiveSeconds: 120, distractionSeconds: 0 })
+
+    await tracker.reclassifyToday(githubIsDistraction)
+
+    expect(entriesOn(TODAY).map((e) => e.category)).toEqual(['distraction'])
+    expect(aggregateOn(TODAY)).toMatchObject({ productiveSeconds: 0, distractionSeconds: 120 })
+    expect(aggregateOn(TODAY)?.topDomains[0]).toMatchObject({ domain: 'github.com', category: 'distraction' })
+    expect(tracker.getCurrentSessionInfo().category).toBe('distraction')
+    expect(storedState().activeCategory).toBe('distraction')
+  })
+
+  it('leaves yesterday exactly as it was recorded', async () => {
+    const yesterdayEntries: TrackingEntry[] = [{
+      id: 'y1', domain: 'github.com', url: 'https://github.com/', title: 'gh',
+      category: 'productive', startTime: BASE - 86_400_000, duration: 600, date: YESTERDAY,
+    }]
+    const yesterdayAggregate = {
+      date: YESTERDAY, totalSeconds: 600, productiveSeconds: 600, distractionSeconds: 0, neutralSeconds: 0,
+      uncategorizedSeconds: 0, focusScore: 100, topDomains: [{ domain: 'github.com', seconds: 600, category: 'productive' }],
+    }
+    chromeStub.store[`entries:${YESTERDAY}`] = structuredClone(yesterdayEntries)
+    chromeStub.store[`aggregates:${YESTERDAY}`] = structuredClone(yesterdayAggregate)
+    const tracker = await loadTracker()
+
+    await tracker.reclassifyToday(githubIsDistraction)
+
+    expect(entriesOn(YESTERDAY)).toEqual(yesterdayEntries)
+    expect(aggregateOn(YESTERDAY)).toEqual(yesterdayAggregate)
+  })
+})

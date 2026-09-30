@@ -9,6 +9,7 @@ import {
   discardCurrentSession,
   getCurrentSessionInfo,
   getInMemoryState,
+  reclassifyToday,
 } from './tracker'
 import { applySettings } from './settings'
 import { setupAlarms, ensureHeartbeatAlarm, handleAlarm } from './alarms'
@@ -200,6 +201,12 @@ export async function handleMessage(
         return { success: false, error: 'Invalid rules — each rule needs a pattern, match type, and category' }
       }
       await saveCustomRules(parsed.data)
+      try {
+        await reclassifyToday(parsed.data)
+      } catch (err) {
+        // The rules are saved; today's dots catch up on the next recorded entry.
+        console.error('[EchoFocus] Reclassifying today failed:', err)
+      }
       await pushRules()
       return { success: true }
     }

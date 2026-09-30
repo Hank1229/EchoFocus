@@ -1,10 +1,11 @@
-import type { TrackingEntry, TrackingState, Category } from '@echofocus/shared'
-import { extractDomain, categorizeUrl, splitEntryAtMidnight, formatLocalDate, getTodayDateString } from '@echofocus/shared'
+import type { TrackingEntry, TrackingState, Category, ClassificationRule } from '@echofocus/shared'
+import { extractDomain, categorizeUrl, categorizeDomain, splitEntryAtMidnight, formatLocalDate, getTodayDateString } from '@echofocus/shared'
 import {
   getTrackingState,
   saveTrackingState,
   saveEntry,
   recomputeAndSaveAggregate,
+  reclassifyEntries,
   getSettings,
   saveSettings,
   getCustomRules,
@@ -494,6 +495,24 @@ async function setTrackingEnabled(enabled: boolean): Promise<void> {
       await persistState()
     }
   }
+}
+
+// A rule edit re-sorts today: the session in flight and every entry already
+// recorded today take the new category, so the popup's dots and category
+// totals follow the edit at once. Earlier days keep the category they were
+// recorded with — history is not rewritten.
+export function reclassifyToday(rules: ClassificationRule[]): Promise<void> {
+  const classify = (url: string, domain: string): Category =>
+    url ? categorizeUrl(url, rules) : categorizeDomain(domain, rules)
+  return withSessionLock(async () => {
+    if (_state.activeDomain) {
+      _state.activeCategory = classify(_state.activeUrl ?? '', _state.activeDomain)
+      await persistState()
+    }
+    const today = getTodayDateString()
+    await reclassifyEntries(today, (entry) => classify(entry.url, entry.domain))
+    await recomputeAndSaveAggregate(today)
+  })
 }
 
 // Discard the in-flight session WITHOUT saving an entry. Used by

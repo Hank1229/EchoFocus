@@ -143,6 +143,24 @@ describe('REQUEST_AI_ANALYSIS payload validation', () => {
   })
 })
 
+describe('SAVE_CUSTOM_RULES', () => {
+  it("re-sorts today's recorded time the moment a rule is saved", async () => {
+    chromeStub.store['entries:2026-03-14'] = [{
+      id: 'e1', domain: 'github.com', url: 'https://github.com/', title: 'gh',
+      category: 'productive', startTime: new Date(2026, 2, 14, 9, 0, 0).getTime(), duration: 300, date: '2026-03-14',
+    }]
+    const rules = [{ id: 'r1', pattern: 'github.com', matchType: 'exact', category: 'distraction', isDefault: false, createdAt: 1 }]
+
+    const res = await handleMessage({ type: 'SAVE_CUSTOM_RULES', payload: rules })
+
+    expect(res.success).toBe(true)
+    expect(chromeStub.store['aggregates:2026-03-14']).toEqual(expect.objectContaining({
+      distractionSeconds: 300,
+      topDomains: [expect.objectContaining({ domain: 'github.com', category: 'distraction' })],
+    }))
+  })
+})
+
 describe('SIGN_IN (one-click from the popup)', () => {
   it('acknowledges immediately and completes OAuth + bootstrap in the worker', async () => {
     const res = await handleMessage({ type: 'SIGN_IN' })

@@ -1,4 +1,4 @@
-import type { TrackingEntry, DailyAggregate, TrackingState, Settings, AiAnalysisResult } from '@echofocus/shared'
+import type { TrackingEntry, DailyAggregate, TrackingState, Settings, AiAnalysisResult, Category } from '@echofocus/shared'
 import type { ClassificationRule } from '@echofocus/shared'
 import { DEFAULT_SETTINGS, aggregateEntries, getTodayDateString, getDateNDaysAgo } from '@echofocus/shared'
 import {
@@ -140,6 +140,16 @@ export async function saveEntry(entry: TrackingEntry): Promise<void> {
     const key = entriesKey(bounded.date)
     const existing = await getEntriesForDate(bounded.date)
     await setGuarded({ [key]: [...existing, bounded] })
+  })
+}
+
+// Rewrites the category of every entry recorded on one day. Callers recompute
+// that day's aggregate afterwards.
+export async function reclassifyEntries(date: string, classify: (entry: TrackingEntry) => Category): Promise<void> {
+  await withStorageLock(async () => {
+    const entries = await getEntriesForDate(date)
+    if (entries.length === 0) return
+    await setGuarded({ [entriesKey(date)]: entries.map((entry) => ({ ...entry, category: classify(entry) })) })
   })
 }
 
