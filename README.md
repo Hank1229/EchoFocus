@@ -6,35 +6,55 @@ A privacy-first productivity tracker: a Chrome extension that times the tab in f
 
 ## Screenshots
 
-| Today | Popup (focus round) | Guide (live component) |
-|---|---|---|
-| ![Today page](docs/screenshots/today.png) | ![Popup timer](docs/screenshots/popup-timer.png) | ![Guide demo](docs/screenshots/guide-demo.png) |
+All in the dark theme.
+
+<img src="docs/screenshots/today.png" alt="Today: focus score, category split, the daily insight, focus by hour, and where the time went" width="100%">
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/popup-idle.png" alt="Extension popup at rest: score ring, today's total, Start focus, and today's sites with their favicons"><br><sub>Popup, idle</sub></td>
+    <td width="50%"><img src="docs/screenshots/popup-focusing.png" alt="Extension popup during a focus round: countdown ring with Pause, Skip and End"><br><sub>Popup, focus round</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/trends.png" alt="Trends: seven-day focus score line and weekly totals"><br><sub>Trends</sub></td>
+    <td width="50%"><img src="docs/screenshots/settings-focus-timer.png" alt="Settings: focus and break durations and end-of-round reminders"><br><sub>Settings, focus timer</sub></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="docs/screenshots/guide.png" alt="Guide step 3: the extension's real timer component running live in the dashboard"><br><sub>Guide, the live timer component</sub></td>
+  </tr>
+</table>
 
 ## Architecture
 
 ```mermaid
-flowchart LR
-  subgraph Chrome["Chrome Extension (MV3)"]
-    SW["Service worker\ntab tracking · pomodoro\nchrome.alarms"]
-    POPUP["Popup / Options / Onboarding"]
-    LOCAL[("chrome.storage.local\nraw entries + aggregates\nnever uploaded raw")]
-    SW <--> LOCAL
-    POPUP <--> SW
+flowchart TB
+  subgraph EXT["Chrome extension (MV3)"]
+    direction LR
+    POPUP["Popup / Options"] <--> SW["Service worker<br/>tab tracking, pomodoro,<br/>chrome.alarms"] <--> LOCAL[("chrome.storage.local<br/>raw entries + aggregates,<br/>never uploaded raw")]
   end
 
-  subgraph Supabase["Supabase"]
-    DB[("Postgres + RLS\nsynced_aggregates\nuser_preferences · custom_rules\nai_analyses")]
-    EF["ai-analyze\nEdge Function"]
+  DASH["Next.js dashboard<br/>(Vercel)"]
+
+  subgraph SB["Supabase"]
+    direction LR
+    AUTH["Supabase Auth<br/>Google provider"]
+    DB[("Postgres + RLS<br/>synced_aggregates, user_preferences,<br/>custom_rules, ai_analyses")]
+    EF["ai-analyze<br/>Edge Function"]
   end
 
-  DASH["Next.js dashboard\n(Vercel)"]
+  GEMINI["Gemini API"]
 
-  SW -- "daily aggregates only\n(domains + durations)" --> DB
-  SW <-- "settings & rules sync" --> DB
-  DASH <--> DB
+  EXT ~~~ SB
+  DASH ~~~ SB
+  SB ~~~ GEMINI
+
+  EXT -- "Google OAuth<br/>via chrome.identity" --> AUTH
+  EXT <-- "daily aggregates (no URLs)<br/>settings & rules sync" --> DB
+  DASH -- "Google OAuth" --> AUTH
+  DASH <-- "history, trends, settings" --> DB
   DASH -- "aggregate payload" --> EF
-  EF -- "prompt (no URLs)" --> GEMINI["Gemini API"]
-  EF --> DB
+  EF -- "store ai_analyses" --> DB
+  EF -- "prompt (aggregates only,<br/>no URLs)" --> GEMINI
 ```
 
 ## Key technical decisions
@@ -43,7 +63,7 @@ flowchart LR
 
 **Local-first, sign-in backfills.** The full product — tracking, scoring, timer — works with no account, storing everything locally. Signing in unlocks the dashboard and sync, and `postSignInBootstrap()` uploads the entire local archive (365-day scan, batched upserts) so a try-first-register-later user never starts from zero.
 
-**Two sessions, one sign-out.** The extension and the dashboard each hold their own Supabase session and sign in with one click apiece; sharing a session would put two clients on one refresh-token family and trip reuse detection. Sign-out is shared without any channel between them: both sides revoke globally, and the popup checks its session server-side (throttled) when it opens, so a dashboard sign-out reaches the extension on its next open. A zero-click variant — dashboard events over `externally_connectable` plus a hidden `prompt=none` OAuth probe — was built, verified end to end, and removed: in a real profile Google declined the hidden probe even with the dashboard freshly signed in.
+**Two sessions, one sign-out.** The extension and the dashboard each hold their own Supabase session, one click apiece: the extension signs in with Google through `chrome.identity.launchWebAuthFlow`, the dashboard through the regular web OAuth redirect. Sharing one session would put two clients on one refresh-token family and trip reuse detection. Sign-out is shared without any channel between them: both sides revoke globally, and the popup checks its session server-side (throttled) when it opens, so a dashboard sign-out reaches the extension on its next open.
 
 **Settings sync accepts last-writer-wins.** Options and Dashboard Settings edit the same cloud row; a "local non-default wins" merge runs only on first contact. Concurrent cross-device edits resolve LWW — a documented trade-off chosen over conditional-write machinery for a single-user product.
 
