@@ -95,13 +95,28 @@
   box-sizing: border-box;
 }
 
+/* First-paint shell. Chrome sizes the popup window from the body, so the
+   width and a skeleton-height floor hold before React mounts. This lives in
+   the linked stylesheet, not an inline <style>: the extension CSP blocks
+   inline styles, and the link is render-blocking, so the first frame already
+   has the right size and the theme's --bg. */
 body {
+  margin: 0;
+  padding: 0;
+  width: 360px;
+  min-height: 480px;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   font-family: var(--font-sans);
   background: var(--bg);
   color: var(--text);
   /* Countdown and stats must not jitter as digits change. */
   font-variant-numeric: tabular-nums;
+}
+
+#root {
+  width: 360px;
+  min-height: 480px;
 }
 
 ::selection {
