@@ -26,6 +26,9 @@ const CUSTOM_RULES_KEY = 'custom_rules'
 const AI_ANALYSIS_KEY_PREFIX = 'ai_analysis:'
 const LAST_SEEN_AT_KEY = 'last_seen_at'
 export const STORAGE_FULL_KEY = 'storage_full_at'
+// Today's site icons for the popup (lib/favicon.ts). Names visited sites, so
+// it goes with the rest of the tracking data on a wipe.
+export const FAVICON_CACHE_KEY = 'favicon_cache'
 
 // ─── Write Serialization ───────────────────────────────────────────────────
 
@@ -395,7 +398,8 @@ export async function deleteAllTrackingData(): Promise<void> {
       key.startsWith('ai_analysis:') ||
       // Leaving this behind would suppress tonight's summary for a day that
       // no longer exists.
-      key === 'daily_summary_sent_on'
+      key === 'daily_summary_sent_on' ||
+      key === FAVICON_CACHE_KEY
     )
     if (keysToRemove.length > 0) {
       await chrome.storage.local.remove(keysToRemove)

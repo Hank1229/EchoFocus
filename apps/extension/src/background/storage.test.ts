@@ -589,4 +589,13 @@ describe('deleteAllTrackingData', () => {
       'tracking_state',
     ])
   })
+
+  // The icon cache is keyed by the sites visited today — browsing data too.
+  it("also removes today's favicon cache", async () => {
+    chromeStub.store['favicon_cache'] = { date: '2026-03-14', icons: { 'github.com': 'data:image/png;base64,GH' } }
+
+    await deleteAllTrackingData()
+
+    expect(chromeStub.store['favicon_cache']).toBeUndefined()
+  })
 })

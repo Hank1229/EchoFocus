@@ -5,6 +5,7 @@ import { formatDuration, getTodayDateString } from '@echofocus/shared'
 import { useLocale } from '../../lib/i18n'
 import { categoriesLink } from '../../lib/options-link'
 import { trackingEntryArraySchema } from '../../lib/schemas'
+import { FAVICON_CACHE_KEY, faviconCandidates, firstVisitedUrls, resolveIcon, todaysIcons, withIcon, type FaviconCache } from '../../lib/favicon'
 import { isDarkIcon } from '../../lib/icon-tone'
 import CategoryDot from './CategoryDot'
 
@@ -14,33 +15,95 @@ interface DomainListProps {
   currentElapsedSeconds: number
 }
 
-// Chrome keys its favicon cache by the pages it actually loaded, while a
-// stored domain has "www." stripped — looking up youtube.com misses an icon
-// cached for www.youtube.com. So look each icon up by a URL the user really
-// visited today; today's entries never leave this device.
-function useVisitedUrls(): Record<string, string> | null {
-  const [urls, setUrls] = useState<Record<string, string> | null>(null)
-  useEffect(() => {
-    const read = async () => {
-      const key = `entries:${getTodayDateString()}`
-      const latest: Record<string, string> = {}
-      try {
-        const parsed = trackingEntryArraySchema.safeParse((await chrome.storage.local.get(key))[key] ?? [])
-        if (parsed.success) for (const entry of parsed.data) if (entry.url) latest[entry.domain] = entry.url
-      } catch (err) {
-        // Icons fall back to the bare domain; the list itself is unaffected.
-        console.warn('[EchoFocus] Could not read today\'s entries for favicons:', err)
-      }
-      setUrls(latest)
-    }
-    void read()
-  }, [])
-  return urls
+function faviconSrc(pageUrl: string): string {
+  const src = new URL(chrome.runtime.getURL('/_favicon/'))
+  src.searchParams.set('pageUrl', pageUrl)
+  src.searchParams.set('size', '32')
+  return src.toString()
 }
 
-// Chrome's own favicon cache through the _favicon endpoint: read on this
-// device, no request leaves the browser. A site missing from the cache comes
-// back as Chrome's grey globe; only a failed load falls back to ours.
+// Chrome's answer for one page, as a data URL: comparable with the miss globe
+// and storable for the rest of the day. Rejects when the pixels can't be read.
+function loadAsDataUrl(pageUrl: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas')
+        canvas.width = img.naturalWidth
+        canvas.height = img.naturalHeight
+        const context = canvas.getContext('2d')
+        if (!context) throw new Error('No 2D context')
+        context.drawImage(img, 0, 0)
+        resolve(canvas.toDataURL('image/png'))
+      } catch (err) {
+        reject(err)
+      }
+    }
+    img.onerror = () => reject(new Error('Favicon did not load'))
+    img.src = faviconSrc(pageUrl)
+  })
+}
+
+// .invalid can never resolve, so Chrome's answer for it is the miss globe.
+let missGlobe: Promise<string | null> | null = null
+function getMissGlobe(): Promise<string | null> {
+  missGlobe ??= loadAsDataUrl('https://echofocus-favicon-probe.invalid/').catch(() => null)
+  return missGlobe
+}
+
+// One image source per listed domain. Only the domains this list shows are
+// resolved and cached; anything that fails falls back to Chrome's own answer
+// for the site's root, never to an error or an empty slot.
+function useFaviconSources(domains: string[]): Record<string, string> | null {
+  const [sources, setSources] = useState<Record<string, string> | null>(null)
+  const listKey = domains.join('|')
+
+  useEffect(() => {
+    let cancelled = false
+    const resolveAll = async () => {
+      const today = getTodayDateString()
+      const resolved: Record<string, string> = {}
+      try {
+        const entriesKey = `entries:${today}`
+        const stored = await chrome.storage.local.get([entriesKey, FAVICON_CACHE_KEY])
+        const entries = trackingEntryArraySchema.safeParse(stored[entriesKey] ?? [])
+        const visited = firstVisitedUrls(entries.success ? entries.data : [])
+        const before: unknown = stored[FAVICON_CACHE_KEY]
+        // Starting from today's icons alone is what clears a previous day.
+        let cache: FaviconCache = { date: today, icons: todaysIcons(before, today) }
+        let changed = before !== undefined && Object.keys(cache.icons).length === 0
+        const globe = await getMissGlobe()
+        for (const domain of domains) {
+          const cached = cache.icons[domain]
+          if (cached) {
+            resolved[domain] = cached
+            continue
+          }
+          const candidates = faviconCandidates(domain, visited[domain] ?? null)
+          const icon = await resolveIcon(candidates, loadAsDataUrl, globe)
+          if (icon) {
+            resolved[domain] = icon
+            cache = withIcon(cache, today, domain, icon)
+            changed = true
+          } else {
+            resolved[domain] = faviconSrc(candidates[0])
+          }
+        }
+        if (changed) await chrome.storage.local.set({ [FAVICON_CACHE_KEY]: cache })
+      } catch (err) {
+        console.warn('[EchoFocus] Favicon lookup fell back to the site root:', err)
+      }
+      for (const domain of domains) resolved[domain] ??= faviconSrc(`https://${domain}/`)
+      if (!cancelled) setSources(resolved)
+    }
+    void resolveAll()
+    return () => { cancelled = true }
+  }, [listKey])
+
+  return sources
+}
+
 // Any failure reading the pixels means "not dark": no chip, nothing thrown.
 function readsDark(img: HTMLImageElement): boolean {
   try {
@@ -56,20 +119,19 @@ function readsDark(img: HTMLImageElement): boolean {
   }
 }
 
-function Favicon({ pageUrl }: { pageUrl: string | null }) {
+// A site missing from Chrome's cache shows Chrome's grey globe; only an image
+// that fails to load at all falls back to ours.
+function Favicon({ src }: { src: string | null }) {
   const [failed, setFailed] = useState(false)
   const [dark, setDark] = useState(false)
-  // The slot is held at 16px while today's URLs load, so nothing shifts.
-  if (pageUrl === null) return <span aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
+  // The slot is held at 16px while the icons resolve, so nothing shifts.
+  if (src === null) return <span aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
   if (failed) {
     return <Globe size={16} strokeWidth={1.5} aria-hidden="true" className="flex-shrink-0 text-content-tertiary" />
   }
-  const src = new URL(chrome.runtime.getURL('/_favicon/'))
-  src.searchParams.set('pageUrl', pageUrl)
-  src.searchParams.set('size', '32')
   return (
     <img
-      src={src.toString()}
+      src={src}
       alt=""
       width={16}
       height={16}
@@ -85,7 +147,6 @@ function Favicon({ pageUrl }: { pageUrl: string | null }) {
 // never opens the site itself.
 export default function DomainList({ domains, currentDomain, currentElapsedSeconds }: DomainListProps) {
   const { t } = useLocale()
-  const visitedUrls = useVisitedUrls()
 
   // The current session is not yet in the stored aggregate — fold it in.
   const merged = [...domains]
@@ -98,6 +159,7 @@ export default function DomainList({ domains, currentDomain, currentElapsedSecon
   }
 
   const topFive = merged.slice(0, 5)
+  const faviconSources = useFaviconSources(topFive.map(d => d.domain))
 
   if (topFive.length === 0) {
     return (
@@ -119,7 +181,7 @@ export default function DomainList({ domains, currentDomain, currentElapsedSecon
           // favicons stay on the section's left edge.
           className="pressable group relative -mx-2 flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-surface-hover focus-visible:bg-surface-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
         >
-          <Favicon pageUrl={visitedUrls && (visitedUrls[domain.domain] ?? `https://${domain.domain}/`)} />
+          <Favicon src={faviconSources && faviconSources[domain.domain]} />
           <CategoryDot category={domain.category} />
           <span className="min-w-0 flex-1 truncate text-body text-content">{domain.domain}</span>
           <span className="flex-shrink-0 text-caption text-content-tertiary">
