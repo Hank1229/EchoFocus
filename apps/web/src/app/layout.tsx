@@ -7,7 +7,7 @@ import { ThemeProvider, type ThemePreference } from '@/lib/theme'
 
 export const metadata: Metadata = {
   title: 'EchoFocus: Focus Tracker and Pomodoro Timer',
-  description: 'AI-powered productivity tracker. All browsing data stays on your device — never uploaded to any server.',
+  description: 'EchoFocus is a Chrome extension that times the sites you visit, scores your focus, and runs a pomodoro timer. Your browsing history stays on your device.',
   icons: { icon: '/favicon.ico' },
 }
 

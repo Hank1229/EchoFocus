@@ -151,7 +151,7 @@
   },
   "about": {
     "version": "版本",
-    "appDesc": "隱私優先的生產力追蹤工具，自動記錄您的瀏覽行為，以 Gemini AI 分析工作模式，並提供個人化改善建議。",
+    "appDesc": "EchoFocus 是專注追蹤器，也是番茄鐘。它記錄你在每個網站停留的時間，每天算出專注分數。登入後，Gemini 會根據你的數據寫一段當日回顧。",
     "privacyProtection": "我們如何保護您的隱私",
     "privacyItem0": "所有瀏覽資料僅儲存在您的裝置上（chrome.storage.local）",
     "privacyItem1": "AI 分析僅使用匿名統計（網域 + 時長 — 不含完整網址）",

@@ -151,7 +151,7 @@
   },
   "about": {
     "version": "Version",
-    "appDesc": "Privacy-first productivity tracker that automatically records your browsing behavior, analyzes work patterns with Gemini AI, and delivers personalized improvement suggestions.",
+    "appDesc": "EchoFocus is a focus tracker and pomodoro timer. It times the sites you visit and scores your focus each day. Sign in and Gemini writes a short review of your day from your numbers.",
     "privacyProtection": "How we protect your privacy",
     "privacyItem0": "All browsing data is stored only on your device (chrome.storage.local)",
     "privacyItem1": "AI analysis uses only anonymous aggregates (domain + duration — no full URLs)",
