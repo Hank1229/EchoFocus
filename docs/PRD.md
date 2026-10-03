@@ -1,5 +1,5 @@
 # Product Requirements Document (PRD)
-# EchoFocus: Privacy-First Productivity Tracker
+# EchoFocus: Focus Tracker and Pomodoro Timer
 
 ## 1. Product Vision
 
@@ -44,8 +44,9 @@ EchoFocus is a productivity tracker that uses AI. Its Chrome Extension records y
 │              Supabase Backend                        │
 │  ┌──────────┐  ┌──────────┐  ┌──────────────────┐  │
 │  │   Auth   │  │ Edge     │  │  PostgreSQL      │  │
-│  │(Google/  │  │Functions │  │(user preferences │  │
-│  │ Email)   │  │(AI proxy)│  │ & settings ONLY) │  │
+│  │(Google   │  │Functions │  │(prefs, rules,    │  │
+│  │ OAuth)   │  │(AI proxy)│  │ daily aggregates,│  │
+│  │          │  │          │  │ AI results)      │  │
 │  └──────────┘  └──────────┘  └──────────────────┘  │
 └─────────────────────────────────────────────────────┘
                         │
@@ -53,8 +54,8 @@ EchoFocus is a productivity tracker that uses AI. Its Chrome Extension records y
 ┌─────────────────────────────────────────────────────┐
 │          External Services                           │
 │  ┌──────────────┐  ┌────────────────────────────┐   │
-│  │ Google       │  │ Resend / SendGrid          │   │
-│  │ Gemini API   │  │ (Email delivery)           │   │
+│  │ Google       │  │ Resend (shelved)           │   │
+│  │ Gemini API   │  │ (no email is sent)         │   │
 │  └──────────────┘  └────────────────────────────┘   │
 └─────────────────────────────────────────────────────┘
 ```
@@ -63,13 +64,13 @@ EchoFocus is a productivity tracker that uses AI. Its Chrome Extension records y
 
 | Data type | Where it is stored | Uploaded to the backend? |
 |---------|---------|------------|
-| Browsing URLs / domains | chrome.storage.local | No, never uploaded |
+| Browsing URLs / page titles | chrome.storage.local | No, never uploaded |
 | Duration of each visit | chrome.storage.local | No, never uploaded |
 | Category results | chrome.storage.local | No, never uploaded |
-| Aggregate stats (e.g., 3.5 hr of focus per day) | Optional upload | Partly: anonymous aggregate data only |
-| AI analysis results | chrome.storage.local | No, discarded after analysis |
-| User settings / preferences | Supabase | Yes, synced across devices |
-| Email address | Supabase | Yes, used for authentication and reports |
+| Daily aggregate stats (time per category, focus score, productive time per hour, top 10 domains with their time and category) | chrome.storage.local; Supabase `synced_aggregates` when signed in | Yes, when signed in: domain names and totals only, never URLs |
+| AI analysis results | Supabase `ai_analyses` (with the summary sent to the AI); the extension also keeps its 21:00 result in chrome.storage.local | Yes, stored after analysis |
+| User settings / preferences | chrome.storage.local; Supabase `user_preferences` when signed in | Yes, when signed in: synced across devices |
+| Email address | Supabase | Yes, used for authentication |
 
 ---
 
@@ -79,24 +80,24 @@ EchoFocus is a productivity tracker that uses AI. Its Chrome Extension records y
 - **Language:** TypeScript
 - **Build:** Vite + CRXJS (Chrome Extension Vite plugin)
 - **UI Framework:** React (popup & options page) + Tailwind CSS
-- **Storage:** chrome.storage.local (browsing data), chrome.storage.sync (settings)
+- **Storage:** chrome.storage.local (browsing data, settings, and custom rules; chrome.storage.sync is not used)
 - **Background:** Service Worker (Manifest V3 required)
 
 ### Web Dashboard
-- **Framework:** Next.js 14 (App Router)
-- **Styling:** Tailwind CSS + shadcn/ui
+- **Framework:** Next.js 15 (App Router) with React 19
+- **Styling:** Tailwind CSS
 - **Charts:** Recharts
 - **Hosting:** Vercel (free tier)
 
 ### Backend (Supabase)
 - **Database:** PostgreSQL (Supabase hosted)
-- **Auth:** Supabase Auth (Google OAuth + Email/Password)
+- **Auth:** Supabase Auth (Google OAuth only). The extension signs in through chrome.identity.launchWebAuthFlow and the dashboard through the web OAuth redirect; each keeps its own Supabase session.
 - **API:** Supabase Edge Functions (Deno runtime)
-- **Realtime:** Supabase Realtime (optional, for cross-device sync)
+- **Realtime:** not used. The extension reads the cloud tables at the nightly sync, at browser start, and while the popup is open.
 
 ### External APIs
 - **AI:** Google Gemini API (gemini-3.5-flash-lite: fast, cheap, and good enough)
-- **Email:** Resend (generous free tier, good developer experience)
+- **Email:** Resend, shelved. The send-email-report function is a 503 stub, so nothing sends email.
 
 ---
 
@@ -116,7 +117,7 @@ EchoFocus is a productivity tracker that uses AI. Its Chrome Extension records y
 - Rules the user can customize (override defaults, add new domains)
 - Category hierarchy: domain-level → subdomain-level → path-level
 - Categories: `productive`, `distraction`, `neutral`, `uncategorized`
-- Users can create custom category names (e.g., "research", "communication", "entertainment")
+- The four categories are fixed: a custom rule picks one of them, and users cannot add new category names
 
 **Data Storage Schema (chrome.storage.local):**
 ```typescript
@@ -137,89 +138,93 @@ interface DailyAggregate {
   productiveSeconds: number;
   distractionSeconds: number;
   neutralSeconds: number;
+  uncategorizedSeconds: number;
   topDomains: { domain: string; seconds: number; category: Category }[];
   focusScore: number;   // 0-100
+  productiveByHour?: number[]; // 24 entries, productive seconds per local hour
 }
 ```
 
 **Data Retention:**
-- Raw entries: 30 days rolling (auto-cleanup)
+- Raw entries: 30 days rolling by default (auto-cleanup; Options sets 7 to 365 days)
 - Daily aggregates: 365 days
 - Storage budget: an estimated ~5MB for a heavy user (chrome.storage.local limit: 10MB)
 - Export: JSON / CSV download
 
 ### 4.2 Extension Popup (Quick View)
 
-**Layout (320px width):**
+**Layout (360px width):**
 - Status indicator (tracking on/off, with a toggle)
-- Today's focus score (circular progress ring)
+- Today's focus score (circular progress ring), in one card with a pomodoro focus timer; while a round runs, the timer's countdown ring takes the ring's place and the score shows as text
 - Today's stats: productive hours, distraction hours, focus score
 - Top 5 domains today (with category color coding)
-- Quick actions: pause/resume, open dashboard, sync settings
-- The current site's category, with one-click re-categorize
+- Quick actions: pause/resume tracking, a link that opens the dashboard's Today page, and a gear that opens Dashboard Settings
+- The current site and its category dot; clicking a site in the top 5 opens Options on the Categories tab with a rule for that domain prefilled
 
 ### 4.3 Extension Options Page (Settings)
 
 **Tabs:**
 1. **General:** tracking on/off, idle timeout, data retention period
-2. **Categories:** manage custom rules, import/export rules, bulk editor
-3. **Privacy:** data audit log, export all data, delete all data, what-we-collect explanation
-4. **Account:** login/logout, email preferences, sync settings
-5. **About:** version, changelog, privacy policy link, support
+2. **Categories:** manage custom rules, import/export rules
+3. **Privacy:** storage usage, export all data (JSON or CSV), privacy policy and terms links, delete all tracking data
+4. **Account:** Google sign-in and sign-out, last sync time, a button that syncs today's data, a link to the web dashboard
+5. **About:** version, how EchoFocus protects your privacy, links to the privacy policy, terms, and issue tracker
 
 ### 4.4 Web Dashboard (Next.js)
 
 **Pages:**
 - `/`: Landing page (marketing, feature overview, install CTA)
-- `/login`: Auth (Google OAuth / Email)
-- `/dashboard`: Main dashboard (requires auth)
+- `/login`: Auth (Google OAuth only)
+- `/dashboard`: redirects to `/dashboard/today` (requires auth)
 - `/dashboard/today`: Today's detailed breakdown
-- `/dashboard/trends`: Weekly/monthly trends and charts
-- `/dashboard/ai-insights`: AI analysis history
+- `/dashboard/trends`: Trends over the last 7 or 30 days, with charts
+- `/dashboard/ai-insights`: redirects to `/dashboard/today`; the daily insight lives on Today and the weekly review on Trends
 - `/dashboard/settings`: Account and preference settings
 - `/privacy`: Privacy policy
 - `/terms`: Terms of service
 
 **Dashboard Features:**
-- Daily/weekly/monthly time breakdown charts (bar, line, pie)
+- Time breakdown charts over the last 7 or 30 days (a stacked bar chart per day, and a focus score area chart)
 - Focus score trend over time
-- Domain usage heatmap
-- Productivity patterns (best hours, worst hours)
+- Per-day site ranking (time per domain); there is no domain heatmap
+- Productivity patterns (best focus hours, as a heat strip of productive time by hour)
 - Goal setting (daily productive hours target)
-- AI insight cards (latest analysis)
+- AI insights: a daily insight on Today and a weekly review on Trends
 
-**Important:** The dashboard gets its data from the extension in one of two ways: through a content script bridge, or from aggregated data the extension posts to Supabase. Raw URLs never leave the extension.
+**Important:** The dashboard gets its data only from the aggregated data the extension posts to Supabase; there is no content script bridge. Raw URLs never leave the extension.
 
 ### 4.5 AI Productivity Analysis
 
-**Trigger:** The user requests an analysis by hand, or it runs once a day at a time the user sets.
+**Trigger:** Analysis needs a signed-in account. The extension runs it once a day at 21:00 local time (fixed, not user-set) when the day has at least 30 minutes tracked. The user can also generate a daily insight by hand on the dashboard's Today page, and a weekly review on Trends.
 
 **Process:**
 1. The extension aggregates today's data into an anonymized summary (no URLs, only domains + durations + categories)
-2. The extension sends the summary to a Supabase Edge Function
+2. The extension sends the summary to a Supabase Edge Function (the dashboard sends the same summary, built from the synced aggregate)
 3. The Edge Function calls the Gemini API with a structured prompt
-4. The Edge Function returns the AI response to the extension, which stores it locally
-5. The server discards the original summary data from memory
+4. The Edge Function stores the result in the `ai_analyses` table and returns it; the extension also keeps a copy in chrome.storage.local
+5. The server keeps the summary it received, in `ai_analyses.aggregated_input` next to the result
 
 **AI Prompt Template:**
 ```
-You are a professional productivity coach. Analyze this user's daily activity summary and provide actionable insights.
+You are a focus analyst writing the user's short daily review. Voice: steady and plain. State the data and what it shows; do not cheer, scold, or dramatize.
 
-Data: {aggregated_stats_only}
+<data>{aggregated_stats_only}</data>
 
-Provide:
-1. Overall assessment (encouraging tone)
-2. Identified patterns
-3. 3 specific, actionable suggestions
-4. Motivational closing
+Write three short paragraphs, in this order:
+1. What the day looked like, stated plainly with the key numbers.
+2. One or two patterns worth noticing, each tied to a specific data point.
+3. Close with exactly one concrete suggestion for tomorrow.
 
 Language: {user_preferred_language}
 Length: 150-250 words
+Format: Plain text, no Markdown formatting, no emoji
 ```
 
-**Privacy Safeguard:** The AI sees domain names and time durations and nothing else. It never sees full URLs, page titles, or any content the user viewed.
+**Privacy Safeguard:** The AI sees the date, the time per category, the focus score, and up to 8 domain names with their minutes and category, and nothing else. It never sees full URLs, page titles, or any content the user viewed.
 
 ### 4.6 Daily Email Report
+
+**Status:** shelved. The send-email-report function is a 503 stub (the real code is parked in `index.parked.ts`), the dashboard hides the email settings, and migration 007 defaults `email_report_enabled` to false. Nothing sends email.
 
 **Trigger:** A Supabase cron job or Edge Function sends it at the time the user picks (default 8 PM).
 
@@ -239,11 +244,11 @@ Length: 150-250 words
 - Domain exact match: `github.com` → productive
 - Domain wildcard: `*.google.com` → productive
 - Path match: `youtube.com/watch` → distraction, `youtube.com/@channel-name` → productive
-- Keyword in title: title contains "tutorial" → productive (optional, advanced)
+- Keyword in title: title contains "tutorial" → productive (optional, advanced; not built, rules match domains and paths only)
 
-**UI:** A drag-and-drop rule manager in the Options Page, with search and bulk operations.
+**UI:** A rule list in the Options Page's Categories tab: add a rule (pattern, match type, category), delete a rule, and import or export rules as JSON. Signed in, Dashboard Settings → Categories edits the same rules.
 
-**Sync:** Rules live in chrome.storage.sync, which Chrome syncs across instances signed in to the same Google account. An optional backup to Supabase covers cross-browser recovery.
+**Sync:** Rules live in chrome.storage.local. Signed in, they sync with the Supabase `custom_rules` table, and the cloud copy is authoritative.
 
 ---
 
@@ -272,6 +277,7 @@ Length: 150-250 words
 **Deliverable:** A complete, working product: extension + dashboard.
 
 ### Phase 3: AI + Email (Week 5-6), "It's smart"
+**Status:** AI analysis shipped; its insights show on the dashboard only, not in the popup. The email report and its preference settings are shelved (see 4.6).
 - [ ] Supabase Edge Function for Gemini API proxy
 - [ ] AI analysis integration (on-demand + scheduled)
 - [ ] Daily email report system via Resend
@@ -281,6 +287,7 @@ Length: 150-250 words
 **Deliverable:** AI analysis and daily email reports both work.
 
 ### Phase 4: Polish + Store (Week 7-8), "It's ready"
+**Status:** not submitted to the Chrome Web Store. The landing page's install links point to GitHub Releases.
 - [ ] Extension icons (16, 48, 128px)
 - [ ] Chrome Web Store listing assets (screenshots, promo images, description)
 - [ ] Privacy policy page
@@ -298,7 +305,7 @@ Length: 150-250 words
 ## 6. Chrome Web Store Requirements Checklist
 
 - [ ] Manifest V3 compliant
-- [ ] Minimum permissions (only `tabs`, `storage`, `alarms`, `idle`)
+- [ ] Minimum permissions: `tabs`, `storage`, `alarms`, `idle`, plus `identity` (Google sign-in), `notifications` (daily summary and timer alerts), and `favicon` (site icons in the popup)
 - [ ] No `host_permissions` for `<all_urls>` (we don't need it, since we only read tab info)
 - [ ] Privacy policy URL (hosted on web dashboard domain)
 - [ ] Extension icons: 16x16, 48x48, 128x128 PNG
@@ -314,7 +321,7 @@ Length: 150-250 words
 
 ## 7. Database Schema (Supabase PostgreSQL)
 
-The database holds user preferences and account data only. It holds NO browsing data.
+The database holds account data, preferences, custom rules, daily aggregates (time totals and top domain names), AI analyses, and the AI rate-limit counters. It holds no URLs, page titles, or per-visit records. The schema below is a simplified view of `supabase/migrations/`; it leaves out the two rate-limit tables (`ai_generation_quota`, `ai_weekly_quota`), which no client role can read or write.
 
 ```sql
 -- Users (managed by Supabase Auth, extended with profile)
@@ -332,17 +339,22 @@ CREATE TABLE profiles (
 CREATE TABLE user_preferences (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  email_report_enabled BOOLEAN DEFAULT true,
+  email_report_enabled BOOLEAN DEFAULT false, -- email report shelved (migration 007)
   email_report_time TIME DEFAULT '20:00',
   ai_analysis_enabled BOOLEAN DEFAULT true,
   idle_timeout_minutes INT DEFAULT 2,
   data_retention_days INT DEFAULT 30,
   daily_goal_minutes INT DEFAULT 360, -- 6 hours default
+  theme TEXT DEFAULT 'system',  -- 'light', 'dark', 'system'
+  pomodoro_focus_minutes INT DEFAULT 25,
+  pomodoro_break_minutes INT DEFAULT 5,
+  pomodoro_reminders_enabled BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (user_id)
 );
 
--- Custom categorization rules (synced from extension)
+-- Custom categorization rules (synced with the extension; also edited in Dashboard Settings)
 CREATE TABLE custom_rules (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
@@ -352,31 +364,57 @@ CREATE TABLE custom_rules (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- AI analysis history (optional, for dashboard display)
+-- Daily aggregates uploaded by the extension (domain names and durations, no URLs or titles)
+CREATE TABLE synced_aggregates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  total_seconds INT DEFAULT 0,
+  productive_seconds INT DEFAULT 0,
+  distraction_seconds INT DEFAULT 0,
+  neutral_seconds INT DEFAULT 0,
+  uncategorized_seconds INT DEFAULT 0,
+  focus_score INT DEFAULT 0,
+  top_domains JSONB DEFAULT '[]', -- [{ domain, seconds, category }], top 10
+  productive_by_hour INTEGER[],   -- 24 productive-second counts, one per local hour
+  synced_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (user_id, date)
+);
+
+-- AI analyses for dashboard display (written only by the ai-analyze function)
 CREATE TABLE ai_analyses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   date DATE NOT NULL,
+  type TEXT DEFAULT 'daily',    -- 'daily' or 'weekly'
   aggregated_input JSONB,       -- anonymized stats sent to AI
   analysis_text TEXT,           -- AI response
   focus_score INT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (user_id, date, type)
 );
 
 -- Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_preferences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE custom_rules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE synced_aggregates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_analyses ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can only access own data" ON profiles
-  FOR ALL USING (auth.uid() = id);
+CREATE POLICY "Users can view own profile" ON profiles
+  FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id);
 CREATE POLICY "Users can only access own preferences" ON user_preferences
   FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users can only access own rules" ON custom_rules
   FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users can manage own aggregates" ON synced_aggregates
+  FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users can only access own analyses" ON ai_analyses
   FOR ALL USING (auth.uid() = user_id);
+-- Clients cannot INSERT or UPDATE ai_analyses (grants revoked); they can read and delete
+REVOKE INSERT, UPDATE ON ai_analyses FROM authenticated, anon;
 ```
 
 ---
@@ -386,7 +424,7 @@ CREATE POLICY "Users can only access own analyses" ON ai_analyses
 - **Performance:** Background service worker CPU < 1%, memory < 50MB
 - **Storage:** < 10MB chrome.storage.local usage (with auto-cleanup)
 - **Latency:** Popup opens in < 200ms, dashboard loads in < 2s
-- **Offline:** Every extension feature works offline; sync runs once the connection returns
+- **Offline:** Tracking, the popup, the focus timer, and Options work offline; sign-in and AI analysis need a connection. A day that fails to sync stays queued and retries at the next nightly sync or browser start
 - **Security:** All API calls via HTTPS, Supabase RLS on all tables
 - **Accessibility:** Dashboard meets WCAG 2.1 AA
 - **Browser Support:** Chrome 116+ (Manifest V3 stable)

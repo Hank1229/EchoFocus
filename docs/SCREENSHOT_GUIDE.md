@@ -12,11 +12,11 @@ Use a clean Chrome profile with realistic demo data that contains nothing person
 
 ### Required visible state
 - The extension popup is open
-- The **Focus Score ring** is easy to see. Aim for a score in the 65 to 80 range, which looks realistic and still gives the viewer something to aim for
-- The active tracking indicator is ON (green dot / "正在追蹤" or equivalent)
+- The **Focus Score ring** is easy to see. Aim for a score in the 65 to 80 range, which looks realistic and still gives the viewer something to aim for. Leave the focus timer idle: a running round replaces the ring with its countdown
+- The tracking toggle in the header is ON (the teal pill with an eye icon reading "Tracking" / "追蹤中")
 - The current session shows a productive domain (for example `github.com` with 25+ minutes elapsed)
-- The stats bar shows today's breakdown: ~3h productive, ~1h distraction, ~30m neutral
-- The domain list shows at least 4 domains with color-coded category badges
+- The three category columns show today's breakdown: ~3h Productive, ~1h Breaks & Browsing, ~30m Neutral
+- The "Today's sites" list shows at least 4 domains, each with its site icon and a color-coded category dot
 
 ### How to set up
 1. Install the built extension from `apps/extension/dist/`
@@ -32,38 +32,35 @@ Use a clean Chrome profile with realistic demo data that contains nothing person
 
 ### Required visible state
 - The URL bar shows the dashboard URL (or you can hide it)
-- The **left sidebar** is visible with its navigation links (Today, Trends, AI Insights, Settings)
-- The **three-column layout** has content in every column:
-  - Column 1: Focus Score ring (60 to 80), today's date, and productive/distraction/neutral time totals
-  - Column 2: domain breakdown list with at least 5 domains and the time spent on each
-  - Column 3: AI Insight card with a short generated analysis paragraph, past any loading or empty state
-- Dark theme throughout
+- The **left sidebar** is visible with its navigation links (Today's Overview, Trends, Guide, Settings)
+- The header shows today's date
+- The **review card** has content in every part:
+  - Focus score dial (60 to 80) on the left; Total tracked and the Productive / Breaks & Browsing / Neutral time totals on the right
+  - The time breakdown bar across the card
+  - The **Daily insight** at the foot of the card, with a short generated analysis paragraph, past any loading or empty state
+- The "Focus by hour" chart and the "Where the time went" site list sit below the card; at 1280×800 the site list falls below the fold
+- Dark theme throughout (Settings → General → Theme → Dark)
 
 ### How to set up
-1. Make sure the extension has synced today's data to Supabase (Options → Account → Sync Now)
+1. Make sure the extension has synced today's data to Supabase (Options → Account → Sync today's data)
 2. Open `/dashboard/today` in the web app
-3. If the AI insight is empty, run an analysis from the popup first
+3. If the Daily insight is empty, click **Generate Insight** in the card. With under 30 minutes tracked, the insight only says there is not enough data
 
 ---
 
-## Screenshot 3: AI Insights Page, Generated Analysis
+## Screenshot 3: Trends Page, Weekly Review
 
-**File name:** `screenshot-3-ai-insights.png`
+**File name:** `screenshot-3-trends-weekly-review.png`
 **Dimensions:** 1280×800 (full browser window)
 
 ### Required visible state
-- The URL shows `/dashboard/ai-insights`
-- The page heading "AI Insights" is visible
-- At least **2 analysis cards** appear in the list, each showing:
-  - Date
-  - The first 2 or 3 sentences of the AI analysis (complete text, with no truncation or loading state)
-  - Focus score for that day
-- The most recent analysis is expanded in full or easy to read
-- The "Analyze Today" button is visible at the top
+- The URL shows `/dashboard/trends`
+- The page is scrolled to its foot, so the **Weekly review** card is in full view
+- The card shows a generated retrospective (complete text, with no truncation or loading state) and its Regenerate button
 
 ### How to set up
-1. Run an AI analysis on 2 different days (or press the Analyze button twice, on different dates)
-2. Open `/dashboard/ai-insights`
+1. Sync several days of data: the review covers the 7 most recently synced days
+2. Open `/dashboard/trends` and click **Weekly review** in the card at the foot of the page. The server allows one weekly review per week, so generate it once
 3. Wait for the page to finish rendering so no loading spinners show
 
 ---
@@ -78,13 +75,13 @@ Use a clean Chrome profile with realistic demo data that contains nothing person
 - The **Privacy tab** is selected (隱私 / Privacy)
 - Visible sections:
   - "Your data stays on your device" or a matching privacy statement
-  - Storage usage indicator (for example "12 KB used of 5 MB")
-  - Export Data button
-  - Delete All Data button (red, destructive styling)
-- The left tab navigation shows all 5 tabs with Privacy highlighted
+  - Storage usage indicator (for example "Used 0.01 MB / 10 MB" above a bar)
+  - Export JSON and Export CSV buttons
+  - Delete all tracking data button (red text inside the red-outlined Reset section)
+- The tab bar across the top shows all 5 tabs with Privacy highlighted
 
 ### How to set up
-1. Right-click the extension icon → Options (or follow the settings link in the popup)
+1. Right-click the extension icon → Options (or click a site in the popup, which opens Options on the Categories tab)
 2. Click the Privacy tab
 3. Make sure some tracking data exists so storage usage reads above zero
 
