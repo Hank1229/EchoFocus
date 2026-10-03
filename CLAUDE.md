@@ -157,6 +157,17 @@ echofocus/
 
 1. **Never `git add -A` while any change is awaiting the user's approval** — stage approved files explicitly by path, so a pending proposal can't ride along into a commit.
 
+### Change Impact (report before building)
+
+1. **Map the reach before any change.** List the files, components, styles and shared functions the change touches, and every surface that uses them: popup, Options, Onboarding, each Dashboard page, the Guide demo, background logic, sync. Shared code is the usual trap: `packages/shared/src/ui/TimerModule` renders both the popup timer and the Guide demo, and the popup, Options and Onboarding share the extension's locale files and Tailwind config.
+2. **Stop and report when something unrequested would change.** If the change would alter the look or behavior of any place the user did not ask to change, do not write code yet. Report:
+   - which places change, and how;
+   - the options and their trade-offs (for example: change only the target page and leave the shared component alone / change the shared component and adjust the other surfaces to match / split out a new component);
+   - your recommendation.
+   Build only after the user decides.
+3. **No side effects: say so and proceed.** When nothing else is affected, put one line in the report, "Impact: limited to X", and carry on without stopping.
+4. **Run the visual regression check after every change.** If it shows a difference you did not expect, report it the same way and wait. Never update the baseline images on your own. Until the repo has a committed visual regression suite, the check is: screenshot every affected surface in both themes from the build before the change (the baseline) and after it, compare them, and publish the before/after comparison.
+
 ### Code Style
 
 1. **TypeScript strict mode** everywhere — no `any` types unless absolutely necessary
