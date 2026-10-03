@@ -2,7 +2,7 @@
   "name": "echofocus",
   "private": true,
   "version": "0.1.0",
-  "description": "EchoFocus — AI-powered privacy-first productivity tracker",
+  "description": "EchoFocus: a Chrome extension and dashboard that score your focus from browsing time kept on your device",
   "scripts": {
     "dev:extension": "pnpm --filter @echofocus/extension dev",
     "dev:web": "pnpm --filter @echofocus/web dev",

@@ -1,7 +1,7 @@
-# EchoFocus — User Workflow & UI Structure
+# EchoFocus: User Workflow & UI Structure
 
-> Complete reference for every user-facing workflow, screen, component, and data flow in the EchoFocus Chrome Extension + Web Dashboard.
-> Generated from source — kept in sync with code.
+> A reference for every user-facing workflow, screen, component, and data flow in the EchoFocus Chrome Extension and Web Dashboard.
+> Generated from the source code and kept in sync with it.
 
 ---
 
@@ -21,8 +21,8 @@
    - [WF-10 Configure Preferences (Web Settings)](#wf-10-configure-preferences-web-settings)
    - [WF-11 Email Report](#wf-11-email-report)
    - [WF-12 Data Export & Deletion](#wf-12-data-export--deletion)
-3. [UI Structure — Extension](#3-ui-structure--extension)
-4. [UI Structure — Web Dashboard](#4-ui-structure--web-dashboard)
+3. [UI Structure: Extension](#3-ui-structure-extension)
+4. [UI Structure: Web Dashboard](#4-ui-structure-web-dashboard)
 5. [Navigation Map](#5-navigation-map)
 6. [Data Architecture](#6-data-architecture)
 7. [Scheduled Events](#7-scheduled-events)
@@ -31,11 +31,11 @@
 
 ## 1. Product Overview
 
-EchoFocus is an AI-powered productivity tracker built as a **Chrome Extension** (Manifest V3) with a companion **Web Dashboard** (Next.js 14).
+EchoFocus is a productivity tracker that ships as a **Chrome Extension** (Manifest V3) with a companion **Web Dashboard** (Next.js 14). Google Gemini writes the AI analysis of each day's numbers.
 
 | Concern | Where it lives |
 |---|---|
-| Raw browsing data (URLs, durations, per-site entries) | `chrome.storage.local` — **never leaves the device** |
+| Raw browsing data (URLs, durations, per-site entries) | `chrome.storage.local` (**never leaves the device**) |
 | Aggregated daily stats (domain names + seconds, no URLs) | Supabase `synced_aggregates` table |
 | AI analysis results | Supabase `ai_analyses` table |
 | User preferences | Supabase `user_preferences` table |
@@ -43,7 +43,7 @@ EchoFocus is an AI-powered productivity tracker built as a **Chrome Extension** 
 | AI inference | Google Gemini API via Supabase Edge Function (server-side) |
 | Email delivery | Resend via Supabase Edge Function |
 
-**Core privacy guarantee:** Supabase only ever receives aggregated domain-level statistics and AI-generated text. Raw URLs, page titles, and full browsing history never leave the user's device.
+**Core privacy guarantee:** Supabase receives only aggregated domain-level statistics and AI-generated text. Raw URLs, page titles, and the full browsing history stay on the user's device.
 
 ---
 
@@ -51,61 +51,61 @@ EchoFocus is an AI-powered productivity tracker built as a **Chrome Extension** 
 
 ### WF-01 First Install & Onboarding
 
-**Trigger:** User installs the extension from the Chrome Web Store (or loads it unpacked).
+**Trigger:** The user installs the extension from the Chrome Web Store or loads it unpacked.
 
 **Steps:**
 
 1. `chrome.runtime.onInstalled` fires with `reason === 'install'`.
-2. Background service worker calls `chrome.tabs.create({ url: onboarding.html })`.
-3. A full-page onboarding tab opens (`apps/extension/src/onboarding/App.tsx`).
-4. User progresses through 4 steps:
-   - **Step 1 — Welcome:** Product name, tagline, "Get Started" CTA.
-   - **Step 2 — Privacy:** Explains local-only storage, what goes to cloud, privacy-first design.
-   - **Step 3 — Sign In:** Google OAuth button. Signs user in via `chrome.identity.launchWebAuthFlow`. On success, session is stored in `chrome.storage.local['supabase_session']`.
-   - **Step 4 — Done:** Confirmation screen with link to open the popup and link to the web dashboard.
-5. User can click the extension icon at any time to open the popup.
+2. The background service worker calls `chrome.tabs.create({ url: onboarding.html })`.
+3. The onboarding page opens in a full tab (`apps/extension/src/onboarding/App.tsx`).
+4. The user goes through 4 steps:
+   - **Step 1 (Welcome):** the product name, the tagline, and a "Get Started" button.
+   - **Step 2 (Privacy):** explains local-only storage, what goes to the cloud, and the privacy-first design.
+   - **Step 3 (Sign In):** a Google OAuth button that signs the user in through `chrome.identity.launchWebAuthFlow`. On success, the extension stores the session in `chrome.storage.local['supabase_session']`.
+   - **Step 4 (Done):** a confirmation screen with one link that opens the popup and another to the web dashboard.
+5. The user can click the extension icon at any time to open the popup.
 
 **Data flow:**
 - Sign-in writes `supabase_session` to `chrome.storage.local`.
-- `background/storage.ts` loads this session for all subsequent Supabase calls from the extension.
+- `background/storage.ts` loads this session for every later Supabase call the extension makes.
 
-**End state:** Extension is authenticated; tracking begins automatically when user browses.
+**End state:** The extension is authenticated, and tracking starts on its own once the user browses.
 
 ---
 
 ### WF-02 Sign In (Extension)
 
-**Trigger:** User clicks "Sign in with Google" in the popup (if not already signed in), or in the Options → Account tab.
+**Trigger:** The user clicks "Sign in with Google" in the popup (when signed out) or in the Options → Account tab.
 
 **Steps:**
 
-1. UI calls `signInWithGoogle()` from `apps/extension/src/lib/auth.ts`.
+1. The UI calls `signInWithGoogle()` from `apps/extension/src/lib/auth.ts`.
 2. `chrome.identity.launchWebAuthFlow` opens a Google consent popup.
-3. On success, the OAuth code is exchanged for a Supabase session.
-4. Session JSON is persisted to `chrome.storage.local['supabase_session']`.
-5. UI updates to show the signed-in state (email, avatar).
+3. On success, the extension exchanges the OAuth code for a Supabase session.
+4. The extension writes the session JSON to `chrome.storage.local['supabase_session']`.
+5. The UI switches to the signed-in state (email, avatar).
 
-**End state:** User is authenticated; sync and AI features are available.
+**End state:** The user is authenticated, and the sync and AI features become available.
 
 ---
 
 ### WF-03 Daily Browsing Tracking
 
-**Trigger:** Automatic — starts when the browser is open and the user is active.
+**Trigger:** Automatic. Tracking runs while the browser is open and the user is active.
 
 **Steps:**
 
-1. **Tab activated / URL changed:** `chrome.tabs.onActivated` and `chrome.tabs.onUpdated` fire in `background/tracker.ts`.
+1. **Tab activated or URL changed:** `chrome.tabs.onActivated` and `chrome.tabs.onUpdated` fire in `background/tracker.ts`.
 2. The tracker extracts the domain from the current URL.
-3. Duration for the **previous** tab (if ≥ 5 seconds) is saved as a `TrackingEntry` to `chrome.storage.local['entries:YYYY-MM-DD']`.
-4. New tracking session begins: domain + `startTime` stored in `chrome.storage.local['tracking_state']`.
-5. **Idle detection:** `chrome.idle.onStateChanged` fires when the user is idle/locked. Tracker pauses and saves the open session.
-6. On idle resume, tracking restarts with a fresh `startTime`.
-7. **Service worker restart:** On wake-up, tracker reads `tracking_state` from storage to reconstruct the last known state.
+3. If the **previous** tab ran for ≥ 5 seconds, the tracker saves its duration as a `TrackingEntry` to `chrome.storage.local['entries:YYYY-MM-DD']`.
+4. A new tracking session begins, and the tracker stores the domain and `startTime` in `chrome.storage.local['tracking_state']`.
+5. **Idle detection:** `chrome.idle.onStateChanged` fires when the user goes idle or locks the screen. The tracker pauses and saves the open session.
+6. When the user comes back from idle, tracking restarts with a fresh `startTime`.
+7. **Service worker restart:** when the worker wakes up, the tracker reads `tracking_state` from storage to rebuild the last known state.
 
-**Categorization:** Each domain is categorized as `productive` / `distraction` / `neutral` / `uncategorized` using:
+**Categorization:** The tracker assigns each domain `productive` / `distraction` / `neutral` / `uncategorized`, based on two sources:
 - Default rules in `packages/shared/src/constants/categories.ts` (100+ domains).
-- User-defined custom rules from `chrome.storage.local['custom_rules']` (highest priority).
+- The user's custom rules from `chrome.storage.local['custom_rules']`, which take the highest priority.
 
 **Data flow:**
 ```
@@ -113,30 +113,30 @@ Tab event → tracker.ts → TrackingEntry → chrome.storage.local['entries:YYY
                        → DailyAggregate (hourly alarm) → chrome.storage.local['aggregates:YYYY-MM-DD']
 ```
 
-**End state:** `entries:YYYY-MM-DD` accumulates throughout the day. Hourly alarm recomputes `aggregates:YYYY-MM-DD`.
+**End state:** `entries:YYYY-MM-DD` grows through the day, and the hourly alarm recomputes `aggregates:YYYY-MM-DD`.
 
 ---
 
 ### WF-04 View Today's Stats (Popup)
 
-**Trigger:** User clicks the EchoFocus extension icon.
+**Trigger:** The user clicks the EchoFocus extension icon.
 
 **Steps:**
 
-1. Popup mounts (`apps/extension/src/popup/App.tsx`).
-2. Sends `GET_TRACKING_STATE` message to background → receives `{ isTracking, domain, category, elapsedSeconds }`.
-3. Reads today's `DailyAggregate` from storage via `GET_AGGREGATE` message.
-4. Displays:
-   - **TrackingToggle** — green pill showing "Tracking" or "Paused" with click-to-toggle.
-   - **FocusScoreRing** — SVG ring with score (0–100), label (Excellent/Average/Room to grow), and pts.
-   - **StatsBar** — horizontal stacked bar showing productive/distraction/neutral split with durations.
-   - **DomainList** — top domains ranked by time with category icon, name, category label, duration.
-   - **AiInsightCard** — last AI analysis summary (collapsible). If none, shows "Analyze" prompt.
-5. Footer has: **Lightbulb** icon (opens options), **Settings** icon (opens options), **User** icon (opens `/dashboard/settings` in new tab).
+1. The popup mounts (`apps/extension/src/popup/App.tsx`).
+2. It sends a `GET_TRACKING_STATE` message to the background and gets back `{ isTracking, domain, category, elapsedSeconds }`.
+3. It reads today's `DailyAggregate` from storage with a `GET_AGGREGATE` message.
+4. It displays:
+   - **TrackingToggle:** a green pill that reads "Tracking" or "Paused". Clicking it toggles tracking.
+   - **FocusScoreRing:** an SVG ring with the score (0 to 100), a label (Excellent/Average/Room to grow), and "pts".
+   - **StatsBar:** a horizontal stacked bar with the productive/distraction/neutral split and each duration.
+   - **DomainList:** the top domains ranked by time, each with a category icon, name, category label, and duration.
+   - **AiInsightCard:** the last AI analysis summary (collapsible). If there is none, the card shows an "Analyze" prompt.
+5. The footer holds a **Lightbulb** icon (opens options), a **Settings** icon (opens options), and a **User** icon (opens `/dashboard/settings` in a new tab).
 
-**Data flow:** All data is read from `chrome.storage.local` — no network calls on popup open.
+**Data flow:** The popup reads all of its data from `chrome.storage.local` and makes no network calls when it opens.
 
-**End state:** User sees their browsing stats for today; can toggle tracking or trigger AI analysis.
+**End state:** The user sees today's browsing stats and can toggle tracking or start an AI analysis.
 
 ---
 
@@ -146,14 +146,14 @@ Tab event → tracker.ts → TrackingEntry → chrome.storage.local['entries:YYY
 
 **Steps:**
 
-1. `runMidnightSync()` in `background/alarms.ts` fires.
-2. Reads yesterday's `DailyAggregate` from `chrome.storage.local['aggregates:YYYY-MM-DD']`.
-3. If aggregate exists and user is signed in, calls `syncToSupabase(aggregate)` from `apps/extension/src/lib/sync.ts`.
-4. `sync.ts` upserts to Supabase `synced_aggregates` table:
+1. `runMidnightSync()` in `background/alarms.ts` runs.
+2. It reads yesterday's `DailyAggregate` from `chrome.storage.local['aggregates:YYYY-MM-DD']`.
+3. If the aggregate exists and the user is signed in, it calls `syncToSupabase(aggregate)` from `apps/extension/src/lib/sync.ts`.
+4. `sync.ts` upserts a row into the Supabase `synced_aggregates` table with these fields:
    - `user_id`, `date`, `total_seconds`, `productive_seconds`, `distraction_seconds`, `neutral_seconds`, `uncategorized_seconds`, `focus_score`, `top_domains` (JSONB array of `{ domain, seconds, category }`)
-5. Updates `chrome.storage.local['last_sync_at']` with current ISO timestamp.
+5. It writes the current ISO timestamp to `chrome.storage.local['last_sync_at']`.
 
-**Privacy check:** Only aggregated domain-level data is sent. No raw URLs or page titles.
+**Privacy check:** The extension sends only aggregated domain-level data, with no raw URLs or page titles.
 
 **Data flow:**
 ```
@@ -163,35 +163,35 @@ chrome.storage.local['aggregates:YYYY-MM-DD']
   → chrome.storage.local['last_sync_at']
 ```
 
-**End state:** Web dashboard can now display the day's data.
+**End state:** The web dashboard can now show the day's data.
 
 ---
 
 ### WF-06 AI Analysis (Manual)
 
-**Trigger:** User clicks "Analyze" in:
+**Trigger:** The user clicks "Analyze" in one of two places:
 - The popup (`App.tsx` → AiInsightCard)
 - The web dashboard AI Insights page (`AnalyzeButton.tsx`)
 
 **Steps (Extension popup path):**
 
-1. `handleAnalyze()` in popup sends `REQUEST_AI_ANALYSIS` message with `{ date, language }` to background.
-2. `background/index.ts` receives message, calls `requestAiAnalysis(date, language)` from `lib/ai.ts`.
+1. `handleAnalyze()` in the popup sends a `REQUEST_AI_ANALYSIS` message with `{ date, language }` to the background.
+2. `background/index.ts` receives the message and calls `requestAiAnalysis(date, language)` from `lib/ai.ts`.
 3. `ai.ts` reads today's `DailyAggregate` from storage.
-4. Builds anonymized payload: `{ date, language, aggregate: { totalMinutes, productiveMinutes, distractionMinutes, neutralMinutes, topDomains: [{ domain, minutes, category }], focusScore } }`.
-5. POSTs to Supabase Edge Function `ai-analyze` with user's auth token.
-6. Edge Function calls Gemini API (`gemini-3.5-flash-lite`) with a structured prompt (language-aware: EN or zh-TW).
-7. Edge Function saves result to Supabase `ai_analyses` table.
-8. Returns analysis text + focus_score to extension.
-9. Extension saves to `chrome.storage.local['ai_analysis:YYYY-MM-DD']`.
-10. Popup `AiInsightCard` displays the new analysis.
+4. It builds an anonymized payload: `{ date, language, aggregate: { totalMinutes, productiveMinutes, distractionMinutes, neutralMinutes, topDomains: [{ domain, minutes, category }], focusScore } }`.
+5. It POSTs the payload to the Supabase Edge Function `ai-analyze` with the user's auth token.
+6. The Edge Function calls the Gemini API (`gemini-3.5-flash-lite`) with a structured prompt in the requested language (EN or zh-TW).
+7. The Edge Function saves the result to the Supabase `ai_analyses` table.
+8. It returns the analysis text and focus_score to the extension.
+9. The extension saves the result to `chrome.storage.local['ai_analysis:YYYY-MM-DD']`.
+10. The popup's `AiInsightCard` shows the new analysis.
 
 **Steps (Web dashboard path):**
 
-1. User clicks "Analyze" on AI Insights page.
-2. `AnalyzeButton.tsx` (client component) reads Supabase session.
-3. POSTs directly to Edge Function `ai-analyze`.
-4. On success, router refreshes to show new analysis in the history list.
+1. The user clicks "Analyze" on the AI Insights page.
+2. `AnalyzeButton.tsx` (a client component) reads the Supabase session.
+3. It POSTs straight to the Edge Function `ai-analyze`.
+4. On success, the router refreshes and the new analysis appears in the history list.
 
 **Data flow:**
 ```
@@ -201,112 +201,112 @@ DailyAggregate (local) → ai.ts → Edge Function ai-analyze
   → chrome.storage.local['ai_analysis:YYYY-MM-DD'] (saved client-side)
 ```
 
-**End state:** AI analysis appears in popup AiInsightCard and web AI Insights history.
+**End state:** The AI analysis appears in the popup's AiInsightCard and in the web AI Insights history.
 
 ---
 
 ### WF-07 View AI Insights (Web)
 
-**Trigger:** User navigates to `/dashboard/ai-insights` in the web dashboard.
+**Trigger:** The user opens `/dashboard/ai-insights` in the web dashboard.
 
 **Steps:**
 
-1. Server component fetches last 30 AI analyses from `ai_analyses` table for the authenticated user.
-2. Left panel — "Generate Now": shows `AnalyzeButton` client component.
-3. Right panel — "Snapshot History": lists analyses with date, focus score badge, and analysis text.
-4. Score badges are color-coded: green (≥70), yellow (≥40), red (<40).
-5. Dates are formatted in the user's locale (EN or zh-TW).
+1. A server component fetches the authenticated user's last 30 AI analyses from the `ai_analyses` table.
+2. The left panel, "Generate Now", holds the `AnalyzeButton` client component.
+3. The right panel, "Snapshot History", lists each analysis with its date, a focus score badge, and the analysis text.
+4. The score badges use three colors: green (≥70), yellow (≥40), red (<40).
+5. Dates appear in the user's locale (EN or zh-TW).
 
-**End state:** User sees their full AI analysis history and can generate a new snapshot.
+**End state:** The user sees their full AI analysis history and can generate a new snapshot.
 
 ---
 
 ### WF-08 View Trends (Web)
 
-**Trigger:** User navigates to `/dashboard/trends`.
+**Trigger:** The user opens `/dashboard/trends`.
 
 **Steps:**
 
-1. Server component reads `period` query param (`?period=7` or `?period=30`, default 7).
-2. Fetches matching rows from `synced_aggregates` ordered by date ascending.
-3. Renders:
-   - **Period selector** — "Last 7 days" / "Last 30 days" link buttons (client-side navigation via `<a>` tags).
-   - **Summary stats row** — Avg Focus Score, Total Productive Time, Total Breaks & Browsing.
-   - **Activity Bar Chart** (`ActivityBarChart.tsx`) — stacked bars: productive (green), distraction (orange), neutral (slate), per day.
-   - **Focus Score Line Chart** (`FocusScoreChart.tsx`) — daily focus score line with dashed reference.
-4. If no data, shows empty state with 📉 icon.
+1. A server component reads the `period` query param (`?period=7` or `?period=30`, default 7).
+2. It fetches the matching rows from `synced_aggregates`, ordered by date ascending.
+3. It renders:
+   - **Period selector:** "Last 7 days" and "Last 30 days" link buttons (client-side navigation via `<a>` tags).
+   - **Summary stats row:** Avg Focus Score, Total Productive Time, Total Breaks & Browsing.
+   - **Activity Bar Chart** (`ActivityBarChart.tsx`): one stacked bar per day, with productive (green), distraction (orange), and neutral (slate).
+   - **Focus Score Line Chart** (`FocusScoreChart.tsx`): a line of the daily focus score against a dashed reference line.
+4. With no data, the page shows an empty state with a 📉 icon.
 
-**End state:** User sees trends over the selected period.
+**End state:** The user sees trends over the selected period.
 
 ---
 
 ### WF-09 Manage Custom Rules (Extension Options)
 
-**Trigger:** User opens Options (right-click extension → Options). The popup's gear opens Dashboard Settings, whose footer points here for the extension-only settings.
+**Trigger:** The user opens Options (right-click the extension → Options). The popup's gear opens Dashboard Settings instead, and that page's footer points the user here for the extension-only settings.
 
 **Steps:**
 
-1. Options page mounts (`apps/extension/src/options/App.tsx`), 5-tab layout.
-2. User navigates to **類別** (Categories) tab.
-3. Existing custom rules are loaded from `chrome.storage.local['custom_rules']`.
-4. User can:
-   - **Add rule:** Enter domain pattern + select category → "Add" button.
-   - **Edit rule:** Click edit on existing rule row → modify → save.
-   - **Delete rule:** Click delete icon on rule row.
-5. On save, sends `SAVE_CUSTOM_RULES` message to background.
-6. Background writes new rules to `chrome.storage.local['custom_rules']`.
-7. Background calls `loadCustomRules()` so tracker uses new rules immediately.
+1. The Options page mounts (`apps/extension/src/options/App.tsx`) with a 5-tab layout.
+2. The user opens the **類別** (Categories) tab.
+3. The page loads the existing custom rules from `chrome.storage.local['custom_rules']`.
+4. The user can:
+   - **Add a rule:** enter a domain pattern, pick a category, and click "Add".
+   - **Edit a rule:** click edit on a rule row, change it, and save.
+   - **Delete a rule:** click the delete icon on a rule row.
+5. On save, the page sends a `SAVE_CUSTOM_RULES` message to the background.
+6. The background writes the new rules to `chrome.storage.local['custom_rules']`.
+7. The background calls `loadCustomRules()` so the tracker uses the new rules right away.
 
-**End state:** New rules take effect on the next tab change.
+**End state:** The new rules apply from the next tab change.
 
 ---
 
 ### WF-10 Configure Preferences (Web Settings)
 
-**Trigger:** User navigates to `/dashboard/settings`.
+**Trigger:** The user opens `/dashboard/settings`.
 
 **Steps:**
 
-1. Server component fetches `user_preferences` row for the authenticated user.
-2. Page renders 4 sections:
-   - **Account:** Avatar, name, email, "Connected via Google" badge, Sign Out button.
-   - **Preferences** (`SettingsForm.tsx`): Language toggle, Daily Email Report toggle, Send Test Email button, Daily Focus Goal slider.
-   - **Data Management:** Export Cloud Data button, Delete All Cloud Data button.
-   - **About:** App version, links to Privacy Policy, Terms, GitHub, Report Issue.
-3. User changes preferences → clicks "Save Settings".
-4. `SettingsForm.handleSave()` upserts to Supabase `user_preferences` table.
-5. Language toggle calls `setLanguage()` from `useLocale()` → writes cookie `echofocus-lang` → page re-renders in new language.
+1. A server component fetches the authenticated user's `user_preferences` row.
+2. The page renders 4 sections:
+   - **Account:** avatar, name, email, a "Connected via Google" badge, and a Sign Out button.
+   - **Preferences** (`SettingsForm.tsx`): the language toggle, the Daily Email Report toggle, a Send Test Email button, and the Daily Focus Goal slider.
+   - **Data Management:** an Export Cloud Data button and a Delete All Cloud Data button.
+   - **About:** the app version and links to the Privacy Policy, Terms, GitHub, and Report Issue.
+3. The user changes preferences and clicks "Save Settings".
+4. `SettingsForm.handleSave()` upserts the changes into the Supabase `user_preferences` table.
+5. The language toggle calls `setLanguage()` from `useLocale()`, which writes the `echofocus-lang` cookie, and the page re-renders in the new language.
 
-**End state:** Preferences saved to Supabase; language change takes effect immediately.
+**End state:** Supabase holds the saved preferences, and a language change shows up right away.
 
 ---
 
 ### WF-11 Email Report
 
-**Trigger:** Automatic daily cron (Supabase Edge Function scheduled at 07:00 user-local time) **or** manual test email from Settings.
+**Trigger:** An automatic daily cron (a Supabase Edge Function scheduled at 07:00 user-local time) **or** a manual test email from Settings.
 
 **Steps:**
 
-1. `send-email-report` Edge Function runs.
-2. Reads user's `user_preferences` — if `email_report_enabled` is false, skips.
-3. Fetches last 1 day's `synced_aggregates` row and last 7 days for average.
-4. Fetches latest `ai_analyses` row.
-5. Builds HTML email with:
+1. The `send-email-report` Edge Function runs.
+2. It reads the user's `user_preferences` and stops there if `email_report_enabled` is false.
+3. It fetches the last 1 day's `synced_aggregates` row, plus the last 7 days for the average.
+4. It fetches the latest `ai_analyses` row.
+5. It builds an HTML email with:
    - EchoFocus branding.
    - Today's focus score (large, color-coded).
-   - 7-day average comparison.
-   - Time breakdown (productive / distraction / neutral).
-   - Top 5 domains.
-   - AI insight summary.
-   - "Open Dashboard" CTA button.
-6. Sends via Resend API to user's email.
+   - A comparison with the 7-day average.
+   - A time breakdown (productive / distraction / neutral).
+   - The top 5 domains.
+   - The AI insight summary.
+   - An "Open Dashboard" call-to-action button.
+6. It sends the email to the user's address through the Resend API.
 
 **Manual test path:**
-- User clicks "Send Test Report" in Settings.
-- `SettingsForm.handleSendTestEmail()` POSTs to `send-email-report` Edge Function with user's auth token.
-- Button shows: Sending → Sent ✓ / Failed (3 second display).
+- The user clicks "Send Test Report" in Settings.
+- `SettingsForm.handleSendTestEmail()` POSTs to the `send-email-report` Edge Function with the user's auth token.
+- The button shows Sending → Sent ✓ / Failed, and the result stays up for 3 seconds.
 
-**End state:** Email delivered to user's inbox.
+**End state:** The email lands in the user's inbox.
 
 ---
 
@@ -314,30 +314,30 @@ DailyAggregate (local) → ai.ts → Edge Function ai-analyze
 
 #### Export
 
-**Trigger:** User clicks "Export Cloud Data (JSON)" in Settings → Data Management.
+**Trigger:** The user clicks "Export Cloud Data (JSON)" in Settings → Data Management.
 
 **Steps:**
 
-1. `ExportCloudDataButton.tsx` fetches last 30 days of `synced_aggregates` and `ai_analyses` from Supabase.
-2. Merges into a single JSON object `{ exported_at, synced_aggregates: [...], ai_analyses: [...] }`.
-3. Creates a `Blob` and triggers browser file download (`echofocus-export-YYYY-MM-DD.json`).
+1. `ExportCloudDataButton.tsx` fetches the last 30 days of `synced_aggregates` and `ai_analyses` from Supabase.
+2. It merges them into one JSON object: `{ exported_at, synced_aggregates: [...], ai_analyses: [...] }`.
+3. It creates a `Blob` and starts a browser file download (`echofocus-export-YYYY-MM-DD.json`).
 
 #### Deletion
 
-**Trigger:** User clicks "Delete All Cloud Data" in Settings → Data Management.
+**Trigger:** The user clicks "Delete All Cloud Data" in Settings → Data Management.
 
 **Steps:**
 
-1. `DeleteCloudDataButton.tsx` shows a confirmation dialog with typed confirmation.
-2. On confirm, deletes all rows from `synced_aggregates` and `ai_analyses` for the user.
-3. Supabase RLS ensures only the authenticated user's rows are deleted.
-4. Button shows "✓ All cloud data deleted" for 3 seconds.
+1. `DeleteCloudDataButton.tsx` shows a confirmation dialog in which the user types a confirmation.
+2. On confirm, it deletes all of the user's rows from `synced_aggregates` and `ai_analyses`.
+3. Supabase RLS limits the delete to the authenticated user's rows.
+4. The button shows "✓ All cloud data deleted" for 3 seconds.
 
-**Note:** This only deletes cloud (Supabase) data. Local `chrome.storage.local` data on the device is managed separately via the extension Options → Privacy tab.
+**Note:** This deletes cloud (Supabase) data only. Local `chrome.storage.local` data on the device has its own controls, in the extension's Options → Privacy tab.
 
 ---
 
-## 3. UI Structure — Extension
+## 3. UI Structure: Extension
 
 ### Popup (`apps/extension/src/popup/`)
 
@@ -379,13 +379,13 @@ App.tsx
     └── Analyze button → sends REQUEST_AI_ANALYSIS to background
 ```
 
-**Popup dimensions:** Fixed width (~360px), scrollable.
+**Popup dimensions:** a fixed width (~360px), with scrolling content.
 
 ---
 
 ### Options Page (`apps/extension/src/options/`)
 
-5-tab layout (`App.tsx`):
+The page has a 5-tab layout (`App.tsx`):
 
 ```
 Tab 1: 一般 (General)
@@ -421,7 +421,7 @@ Tab 5: 關於 (About)
 
 ### Onboarding Page (`apps/extension/src/onboarding/`)
 
-4-step wizard (full browser tab):
+A 4-step wizard that fills a browser tab:
 
 ```
 Step 1: Welcome
@@ -446,7 +446,7 @@ Step 4: All Set!
 
 ---
 
-## 4. UI Structure — Web Dashboard
+## 4. UI Structure: Web Dashboard
 
 ### Root Layout (`apps/web/src/app/dashboard/layout.tsx`)
 
@@ -476,7 +476,7 @@ Sidebar (fixed, dark bg-slate-950, w-56)
 └── [Lock icon] Privacy → /privacy (external link)
 ```
 
-Active nav item: `bg-green-500/10 text-green-400 border-l-2 border-green-400`
+The active nav item uses `bg-green-500/10 text-green-400 border-l-2 border-green-400`.
 
 ---
 
@@ -528,7 +528,7 @@ Header (top bar, border-b border-slate-800)
               └── "Go to Snapshots →" link
 ```
 
-**Empty state** (no synced data): 📭 icon + "No data synced yet" + instructions.
+**Empty state** (no synced data): a 📭 icon, the text "No data synced yet", and instructions.
 
 ---
 
@@ -548,7 +548,7 @@ Header (top bar, border-b border-slate-800)
       └── <FocusScoreChart /> — Recharts line chart with dashed reference
 ```
 
-**Empty state**: 📉 icon + "No trend data yet" message.
+**Empty state:** a 📉 icon and the message "No trend data yet".
 
 ---
 
@@ -621,17 +621,17 @@ Full-page centered layout:
 
 ### Landing Page (`/`)
 
-Full marketing page with:
-- Hero section, feature highlights, privacy differentiator, CTA → /login
+A full marketing page with:
+- A hero section, feature highlights, the privacy differentiator, and a call-to-action button → /login
 
 ---
 
 ### Privacy Policy (`/privacy`) and Terms of Service (`/terms`)
 
-Static server-rendered pages with:
+Static server-rendered pages, each with:
 - Navigation back to home
-- "Last Updated" date
-- Section-by-section legal text
+- A "Last Updated" date
+- The legal text, section by section
 - Cross-links between Privacy ↔ Terms
 
 ---
@@ -701,7 +701,7 @@ Header avatar → /dashboard/settings
 
 ## 6. Data Architecture
 
-### chrome.storage.local (Extension — device only)
+### chrome.storage.local (Extension, device only)
 
 | Key | Type | Description |
 |---|---|---|
@@ -711,7 +711,7 @@ Header avatar → /dashboard/settings
 | `settings` | `Settings` | Idle timeout, daily goal |
 | `custom_rules` | `ClassificationRule[]` | User-defined domain rules |
 | `supabase_session` | `string` (JSON) | Supabase auth session |
-| `last_sync_at` | `string` (ISO) | Timestamp of last cloud sync |
+| `last_sync_at` | `string` (ISO) | Timestamp of the last cloud sync |
 | `ai_analysis:YYYY-MM-DD` | `AiAnalysisResult` | Cached AI analysis |
 | `language` | `'en' \| 'zh-TW'` | Extension UI language |
 
@@ -737,8 +737,8 @@ Header avatar → /dashboard/settings
 | `distraction_seconds` | int | |
 | `neutral_seconds` | int | |
 | `uncategorized_seconds` | int | |
-| `focus_score` | int | 0–100 |
-| `top_domains` | jsonb | `[{ domain, seconds, category }]` — NO raw URLs |
+| `focus_score` | int | 0 to 100 |
+| `top_domains` | jsonb | `[{ domain, seconds, category }]`, with NO raw URLs |
 | `synced_at` | timestamptz | |
 
 #### `ai_analyses`
@@ -748,11 +748,11 @@ Header avatar → /dashboard/settings
 | `user_id` | uuid | FK → auth.users |
 | `date` | date | Analysis target date |
 | `analysis_text` | text | Gemini-generated insight |
-| `focus_score` | int | Score at time of analysis |
+| `focus_score` | int | Score at the time of analysis |
 | `created_at` | timestamptz | |
 
 #### `custom_rules` (optional Supabase mirror)
-Primarily stored in `chrome.storage.local`. May sync to Supabase for cross-device use.
+The main copy lives in `chrome.storage.local`. The rules may sync to Supabase for cross-device use.
 
 ### Supabase Edge Functions
 
@@ -772,7 +772,7 @@ Primarily stored in `chrome.storage.local`. May sync to Supabase for cross-devic
 
 ## 7. Scheduled Events
 
-All scheduled work uses `chrome.alarms` (extension) and Supabase cron (server).
+The extension schedules its work with `chrome.alarms`, and the server uses Supabase cron.
 
 ### Extension Alarms (`background/alarms.ts`)
 
@@ -780,18 +780,18 @@ All scheduled work uses `chrome.alarms` (extension) and Supabase cron (server).
 |---|---|---|
 | `hourly-aggregate` | Every 60 minutes | Recompute `DailyAggregate` from raw entries |
 | `midnight-sync` | Daily at 00:05 | Sync yesterday's aggregate to Supabase |
-| `ai-analysis` | Daily at 21:00 | Run AI analysis for today (if user opted in) |
+| `ai-analysis` | Daily at 21:00 | Run AI analysis for today (if the user opted in) |
 | `cleanup` | Daily at 00:10 | Delete entries older than `data_retention_days` |
 
-**Language for scheduled AI:** Reads `chrome.storage.local['language']` at alarm time so the analysis language matches the user's extension setting.
+**Language for scheduled AI:** the alarm handler reads `chrome.storage.local['language']` when the alarm fires, so the analysis comes back in the language the user picked in the extension.
 
-**Service worker resilience:** All alarm handlers re-read state from `chrome.storage.local` on wake-up since the service worker may have been terminated between alarms.
+**Service worker resilience:** Chrome may terminate the service worker between alarms, so each alarm handler re-reads its state from `chrome.storage.local` when the worker wakes up.
 
 ### Server-Side Cron (Supabase)
 
 | Function | Schedule | Action |
 |---|---|---|
-| `send-email-report` | Daily ~07:00 | Send email report to all users with `email_report_enabled: true` |
+| `send-email-report` | Daily ~07:00 | Send the email report to all users with `email_report_enabled: true` |
 
 ---
 

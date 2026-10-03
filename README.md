@@ -1,12 +1,12 @@
 # EchoFocus
 
-A privacy-first productivity tracker: a Chrome extension that times the tab in front of you, scores your focus, and runs a pomodoro timer — with a web dashboard for history, trends, and AI-written daily reviews. Built for people in long deep-focus stretches (exam prep, job hunting) who want the numbers without handing their browsing history to a server.
+EchoFocus is a Chrome extension that times the tab in front of you, scores your focus, and runs a pomodoro timer. A web dashboard shows your history, your trends, and a daily review that Gemini writes from your numbers. EchoFocus is for long stretches of focused work, like exam prep or a job hunt, when you want to see where the hours went without handing your browsing history to a server.
 
-**The core privacy invariant: raw URLs and page titles never leave the device.** Only per-day aggregates (domain names + durations + categories) sync to the cloud, and only after sign-in.
+**Raw URLs and page titles stay on your device.** Nothing syncs until you sign in. After that, the extension sends one aggregate per day: domain names, durations, and categories.
 
 ## Screenshots
 
-All in the dark theme.
+All screenshots use the dark theme.
 
 <img src="docs/screenshots/today.png" alt="Today: focus score, category split, the daily insight, focus by hour, and where the time went" width="100%">
 
@@ -59,25 +59,25 @@ flowchart TB
 
 ## Key technical decisions
 
-**Background timing on `chrome.alarms`, never timers.** MV3 service workers are killed after ~30s idle, so `setTimeout` cannot survive a pomodoro round. Every schedule (phase ends, nightly sync, heartbeat) is an alarm with an absolute `when`; state lives in storage, and the popup derives its countdown from a stored end timestamp.
+**Background timing runs on `chrome.alarms`.** Chrome stops an MV3 service worker after ~30s idle, so a `setTimeout` cannot outlast a pomodoro round. Every schedule (phase ends, nightly sync, heartbeat) is an alarm with an absolute `when`. State lives in storage, and the popup computes its countdown from a stored end timestamp.
 
-**Local-first, sign-in backfills.** The full product — tracking, scoring, timer — works with no account, storing everything locally. Signing in unlocks the dashboard and sync, and `postSignInBootstrap()` uploads the entire local archive (365-day scan, batched upserts) so a try-first-register-later user never starts from zero.
+**Signing in backfills local history.** Tracking, scoring, and the timer work without an account and keep everything local. Signing in unlocks the dashboard and sync, and `postSignInBootstrap()` uploads the whole local archive (a 365-day scan in batched upserts), so someone who tries EchoFocus first and registers later keeps their history.
 
-**Two sessions, one sign-out.** The extension and the dashboard each hold their own Supabase session, one click apiece: the extension signs in with Google through `chrome.identity.launchWebAuthFlow`, the dashboard through the regular web OAuth redirect. Sharing one session would put two clients on one refresh-token family and trip reuse detection. Sign-out is shared without any channel between them: both sides revoke globally, and the popup checks its session server-side (throttled) when it opens, so a dashboard sign-out reaches the extension on its next open.
+**Two sessions, one sign-out.** The extension and the dashboard each hold their own Supabase session and sign in with one click: the extension through Google with `chrome.identity.launchWebAuthFlow`, the dashboard through the regular web OAuth redirect. One shared session would put two clients on a single refresh-token family and trip reuse detection. Sign-out needs no channel between them. Both sides revoke globally, and the popup checks its session with the server (throttled) when it opens, so a dashboard sign-out reaches the extension on its next open.
 
-**Settings sync accepts last-writer-wins.** Options and Dashboard Settings edit the same cloud row; a "local non-default wins" merge runs only on first contact. Concurrent cross-device edits resolve LWW — a documented trade-off chosen over conditional-write machinery for a single-user product.
+**Settings sync accepts last-writer-wins.** Options and Dashboard Settings edit the same cloud row, and a "local non-default wins" merge runs only on first contact. When two devices edit at the same time, the last write wins. That trade-off is documented, and for a single-user product it beats building conditional writes.
 
-**Notification IDs are cleared before re-creation.** `chrome.notifications.create` over an ID still sitting in the macOS Notification Center replaces it *without re-alerting* — so every banner after the first silently vanished. The fix is a `clear()` before each `create()`, plus surfacing `runtime.lastError` instead of dropping it.
+**The worker clears a notification before reusing its ID.** On macOS, `chrome.notifications.create` with an ID still sitting in Notification Center replaces the entry *without re-alerting*, so no banner after the first one ever showed. The worker now calls `clear()` before each `create()` and surfaces `runtime.lastError` instead of dropping it.
 
-**A design system as a contract.** `DESIGN.md` is the single source of truth for tokens, type scale, motion, and per-surface specs; both apps consume the same CSS variables, the pomodoro module is one shared React component (popup and the dashboard Guide's hands-on demo), and spec changes are committed alongside the code they sanction.
+**`DESIGN.md` is the design contract.** It defines the tokens, type scale, motion, and per-surface specs. Both apps read the same CSS variables, the popup and the dashboard Guide's hands-on demo render one shared pomodoro React component, and each spec change lands in the same commit as the code it covers.
 
 ## Tech stack
 
-- **Extension**: Chrome MV3 · Vite + CRXJS · React · TypeScript · Tailwind
-- **Dashboard**: Next.js 15 (App Router) on Vercel · React 19 · Tailwind · Recharts
+- **Extension**: Chrome MV3, Vite + CRXJS, React, TypeScript, Tailwind
+- **Dashboard**: Next.js 15 (App Router) on Vercel, React 19, Tailwind, Recharts
 - **Backend**: Supabase (Auth, Postgres with RLS, Edge Functions)
-- **AI**: Gemini via a rate-limited edge function proxy
-- **Monorepo**: pnpm workspaces (`packages/shared` for types, tokens, and shared UI) · Vitest (mutation-validated suites)
+- **AI**: Gemini behind a rate-limited edge function proxy
+- **Monorepo**: pnpm workspaces (`packages/shared` holds types, tokens, and shared UI), Vitest suites checked with mutation testing
 
 ## Local development
 
@@ -93,4 +93,4 @@ pnpm typecheck         # all packages
 pnpm -r test           # all suites
 ```
 
-Environment variables: see `apps/web/.env.local` and `apps/extension/.env` (Supabase URL + anon key); edge function secrets (`GEMINI_API_KEY`) are set in Supabase. Database migrations live in `supabase/migrations/`.
+Environment variables: `apps/web/.env.local` and `apps/extension/.env` each need the Supabase URL and anon key. Edge function secrets (`GEMINI_API_KEY`) live in Supabase, and database migrations live in `supabase/migrations/`.
