@@ -5,9 +5,9 @@
 ## Title (max 75 chars)
 
 ```
-EchoFocus — Privacy-First Productivity Tracker
+EchoFocus: Focus Tracker and Pomodoro Timer
 ```
-*(47 chars)*
+*(43 chars)*
 
 ---
 

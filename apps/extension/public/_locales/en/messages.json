@@ -1,4 +1,8 @@
 {
+  "extName": {
+    "message": "EchoFocus: Focus Tracker and Pomodoro Timer",
+    "description": "Extension name on chrome://extensions and the Chrome Web Store. Max 75 characters."
+  },
   "extDescription": {
     "message": "Times the sites you visit, scores your focus, and runs a pomodoro timer. Your browsing history stays on your device.",
     "description": "Extension description on chrome://extensions and the Chrome Web Store. Max 132 characters."

@@ -6,7 +6,7 @@ import { LanguageProvider, type Language } from '@/lib/i18n'
 import { ThemeProvider, type ThemePreference } from '@/lib/theme'
 
 export const metadata: Metadata = {
-  title: 'EchoFocus — Privacy-First Productivity Tracker',
+  title: 'EchoFocus: Focus Tracker and Pomodoro Timer',
   description: 'AI-powered productivity tracker. All browsing data stays on your device — never uploaded to any server.',
   icons: { icon: '/favicon.ico' },
 }

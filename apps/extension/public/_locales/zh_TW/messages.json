@@ -1,4 +1,8 @@
 {
+  "extName": {
+    "message": "EchoFocus：專注追蹤與番茄鐘",
+    "description": "Extension name on chrome://extensions and the Chrome Web Store. Max 75 characters."
+  },
   "extDescription": {
     "message": "記錄你在每個網站停留的時間，算出專注分數，並提供專注計時器。瀏覽紀錄只留在你的裝置上。",
     "description": "Extension description on chrome://extensions and the Chrome Web Store. Max 132 characters."
