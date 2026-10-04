@@ -143,11 +143,11 @@ Tab event → tracker.ts → TrackingEntry → chrome.storage.local['entries:YYY
 
 ### WF-05 Sync to Cloud
 
-**Trigger:** Automatic (daily alarm at 00:05, plus a catch-up on browser startup and after sign-in) **or** manual (Options → Account → "Sync today's data" button).
+**Trigger:** Automatic (today's aggregate every hour while signed in and right after sign-in; yesterday finished at 00:05; plus a catch-up on browser startup and after sign-in) **or** manual (Options → Account → "Sync today's data" button).
 
 **Steps:**
 
-1. `runSync()` in `background/alarms.ts` calls `syncYesterdayAggregate()` from `apps/extension/src/lib/sync.ts`.
+1. At 00:05, `runSync()` in `background/alarms.ts` calls `syncYesterdayAggregate()` from `apps/extension/src/lib/sync.ts`.
 2. It adds yesterday's date to the `pending_sync_dates` queue, reconciles rules and preferences with the cloud, and calls `drainSyncQueue()`.
 3. If the user is signed in, `drainSyncQueue()` reads each queued day's `chrome.storage.local['aggregates:YYYY-MM-DD']`. A date leaves the queue only after a confirmed upsert, so failed days retry on the next drain.
 4. `sync.ts` upserts a row into the Supabase `synced_aggregates` table with these fields:
@@ -155,6 +155,8 @@ Tab event → tracker.ts → TrackingEntry → chrome.storage.local['entries:YYY
 5. It writes the current ISO timestamp to `chrome.storage.local['last_sync_at']`.
 
 The manual button runs `syncAggregateForDate(today)`, which recomputes today's aggregate and upserts it the same way.
+
+Every hour, `runAggregate()` recomputes today's aggregate and passes it to `syncTodayAggregate()`, which upserts it the same way and stamps `last_sync_at`. Sign-in runs the same upload right after the history backfill. It does nothing while signed out or before anything is recorded today, and a failed upload waits for the next hour instead of joining the queue. The 00:05 run then finishes the day.
 
 **Privacy check:** The extension sends only aggregated domain-level data, with no raw URLs or page titles.
 
@@ -775,7 +777,7 @@ The extension schedules its work with `chrome.alarms`. The server runs no schedu
 
 | Alarm name | Schedule | Action |
 |---|---|---|
-| `echofocus-aggregate` | Every 60 minutes | Recompute today's `DailyAggregate` from raw entries |
+| `echofocus-aggregate` | Every 60 minutes | Recompute today's `DailyAggregate` from raw entries and, signed in, upsert it to Supabase |
 | `echofocus-sync` | Daily at 00:05 | Queue yesterday, reconcile rules and preferences, and drain the sync queue to Supabase |
 | `echofocus-ai-daily` | Daily at 21:00 | Send the daily summary notification (if turned on in Options), then run AI analysis for today (signed in, at least 30 minutes tracked) |
 | `echofocus-cleanup` | Every 24 hours, first run 1 minute after install | Delete entries older than the retention setting, aggregates older than 365 days, and cached AI analyses older than 90 days |

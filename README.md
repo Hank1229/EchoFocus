@@ -2,7 +2,7 @@
 
 EchoFocus is a Chrome extension that times the tab in front of you, scores your focus, and runs a pomodoro timer. A web dashboard shows your history, your trends, and a daily review that Gemini writes from your numbers. EchoFocus is for long stretches of focused work, like exam prep or a job hunt, when you want to see where the hours went without handing your browsing history to a server.
 
-**Raw URLs and page titles stay on your device.** Nothing syncs until you sign in. After that, the extension sends one aggregate per day: domain names, durations, and categories.
+**Raw URLs and page titles stay on your device.** Nothing syncs until you sign in. After that, the extension keeps one aggregate per day in your account, made of domain names, durations, and categories. Today's is updated every hour, and each day is finished at 00:05.
 
 ## Screenshots
 

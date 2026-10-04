@@ -131,7 +131,7 @@
     "noDailyInsights": "尚無每日洞察",
     "goToSnapshots": "前往每日快照進行分析",
     "noSyncedData": "尚無同步資料",
-    "noSyncedDesc": "安裝 EchoFocus Chrome 擴充功能並登入 — 資料每日凌晨 00:05 自動同步至此。您也可以從擴充功能設定的帳戶頁籤手動同步。",
+    "noSyncedDesc": "安裝 EchoFocus Chrome 擴充功能並登入。登入後今天的資料就會出現在這裡，之後每小時更新，每天 00:05 再補上前一天的完整資料。你也可以從擴充功能設定的帳戶頁籤手動同步。",
     "synced": "已同步",
     "goodMorning": "早安",
     "goodAfternoon": "午安",

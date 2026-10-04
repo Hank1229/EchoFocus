@@ -131,7 +131,7 @@
     "noDailyInsights": "No daily insights yet",
     "goToSnapshots": "Go to Daily Snapshots to analyze",
     "noSyncedData": "No synced data yet",
-    "noSyncedDesc": "Install the EchoFocus Chrome extension and sign in — data syncs here automatically at 00:05 daily. You can also sync manually from the extension settings under the Account tab.",
+    "noSyncedDesc": "Install the EchoFocus Chrome extension and sign in. Today's data appears here when you sign in and updates every hour, and each day is finished at 00:05. You can also sync manually from the extension settings under the Account tab.",
     "synced": "Synced",
     "goodMorning": "Good morning",
     "goodAfternoon": "Good afternoon",
