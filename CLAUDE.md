@@ -167,6 +167,7 @@ echofocus/
    Build only after the user decides.
 3. **No side effects: say so and proceed.** When nothing else is affected, put one line in the report, "Impact: limited to X", and carry on without stopping.
 4. **Run the visual regression check after every change.** If it shows a difference you did not expect, report it the same way and wait. Never update the baseline images on your own. Until the repo has a committed visual regression suite, the check is: screenshot every affected surface in both themes from the build before the change (the baseline) and after it, compare them, and publish the before/after comparison.
+5. **No drive-by changes.** Never change anything outside the instruction's scope, even when it looks like an improvement. Put anything worth changing in the report as a list and let the user decide.
 
 ### Code Style
 
