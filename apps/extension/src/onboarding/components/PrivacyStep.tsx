@@ -30,14 +30,14 @@ export default function PrivacyStep() {
             </span>
             <span className="min-w-0">
               <span className="block text-body font-semibold text-content">{title}</span>
-              <span className="mt-1.5 block text-caption leading-relaxed text-content-secondary">{desc}</span>
+              <span className="mt-1 block text-caption leading-relaxed text-content-secondary">{desc}</span>
             </span>
           </li>
         ))}
       </ol>
 
       <div className="mt-3 rounded-lg border border-line bg-surface p-4">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <EyeOff size={16} strokeWidth={1.75} className="text-content-tertiary" />
           <span className="text-body font-semibold text-content-secondary">{t.onboarding.step2NeverTitle}</span>
         </div>
@@ -45,7 +45,7 @@ export default function PrivacyStep() {
           {never.map(item => (
             <li
               key={item}
-              className="rounded-full border border-line bg-canvas px-2.5 py-1 text-caption text-content-tertiary line-through decoration-[var(--border-strong)]"
+              className="rounded-full border border-line bg-canvas px-3 py-1 text-caption text-content-tertiary line-through decoration-[var(--border-strong)]"
             >
               {item}
             </li>

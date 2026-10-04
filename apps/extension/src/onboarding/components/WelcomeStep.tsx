@@ -15,17 +15,17 @@ export default function WelcomeStep() {
 
   return (
     <div>
-      <div className="flex items-center gap-10">
+      <div className="flex items-center gap-8">
         <div className="min-w-0 flex-1">
           <StepHeading title={t.onboarding.step0Title} desc={t.onboarding.step0Desc} />
         </div>
         <EchoMark size={160} className="hidden flex-shrink-0 sm:block" />
       </div>
 
-      <ul className="mt-10 border-t border-line">
+      <ul className="mt-8 border-t border-line">
         {points.map(({ Icon, title, desc }) => (
           <li key={title} className="flex gap-4 border-b border-line py-4">
-            <Icon size={17} strokeWidth={1.75} className="mt-0.5 flex-shrink-0 text-content-secondary" />
+            <Icon size={17} strokeWidth={1.75} className="mt-1 flex-shrink-0 text-content-secondary" />
             <div className="min-w-0">
               <p className="text-body font-medium text-content">{title}</p>
               <p className="mt-1 text-caption leading-relaxed text-content-tertiary">{desc}</p>

@@ -89,30 +89,30 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-canvas text-content">
-      <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-8 py-10">
+      <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-8 py-12">
         <header className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <img src={iconSrc} alt="" width={28} height={28} className="rounded-lg" />
             <span className="text-label font-semibold leading-none tracking-tight">EchoFocus</span>
           </div>
           <div className="flex items-center gap-5">
             <button
               onClick={() => setLanguage(language === 'en' ? 'zh-TW' : 'en')}
-              className="text-label text-content-tertiary transition-colors hover:text-accent"
+              className="pressable text-label text-content-tertiary hover:text-accent"
               title={language === 'en' ? '切換至繁體中文' : 'Switch to English'}
             >
               {language === 'en' ? 'EN' : '繁'}
             </button>
             <button
               onClick={closeOnboardingTab}
-              className="text-label text-content-tertiary transition-colors hover:text-content-secondary"
+              className="pressable text-label text-content-tertiary hover:text-content-secondary"
             >
               {t.onboarding.skip}
             </button>
           </div>
         </header>
 
-        <nav className="mt-9 flex gap-2.5">
+        <nav className="mt-8 flex gap-3">
           {labels.map((label, i) => (
             <button
               key={label}
@@ -122,7 +122,7 @@ export default function App() {
             >
               <span
                 className={`h-[3px] rounded-full [transition:background-color_var(--dur-base)_var(--ease)] ${
-                  i <= step ? 'bg-accent' : 'bg-surface'
+                  i <= step ? 'bg-accent' : 'bg-line'
                 }`}
               />
               <span
@@ -137,7 +137,7 @@ export default function App() {
         </nav>
 
         <main
-          className={`flex flex-1 items-center py-14 [transition:opacity_var(--dur-base)_var(--ease)] ${
+          className={`flex flex-1 items-center py-12 [transition:opacity_var(--dur-base)_var(--ease)] ${
             entered ? 'opacity-100' : 'opacity-0'
           }`}
         >
@@ -149,13 +149,13 @@ export default function App() {
           </div>
         </main>
 
-        <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6">
+        <footer className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6">
           {isLast && !signedIn && incomplete && (
             <p role="alert" className="w-full text-caption text-danger">{t.onboarding.step3Incomplete}</p>
           )}
           <button
             onClick={() => setStep(step - 1)}
-            className={`flex items-center gap-1.5 text-label text-content-tertiary transition-colors hover:text-content-secondary ${
+            className={`pressable flex items-center gap-2 text-label text-content-tertiary hover:text-content-secondary ${
               step === 0 ? 'invisible' : ''
             }`}
           >
@@ -167,7 +167,7 @@ export default function App() {
             {isLast && !signedIn && (
               <button
                 onClick={closeOnboardingTab}
-                className="rounded-md border border-line px-4 py-2.5 text-label text-content-secondary transition-colors hover:border-line-strong hover:text-content"
+                className="pressable rounded-md border border-line px-4 py-2 text-label text-content-secondary hover:border-line-strong hover:text-content"
               >
                 {t.onboarding.step3SkipBasic}
               </button>
@@ -175,7 +175,7 @@ export default function App() {
             <button
               onClick={primary.onClick}
               disabled={isLast && !signedIn && isLinking}
-              className="pressable rounded-md bg-accent px-5 py-2.5 text-label text-accent-ink disabled:cursor-default disabled:opacity-60"
+              className="pressable rounded-md bg-accent px-5 py-2 text-label text-accent-ink disabled:cursor-default disabled:opacity-60"
             >
               {primary.label}
             </button>
