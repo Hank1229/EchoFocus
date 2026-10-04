@@ -3,8 +3,18 @@ import { LayoutDashboard, LineChart, Sparkles } from 'lucide-react'
 import { useLocale } from '../../lib/i18n'
 import StepHeading from './StepHeading'
 
-export default function ReadyStep() {
+interface ReadyStepProps {
+  signedIn: boolean
+  email: string | null
+}
+
+export default function ReadyStep({ signedIn, email }: ReadyStepProps) {
   const { t } = useLocale()
+
+  if (signedIn) {
+    const account = email ? t.onboarding.step3DoneAccount.replace('{email}', email) : t.onboarding.step3DoneSignedIn
+    return <StepHeading title={t.onboarding.step3DoneTitle} desc={account} />
+  }
 
   const unlocks = [
     { Icon: LayoutDashboard, title: t.onboarding.step3Unlock0Title, desc: t.onboarding.step3Unlock0Desc },

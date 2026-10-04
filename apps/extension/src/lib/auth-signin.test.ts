@@ -36,10 +36,10 @@ beforeEach(() => {
 })
 
 describe('signInWithGoogle', () => {
-  it('runs an interactive flow with no prompt override', async () => {
+  it('runs an interactive flow that always asks which account', async () => {
     await signInWithGoogle()
     expect(flowRequests).toEqual([{ url: 'https://auth.test/authorize', interactive: true }])
-    expect(oauthOptions?.queryParams).toBeUndefined()
+    expect(oauthOptions?.queryParams).toEqual({ prompt: 'select_account' })
   })
 
   it('a completed flow sets the session', async () => {

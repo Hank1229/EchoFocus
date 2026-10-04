@@ -224,8 +224,14 @@
     "step3Unlock1Desc": "一段簡短的模式觀察，逐日保存",
     "step3Unlock2Title": "30 天趨勢",
     "step3Unlock2Desc": "看著專注分數在數週之間的變化",
-    "step3SignIn": "登入並開啟設定",
-    "step3SkipBasic": "先只用本機模式",
-    "step3Footnote": "登入只會同步每日摘要 — 絕不包含你的原始瀏覽資料。"
+    "step3SignIn": "使用 Google 登入",
+    "step3SkipBasic": "先不登入，直接開始使用",
+    "step3Footnote": "登入後，每日彙總（網域、時長、分類）、設定、分類規則和 AI 分析結果會存到你的帳號。完整網址、頁面標題和瀏覽紀錄只留在這台裝置。",
+    "step3Connecting": "連結中…",
+    "step3Incomplete": "登入沒有完成。如果還有 Google 登入視窗開著，先完成或關掉它，再試一次。",
+    "step3DoneTitle": "點工具列上的 EchoFocus 圖示開始",
+    "step3DoneAccount": "已用 {email} 登入。",
+    "step3DoneSignedIn": "已登入。",
+    "step3Close": "關閉這個分頁"
   }
 }

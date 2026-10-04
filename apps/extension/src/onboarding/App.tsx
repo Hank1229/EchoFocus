@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import iconSrc from '../assets/icon-48.png'
 import { useLocale } from '../lib/i18n'
+import { sendMessage } from '../lib/messaging'
+import { isSignInPending } from '../lib/signin-flag'
+import { accountEmail } from '../lib/account-email'
 import WelcomeStep from './components/WelcomeStep'
 import TrackingStep from './components/TrackingStep'
 import PrivacyStep from './components/PrivacyStep'
@@ -20,6 +23,48 @@ export default function App() {
   const [step, setStep] = useState(0)
   const [entered, setEntered] = useState(false)
 
+  // The last step signs in through the worker, the same one-click flow as the
+  // popup. Unlike the popup this tab stays open while the Google window runs,
+  // so it watches storage: a session appearing means done; the flag clearing
+  // with no session means the flow ended unfinished (closed, failed, or
+  // refused because another sign-in window is still open).
+  const [signedIn, setSignedIn] = useState(false)
+  const [email, setEmail] = useState<string | null>(null)
+  const [isLinking, setIsLinking] = useState(false)
+  const [incomplete, setIncomplete] = useState(false)
+  useEffect(() => {
+    void chrome.storage.local.get(['supabase_session', 'signin_in_progress']).then(stored => {
+      setSignedIn(stored.supabase_session !== undefined)
+      setEmail(accountEmail(stored.supabase_session))
+      setIsLinking(isSignInPending(stored.signin_in_progress))
+    })
+    const listener = (changes: Record<string, chrome.storage.StorageChange>) => {
+      if ('supabase_session' in changes) {
+        const raw = changes.supabase_session.newValue
+        setSignedIn(raw !== undefined)
+        setEmail(accountEmail(raw))
+      }
+      if ('signin_in_progress' in changes) {
+        const pending = isSignInPending(changes.signin_in_progress.newValue)
+        setIsLinking(pending)
+        if (pending) setIncomplete(false)
+        else void chrome.storage.local.get('supabase_session').then(s => setIncomplete(s.supabase_session === undefined))
+      }
+    }
+    chrome.storage.onChanged.addListener(listener)
+    return () => chrome.storage.onChanged.removeListener(listener)
+  }, [])
+
+  const signIn = async () => {
+    setIsLinking(true)
+    setIncomplete(false)
+    // null = the worker never got the message, so no flow started.
+    if (await sendMessage('SIGN_IN') === null) {
+      setIsLinking(false)
+      setIncomplete(true)
+    }
+  }
+
   // Replay the fade-in on every step change instead of animating with a library.
   useEffect(() => {
     setEntered(false)
@@ -35,12 +80,12 @@ export default function App() {
   ]
   const ctas = [t.onboarding.step0Cta, t.onboarding.step1Cta, t.onboarding.step2Cta]
 
-  const openSettings = () => {
-    chrome.runtime.openOptionsPage()
-    closeOnboardingTab()
-  }
-
   const isLast = step === LAST_STEP
+  const primary = !isLast
+    ? { label: ctas[step], onClick: () => setStep(step + 1) }
+    : signedIn
+      ? { label: t.onboarding.step3Close, onClick: closeOnboardingTab }
+      : { label: isLinking ? t.onboarding.step3Connecting : t.onboarding.step3SignIn, onClick: () => void signIn() }
 
   return (
     <div className="min-h-screen bg-canvas text-content">
@@ -102,11 +147,14 @@ export default function App() {
             {step === 0 && <WelcomeStep />}
             {step === 1 && <TrackingStep />}
             {step === 2 && <PrivacyStep />}
-            {step === 3 && <ReadyStep />}
+            {step === 3 && <ReadyStep signedIn={signedIn} email={email} />}
           </div>
         </main>
 
         <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6">
+          {isLast && !signedIn && incomplete && (
+            <p role="alert" className="w-full text-caption text-danger">{t.onboarding.step3Incomplete}</p>
+          )}
           <button
             onClick={() => setStep(step - 1)}
             className={`flex items-center gap-1.5 text-xs text-content-tertiary transition-colors hover:text-content-secondary ${
@@ -118,7 +166,7 @@ export default function App() {
           </button>
 
           <div className="flex items-center gap-3">
-            {isLast && (
+            {isLast && !signedIn && (
               <button
                 onClick={closeOnboardingTab}
                 className="rounded-lg border border-line px-4 py-2.5 text-sm font-medium text-content-secondary transition-colors hover:border-line-strong hover:text-content"
@@ -127,10 +175,11 @@ export default function App() {
               </button>
             )}
             <button
-              onClick={isLast ? openSettings : () => setStep(step + 1)}
-              className="pressable rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink"
+              onClick={primary.onClick}
+              disabled={isLast && !signedIn && isLinking}
+              className="pressable rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink disabled:cursor-default disabled:opacity-60"
             >
-              {isLast ? t.onboarding.step3SignIn : ctas[step]}
+              {primary.label}
             </button>
           </div>
         </footer>

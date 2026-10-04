@@ -224,8 +224,14 @@
     "step3Unlock1Desc": "A short read on your patterns, kept day by day",
     "step3Unlock2Title": "30-day trends",
     "step3Unlock2Desc": "Watch your focus score move across weeks",
-    "step3SignIn": "Sign in and open Settings",
-    "step3SkipBasic": "Keep it local-only for now",
-    "step3Footnote": "Signing in syncs daily summaries only — never your raw browsing data."
+    "step3SignIn": "Sign in with Google",
+    "step3SkipBasic": "Start without signing in",
+    "step3Footnote": "Signing in stores daily summaries (domain, time, category), settings, rules, and AI results in your account. Full URLs, page titles, and browsing history stay on this device.",
+    "step3Connecting": "Connecting…",
+    "step3Incomplete": "Sign-in didn't finish. If a Google sign-in window is still open, finish or close it, then try again.",
+    "step3DoneTitle": "Click the EchoFocus icon in your toolbar to start",
+    "step3DoneAccount": "Signed in as {email}.",
+    "step3DoneSignedIn": "You're signed in.",
+    "step3Close": "Close this tab"
   }
 }

@@ -28,6 +28,8 @@ export async function signInWithGoogle(): Promise<SignInOutcome> {
     options: {
       redirectTo,
       skipBrowserRedirect: true,
+      // Always show Google's account chooser so the user picks the account.
+      queryParams: { prompt: 'select_account' },
     },
   })
 
