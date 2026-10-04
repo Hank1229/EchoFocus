@@ -93,21 +93,19 @@ export default function App() {
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img src={iconSrc} alt="" width={28} height={28} className="rounded-lg" />
-            <span className="text-base font-bold leading-none tracking-tight">
-              <span className="text-content">Echo</span><span className="text-accent">Focus</span>
-            </span>
+            <span className="text-label font-semibold leading-none tracking-tight">EchoFocus</span>
           </div>
           <div className="flex items-center gap-5">
             <button
               onClick={() => setLanguage(language === 'en' ? 'zh-TW' : 'en')}
-              className="text-xs font-medium text-content-tertiary transition-colors hover:text-accent"
+              className="text-label text-content-tertiary transition-colors hover:text-accent"
               title={language === 'en' ? '切換至繁體中文' : 'Switch to English'}
             >
               {language === 'en' ? 'EN' : '繁'}
             </button>
             <button
               onClick={closeOnboardingTab}
-              className="text-xs text-content-tertiary transition-colors hover:text-content-secondary"
+              className="text-label text-content-tertiary transition-colors hover:text-content-secondary"
             >
               {t.onboarding.skip}
             </button>
@@ -123,12 +121,12 @@ export default function App() {
               className="flex flex-1 flex-col gap-2 text-left disabled:cursor-default"
             >
               <span
-                className={`h-[3px] rounded-full transition-colors duration-500 ${
+                className={`h-[3px] rounded-full [transition:background-color_var(--dur-base)_var(--ease)] ${
                   i <= step ? 'bg-accent' : 'bg-surface'
                 }`}
               />
               <span
-                className={`text-xs font-medium transition-colors duration-500 ${
+                className={`text-label [transition:color_var(--dur-base)_var(--ease)] ${
                   i === step ? 'text-accent' : i < step ? 'text-content-secondary' : 'text-content-tertiary'
                 }`}
               >
@@ -139,8 +137,8 @@ export default function App() {
         </nav>
 
         <main
-          className={`flex flex-1 items-center py-14 transition-all duration-500 ease-out ${
-            entered ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+          className={`flex flex-1 items-center py-14 [transition:opacity_var(--dur-base)_var(--ease)] ${
+            entered ? 'opacity-100' : 'opacity-0'
           }`}
         >
           <div className="w-full">
@@ -157,7 +155,7 @@ export default function App() {
           )}
           <button
             onClick={() => setStep(step - 1)}
-            className={`flex items-center gap-1.5 text-xs text-content-tertiary transition-colors hover:text-content-secondary ${
+            className={`flex items-center gap-1.5 text-label text-content-tertiary transition-colors hover:text-content-secondary ${
               step === 0 ? 'invisible' : ''
             }`}
           >
@@ -169,7 +167,7 @@ export default function App() {
             {isLast && !signedIn && (
               <button
                 onClick={closeOnboardingTab}
-                className="rounded-lg border border-line px-4 py-2.5 text-sm font-medium text-content-secondary transition-colors hover:border-line-strong hover:text-content"
+                className="rounded-md border border-line px-4 py-2.5 text-label text-content-secondary transition-colors hover:border-line-strong hover:text-content"
               >
                 {t.onboarding.step3SkipBasic}
               </button>
@@ -177,7 +175,7 @@ export default function App() {
             <button
               onClick={primary.onClick}
               disabled={isLast && !signedIn && isLinking}
-              className="pressable rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink disabled:cursor-default disabled:opacity-60"
+              className="pressable rounded-md bg-accent px-5 py-2.5 text-label text-accent-ink disabled:cursor-default disabled:opacity-60"
             >
               {primary.label}
             </button>

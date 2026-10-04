@@ -25,10 +25,10 @@ export default function WelcomeStep() {
       <ul className="mt-10 border-t border-line">
         {points.map(({ Icon, title, desc }) => (
           <li key={title} className="flex gap-4 border-b border-line py-4">
-            <Icon size={17} strokeWidth={1.75} className="mt-0.5 flex-shrink-0 text-accent" />
+            <Icon size={17} strokeWidth={1.75} className="mt-0.5 flex-shrink-0 text-content-secondary" />
             <div className="min-w-0">
-              <p className="text-sm font-medium text-content">{title}</p>
-              <p className="mt-1 text-xs leading-relaxed text-content-tertiary">{desc}</p>
+              <p className="text-body font-medium text-content">{title}</p>
+              <p className="mt-1 text-caption leading-relaxed text-content-tertiary">{desc}</p>
             </div>
           </li>
         ))}
