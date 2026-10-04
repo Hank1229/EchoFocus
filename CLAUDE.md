@@ -131,6 +131,7 @@ echofocus/
 ## Known Limitations (accepted)
 
 1. **Dashboard rule edits don't re-sort today.** A rule saved in the extension's Options re-sorts today's recorded time and the live session at once (`SAVE_CUSTOM_RULES` → `reclassifyToday()` in background/tracker.ts). Rules edited on the Dashboard reach the extension through the settings sync, which does not re-sort, so today's dots and category totals keep the old category until new time is recorded. Earlier days are never re-sorted, from either surface.
+2. **Multiple devices on one account: last upload wins for the day.** `synced_aggregates` holds one row per user per date, and each device upserts its own aggregate into it, so when one account tracks on several devices the day's row is whichever device uploaded last. The hourly upload makes this visible during the day too. The fix direction is to store aggregates per device and sum them when reading; not built.
 
 ---
 
