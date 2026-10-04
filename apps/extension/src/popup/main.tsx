@@ -3,6 +3,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
+import './shell.css'
 import { LanguageProvider } from '../lib/i18n'
 import { applyStoredTheme } from '../lib/theme'
 

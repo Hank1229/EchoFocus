@@ -1,0 +1,18 @@
+/* Popup-only first-paint shell. Chrome sizes the popup window from the body,
+   so the width and a skeleton-height floor hold before React mounts. Only
+   popup/main.tsx imports this file: Options and Onboarding share index.css
+   for its tokens, and these sizes would pin them to 360px too. It ships in
+   the popup's linked, render-blocking stylesheet, so the first frame already
+   has the right size (the extension CSP blocks inline <style>). */
+body {
+  margin: 0;
+  padding: 0;
+  width: 360px;
+  min-height: 480px;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 360px;
+  min-height: 480px;
+}
