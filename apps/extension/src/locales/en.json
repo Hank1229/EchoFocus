@@ -111,7 +111,7 @@
     "signInBusy": "A Google sign-in window is already open. Finish or close it, then try again.",
     "signInFailed": "Sign-in didn't finish. Try again.",
     "dataSync": "Data sync",
-    "autoSyncNote": "Auto-syncs daily at 00:05. Only anonymous aggregates are uploaded — raw browsing data always stays on your device.",
+    "autoSyncNote": "EchoFocus syncs every day at 00:05 and saves each day's aggregate (domain names, durations, and categories) to your account. URLs, page titles, and your browsing history stay on this device.",
     "lastSync": "Last sync:",
     "syncToday": "Sync today's data",
     "syncing": "Syncing…",
