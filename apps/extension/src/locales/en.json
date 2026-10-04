@@ -1,7 +1,7 @@
 {
   "common": {
-    "saveFailed": "Couldn't save — please try again",
-    "deleteFailed": "Couldn't delete — please try again"
+    "saveFailed": "Couldn't save. Please try again",
+    "deleteFailed": "Couldn't delete. Please try again"
   },
   "popup": {
     "loading": "Loading...",
@@ -104,7 +104,7 @@
     "account": "Account",
     "connected": "Connected",
     "connectAccount": "Connect account",
-    "signInDesc": "Sign in to unlock AI insights, the web dashboard, and cross-device sync. Your history so far comes with you.",
+    "signInDesc": "Sign in to unlock AI insights, the web dashboard, and cross-device sync. The daily aggregates you have already recorded are uploaded too.",
     "privacyNote": "Until you sign in, nothing leaves this device. After you sign in, your account stores each day's aggregate (domain names, durations, and categories), your settings, your category rules, and AI analyses. Full URLs, page titles, and your browsing history are never uploaded.",
     "signInWithGoogle": "Sign in with Google",
     "signingIn": "Signing in…",
@@ -118,11 +118,11 @@
     "webDashboard": "Web dashboard",
     "openDashboard": "Open dashboard",
     "signOut": "Sign out",
-    "backfilling": "Backing up your local history…",
-    "backfillDone": "Backed up {n} days of local history.",
-    "backfillPartial": "Some days could not be uploaded yet — they will retry automatically.",
-    "backfillRecord": "History backed up: {n} days ({date})",
-    "backfillSynced": "Local history is synced to the cloud."
+    "backfilling": "Backing up your daily aggregates…",
+    "backfillDone": "Backed up {n} days of daily aggregates.",
+    "backfillPartial": "Some days could not be uploaded yet. They will retry automatically.",
+    "backfillRecord": "Daily aggregates backed up: {n} days ({date})",
+    "backfillSynced": "Your daily aggregates are synced to your account."
   },
   "privacy": {
     "localStorage": "Local storage",
@@ -141,7 +141,7 @@
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "reset": "Reset",
-    "deleteDesc": "Delete all tracking records, daily stats, and AI analyses. Settings and account data are kept.",
+    "deleteDesc": "Delete all tracking records, daily stats, and AI analyses on this device. Settings and your account are kept. To delete synced stats and AI analyses from your account, use Delete all cloud data in the Privacy tab of the dashboard's Settings.",
     "deleteAll": "Delete all tracking data",
     "deleteConfirm": "Start fresh? This removes all tracking data and can't be undone.",
     "cancel": "Cancel",
@@ -159,7 +159,7 @@
     "privacyItem3": "Synced data travels over HTTPS, and database rules let only your account access it",
     "links": "Links",
     "reportIssue": "Report an issue",
-    "copyright": "© 2026 EchoFocus — Powered by Google Gemini AI"
+    "copyright": "© 2026 EchoFocus · Powered by Google Gemini AI"
   },
   "notifications": {
     "dailySummary": {
@@ -185,8 +185,8 @@
     "step0Desc": "EchoFocus times the tab in front of you and turns it into a focus score. Sign in, and it also writes a short daily read on your patterns. No timer to start, no log to keep.",
     "step0Card0Title": "Runs by itself",
     "step0Card0Desc": "Starts the moment you open a tab and pauses when you step away.",
-    "step0Card1Title": "Stays on your device",
-    "step0Card1Desc": "Browsing data is written to local extension storage, not to a server.",
+    "step0Card1Title": "Local until you sign in",
+    "step0Card1Desc": "Browsing data is written to local extension storage. After you sign in, each day's aggregate (domain names, durations, and categories) is also saved to your account.",
     "step0Card2Title": "One minute a day",
     "step0Card2Desc": "A focus score and your top sites. Sign in for a short daily read in Today's review on the dashboard.",
     "step0Cta": "Take the tour",
@@ -200,14 +200,14 @@
     "step1CategoryNeutralDesc": "Search, mail, calendar, maps",
     "step1ScoreExample": "Example day",
     "step1ScoreLabel": "Focus score",
-    "step1ScoreNote": "Your score is focused minutes as a share of focused plus break minutes — neutral time never counts against you. Any site can be recategorized in Settings.",
+    "step1ScoreNote": "Your score is focused minutes as a share of focused plus break minutes. Neutral time never counts against you. Any site can be recategorized in Settings.",
     "step1Cta": "Next: your privacy",
     "step2Title": "Your browsing history never leaves this device",
     "step2Desc": "This is the part most trackers get wrong, so here is exactly what happens to your data.",
     "step2Stay0Title": "Kept locally in chrome.storage.local",
     "step2Stay0Desc": "Every visit, with its domain, duration, and category, is stored on this computer. Until you sign in, nothing is uploaded.",
-    "step2Stay1Title": "Sent for AI analysis: a daily summary",
-    "step2Stay1Desc": "Only aggregated numbers — domain names, minutes per domain, and your category totals for the day. About twenty lines of text.",
+    "step2Stay1Title": "Sent for AI analysis after you sign in: a daily summary",
+    "step2Stay1Desc": "Aggregated numbers only: domain names, minutes per domain, and your category totals for the day. About twenty lines of text.",
     "step2NeverTitle": "Never sent anywhere",
     "step2Never0": "Full URLs",
     "step2Never1": "Page titles",

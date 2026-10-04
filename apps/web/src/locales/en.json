@@ -21,7 +21,7 @@
       "download": "Download"
     },
     "hero": {
-      "badge": "Privacy-first — your browsing history never leaves your device",
+      "badge": "Privacy-first: your browsing history never leaves your device",
       "headline1": "See where your time goes.",
       "headline2": "Without handing it over.",
       "sub": "EchoFocus tracks your active tab on-device, scores your focus, and sends Gemini nothing but an anonymized daily summary — domain names and minutes. No URLs, no page titles, no history upload.",
@@ -45,9 +45,9 @@
       "step1Title": "Track on-device",
       "step1Desc": "The extension reads the active tab through Chrome's tabs API and writes domain-and-duration entries straight into chrome.storage.local. It pauses when your machine goes idle or locks. No page content, no network request.",
       "step2Title": "Aggregate, then analyze",
-      "step2Desc": "Each day your entries collapse into one summary: minutes per category, a focus score, and your top domains. That summary — and nothing else — is what the AI receives.",
+      "step2Desc": "Each day your entries collapse into one summary: minutes per category, a focus score, and your top domains. That summary is the only thing the AI receives.",
       "step3Title": "Read the insight",
-      "step3Desc": "The analysis comes back to the extension popup, and to this dashboard if you sign in, where daily and 7- or 30-day trends accumulate."
+      "step3Desc": "Sign in and the analysis appears on this dashboard, where daily and 7- or 30-day trends accumulate."
     },
     "privacy": {
       "title": "Privacy is the architecture here, not a policy page",
@@ -56,8 +56,8 @@
       "stays1": "Every URL you visit",
       "stays2": "Page titles and page content",
       "stays3": "Per-visit entries and their timestamps",
-      "stays4": "Your custom classification rules",
-      "leavesTitle": "Leaves only for AI analysis",
+      "stays4": "Your custom classification rules (synced to your account once you sign in)",
+      "leavesTitle": "Sent for AI analysis, once you sign in",
       "leaves1": "The date and total minutes per category",
       "leaves2": "Your focus score",
       "leaves3": "Up to 8 domain names with minutes",
@@ -80,7 +80,7 @@
       "f5Title": "Dashboard trends",
       "f5Desc": "Sign in to keep daily summaries across devices and watch 7- and 30-day trends build up.",
       "f6Title": "Yours to take or erase",
-      "f6Desc": "Export everything as JSON, or wipe local and cloud data in one click, whenever you want."
+      "f6Desc": "Export local data as JSON or CSV, and cloud data as JSON. Delete local data in the extension's Options and cloud data in the dashboard's Settings, whenever you want."
     },
     "cta": {
       "title": "Start with one day of data",
@@ -99,14 +99,14 @@
     "signInDesc": "Sign in to view your productivity dashboard",
     "signingIn": "Signing in…",
     "signInWithGoogle": "Sign in with Google",
-    "privacyNote": "Sign in to view dashboard trends. All browsing data stays on your local device — never uploaded."
+    "privacyNote": "Sign in to view dashboard trends. Your account stores daily aggregates (domain names, durations, and categories), settings, category rules, and AI analyses. Full URLs, page titles, and browsing history stay on your device."
   },
   "sidebar": {
     "todaysOverview": "Today's Overview",
     "trends": "Trends",
     "settings": "Settings",
     "profile": "Profile",
-    "privacyNote": "Browsing data stays on your device",
+    "privacyNote": "URLs and page titles never leave your device",
     "guide": "Guide",
     "rules": "Site rules"
   },
@@ -267,8 +267,8 @@
     "tabPrivacy": "Privacy",
     "tabAccount": "Account",
     "tabAbout": "About",
-    "privacyIntro": "Raw browsing data — every URL, title and visit — lives only in this browser’s extension storage. Your account holds just preferences, site rules, daily aggregates and AI analysis text.",
-    "localDataNote": "Exporting or deleting the raw local data happens inside the extension (right-click the EchoFocus icon → Options → Privacy), because this website has no access to it — by design.",
+    "privacyIntro": "Raw browsing data (every URL, title and visit) lives only in this browser’s extension storage. Your account holds just preferences, site rules, daily aggregates and AI analysis text.",
+    "localDataNote": "Exporting or deleting the raw local data happens inside the extension (right-click the EchoFocus icon → Options → Privacy), because this website has no access to it, by design.",
     "aboutBlurb": "EchoFocus is a focus tracker and pomodoro timer. The extension times the sites you visit and keeps your browsing history on your device. This dashboard shows your days, your trends, and the reviews Gemini writes from your numbers.",
     "theme": "Theme",
     "themeDesc": "Applies to the dashboard and syncs to the extension.",
@@ -284,7 +284,7 @@
     "pomodoroRemindersDesc": "System notifications when a focus round or break ends.",
     "pomodoroDndNote": "System notifications will not appear while macOS Focus or Do Not Disturb is on.",
     "pomodoroSyncNote": "Saved values reach the extension popup the next time it opens.",
-    "extensionOnlyNote": "Device-level settings — the tracking switch, offline rule editing, and local data export or deletion — live in the extension's Options page: right-click the EchoFocus icon and choose Options."
+    "extensionOnlyNote": "Device-level settings (the tracking switch, offline rule editing, and local data export or deletion) live in the extension's Options page: right-click the EchoFocus icon and choose Options."
   },
   "rules": {
     "title": "Site rules",
@@ -337,7 +337,7 @@
     "backToHome": "Back to home",
     "lastUpdated": "Last updated:",
     "coreCommitmentLabel": "Core Commitment:",
-    "coreCommitment": "Your browsing history is your private data. EchoFocus uses a local-first architecture — all raw browsing data (URLs, page titles, time spent) is stored exclusively on your device and is never uploaded to any server.",
+    "coreCommitment": "Your browsing history is your private data. EchoFocus is local-first: full URLs, page titles, and per-visit records are stored only on your device and are never uploaded to any server. If you sign in, each day's aggregate (domain names, durations, and categories) is saved to your account.",
     "section1Title": "1. What Data We Collect",
     "section2Title": "2. How We Use Your Data",
     "section3Title": "3. Third-Party Services",
@@ -360,26 +360,26 @@
       [
         "Time spent per site",
         "Your device (chrome.storage.local)",
-        "Never"
+        "With the daily aggregate, when you sign in"
       ],
       [
         "Site category results",
         "Your device (chrome.storage.local)",
-        "Never"
+        "With the daily aggregate, when you sign in"
       ],
       [
-        "Daily aggregate stats (domain + duration only)",
+        "Daily aggregate stats (domain names, durations, and categories)",
         "Your device; optional cloud sync",
         "Aggregates only, when you sign in"
       ],
       [
         "AI analysis results",
         "Your device + Supabase",
-        "Analysis text only — no raw browsing data"
+        "Analysis text only, no raw browsing data"
       ],
       [
         "Account info (email, preferences)",
-        "Supabase (encrypted)",
+        "Supabase",
         "Used for authentication only"
       ]
     ],
@@ -401,11 +401,11 @@
     "section3Items": [
       {
         "label": "Supabase:",
-        "text": "User authentication, preferences, and storage of synced aggregates and AI analyses. Data is encrypted and stored on AWS servers."
+        "text": "User authentication, preferences, and storage of synced aggregates and AI analyses. Data travels over HTTPS, and database rules let each user read and write only their own rows."
       },
       {
         "label": "Google Gemini API:",
-        "text": "AI productivity analysis. Receives only anonymized aggregate data — no URLs and no personal identifiers."
+        "text": "AI productivity analysis. Receives only anonymized aggregate data, with no URLs and no personal identifiers."
       },
       {
         "label": "Google OAuth:",
@@ -416,16 +416,16 @@
       "Raw browsing records: automatically deleted after the retention period you configure (default: 30 days)",
       "Daily aggregate stats: kept locally for up to 365 days",
       "AI analysis results: kept locally and in Supabase until you delete them",
-      "Account data: kept until you delete your account"
+      "Account data (email, settings, and category rules): kept while your account exists"
     ],
     "section5Intro": "You can, at any time:",
     "section5Items": [
       "Export or delete all local data from the Privacy tab of the extension's options page",
-      "Export or delete all cloud data from the dashboard's Profile page",
+      "Delete all synced stats and AI analyses, or export the last 30 days of them, from the Privacy tab of the dashboard's Settings",
       "Pause or disable tracking entirely from the extension",
-      "Sign out and keep using every local feature — an account is never required for tracking"
+      "Sign out and keep using every local feature. An account is never required for tracking"
     ],
-    "section6Body": "Local data is protected by Chrome's extension security model — no website or other app can read it. Cloud data is transmitted over HTTPS and encrypted at rest, and row-level security ensures each user can only ever access their own rows.",
+    "section6Body": "Local data is protected by Chrome's extension security model: no website or other app can read it. Cloud data is transmitted over HTTPS, and row-level security ensures each user can only access their own rows.",
     "section7Body": "EchoFocus is not designed for children under 13, and we do not knowingly collect personal information from that age group.",
     "section8Body": "We may update this policy from time to time. Significant changes will be announced through the extension; continued use after notice constitutes acceptance.",
     "section9Body": "For any privacy question, reach out via GitHub Issues."
@@ -468,7 +468,7 @@
     "s7Body": "To the fullest extent permitted by law, the developers of EchoFocus shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of, or inability to use, the service — even if advised of the possibility of such damages.",
     "s8Body": "EchoFocus uses Supabase and the Google Gemini API. Use of these services is subject to their respective terms, and EchoFocus is not responsible for their availability or content.",
     "s9Body1": "We reserve the right to modify, suspend, or terminate EchoFocus (or any part of it) at any time without notice, and are not liable for doing so.",
-    "s9Body2": "You may stop using EchoFocus at any time by removing the extension and deleting your account.",
+    "s9Body2": "You may stop using EchoFocus at any time by removing the extension. To delete synced stats and AI analyses from your account, use Delete all cloud data in the Privacy tab of the dashboard's Settings.",
     "s10Body": "We may revise these terms from time to time. Significant changes will be announced through the extension; continued use after notice constitutes acceptance.",
     "s11Body": "These terms are governed by and construed in accordance with applicable law, without regard to conflict-of-law principles.",
     "s12Body": "For any question about these terms, reach out via GitHub Issues."
@@ -479,7 +479,7 @@
     "howTitle": "How tracking works",
     "howBody": "The extension watches which tab is in front and how long it stays there, then writes the domain and the duration straight into your browser's local storage. It pauses when your machine goes idle or locks, and resumes when you come back. Visits shorter than five seconds are discarded, and a visit that crosses midnight is split across both days.",
     "scoreTitle": "How the focus score is calculated",
-    "scoreBody": "Productive time divided by productive plus breaks-and-browsing time, as a number from 0 to 100. Neutral time — search, mail, calendars — is left out entirely, so a day spent mostly in your inbox neither helps nor hurts the score.",
+    "scoreBody": "Productive time divided by productive plus breaks-and-browsing time, as a number from 0 to 100. Neutral time (search, mail, calendars) is left out entirely, so a day spent mostly in your inbox neither helps nor hurts the score.",
     "categoriesTitle": "Categories",
     "categoriesProductive": "Productive — work, docs, code, learning",
     "categoriesBreaks": "Breaks & browsing — social, video, entertainment",
@@ -495,7 +495,7 @@
     "whereDashboard": "In this dashboard",
     "whereDashboardItems": "Daily and 30-day trends, AI snapshots and weekly reviews, focus hours, site rules, daily goal, idle timeout, data retention, language, cloud data deletion",
     "whereSyncNote": "Site rules, daily goal, idle timeout and data retention can be edited in either place. They are stored on your account, and on the extension's next sync the account's copy is the one that applies.",
-    "whereNote": "Local browsing data can only be reached by the extension — that is the privacy architecture, not an oversight. Open the extension's options from its toolbar icon.",
+    "whereNote": "Local browsing data can only be reached by the extension. That is the privacy architecture, not an oversight. Open the extension's options from its toolbar icon.",
     "linkPrivacy": "Full privacy policy",
     "linkRules": "Manage site rules",
     "linkSettings": "Open settings",

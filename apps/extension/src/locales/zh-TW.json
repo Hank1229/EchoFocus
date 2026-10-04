@@ -1,7 +1,7 @@
 {
   "common": {
-    "saveFailed": "儲存失敗 — 請再試一次",
-    "deleteFailed": "刪除失敗 — 請再試一次"
+    "saveFailed": "儲存失敗，請再試一次",
+    "deleteFailed": "刪除失敗，請再試一次"
   },
   "popup": {
     "loading": "載入中...",
@@ -104,7 +104,7 @@
     "account": "帳戶",
     "connected": "已連接",
     "connectAccount": "連接帳戶",
-    "signInDesc": "登入以解鎖 AI 洞察、網頁儀表板與跨裝置同步。目前累積的紀錄會一併帶上。",
+    "signInDesc": "登入以解鎖 AI 洞察、網頁儀表板與跨裝置同步。已經記錄的每日彙總也會一併上傳。",
     "privacyNote": "登入前，任何資料都不會離開這台裝置。登入後，你的帳號會保存每天的彙總（網域名稱、時長和分類）、設定、分類規則和 AI 分析結果。完整網址、頁面標題和瀏覽紀錄永遠不會上傳。",
     "signInWithGoogle": "使用 Google 登入",
     "signingIn": "登入中…",
@@ -118,11 +118,11 @@
     "webDashboard": "網頁儀表板",
     "openDashboard": "開啟儀表板",
     "signOut": "登出",
-    "backfilling": "正在補傳本機歷史資料…",
-    "backfillDone": "已補傳 {n} 天的本機歷史資料。",
+    "backfilling": "正在補傳本機的每日彙總…",
+    "backfillDone": "已補傳 {n} 天的每日彙總。",
     "backfillPartial": "部分日期尚未上傳成功，之後會自動重試。",
-    "backfillRecord": "歷史已補傳：{n} 天（{date}）",
-    "backfillSynced": "本機歷史資料已同步至雲端。"
+    "backfillRecord": "每日彙總已補傳：{n} 天（{date}）",
+    "backfillSynced": "每日彙總已同步到你的帳號。"
   },
   "privacy": {
     "localStorage": "本地儲存",
@@ -141,7 +141,7 @@
     "privacyPolicy": "隱私政策",
     "termsOfService": "服務條款",
     "reset": "重置",
-    "deleteDesc": "刪除所有追蹤記錄、每日統計和 AI 分析。設定和帳戶資料將保留。",
+    "deleteDesc": "刪除這台裝置上所有追蹤記錄、每日統計和 AI 分析。設定和帳號不受影響。帳號裡同步的統計和 AI 分析，請到儀表板設定的「隱私」分頁，用「刪除所有雲端資料」刪除。",
     "deleteAll": "刪除所有追蹤資料",
     "deleteConfirm": "確定要重新開始？這將移除所有追蹤資料且無法復原。",
     "cancel": "取消",
@@ -159,7 +159,7 @@
     "privacyItem3": "同步的資料透過 HTTPS 傳輸，資料庫規則只允許你的帳號存取",
     "links": "連結",
     "reportIssue": "回報問題 / 意見回饋",
-    "copyright": "© 2026 EchoFocus — 由 Google Gemini AI 驅動"
+    "copyright": "© 2026 EchoFocus · 由 Google Gemini AI 驅動"
   },
   "notifications": {
     "dailySummary": {
@@ -185,8 +185,8 @@
     "step0Desc": "EchoFocus 為你眼前的分頁計時，換算成專注分數。登入後，它還會為你寫下一段簡短的每日觀察。不必按開始，也不用手動記錄。",
     "step0Card0Title": "自動運作",
     "step0Card0Desc": "開啟分頁的那一刻就開始計時，你離開時自動暫停。",
-    "step0Card1Title": "留在你的裝置",
-    "step0Card1Desc": "瀏覽資料寫入擴充功能的本機儲存空間，不會送到伺服器。",
+    "step0Card1Title": "登入前只留在本機",
+    "step0Card1Desc": "瀏覽資料寫入擴充功能的本機儲存空間。登入後，每天的彙總（網域名稱、時長和分類）也會存到你的帳號。",
     "step0Card2Title": "每天一分鐘",
     "step0Card2Desc": "一個專注分數和你的主要網站。登入後，儀表板的「本日回顧」裡還有一段當日短評。",
     "step0Cta": "開始導覽",
@@ -200,14 +200,14 @@
     "step1CategoryNeutralDesc": "搜尋、郵件、日曆、地圖",
     "step1ScoreExample": "範例日",
     "step1ScoreLabel": "專注分數",
-    "step1ScoreNote": "分數是專注時間佔「專注 + 休息」時間的比例 — 中性時間永遠不會扣分。任何網站都可以在設定中重新分類。",
+    "step1ScoreNote": "分數是專注時間佔「專注 + 休息」時間的比例，中性時間永遠不會扣分。任何網站都可以在設定中重新分類。",
     "step1Cta": "下一步：你的隱私",
     "step2Title": "你的瀏覽紀錄永遠不會離開這台裝置",
     "step2Desc": "這是多數追蹤工具做錯的地方，所以我們把資料的流向完整說明清楚。",
     "step2Stay0Title": "保存在本機的 chrome.storage.local",
     "step2Stay0Desc": "每一筆造訪的網域、時長與類別都存在這台電腦上。登入前，任何資料都不會上傳。",
-    "step2Stay1Title": "送去 AI 分析的只有每日摘要",
-    "step2Stay1Desc": "只有彙總後的數字 — 網域名稱、各網域分鐘數，以及當天的類別總計，大約二十行文字。",
+    "step2Stay1Title": "登入後送去 AI 分析的只有每日摘要",
+    "step2Stay1Desc": "只有彙總後的數字：網域名稱、各網域分鐘數，以及當天的類別總計，大約二十行文字。",
     "step2NeverTitle": "永遠不會送出",
     "step2Never0": "完整網址",
     "step2Never1": "頁面標題",
