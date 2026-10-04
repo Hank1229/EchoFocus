@@ -13,6 +13,7 @@ vi.mock('./storage', () => ({
 }))
 vi.mock('../lib/sync', () => ({
   syncYesterdayAggregate: vi.fn(async () => undefined),
+  syncTodayAggregate: vi.fn(async () => undefined),
 }))
 vi.mock('../lib/ai', () => ({
   requestAiAnalysis: vi.fn(async () => null),
@@ -240,6 +241,13 @@ describe('handleAlarm dispatch', () => {
   it('recomputes TODAY\'s local aggregate for the aggregate alarm', async () => {
     await handleAlarm(alarm('echofocus-aggregate'))
     expect(storage.recomputeAndSaveAggregate).toHaveBeenCalledWith('2026-03-14')
+  })
+
+  it('hands the refreshed aggregate to the today sync, which uploads it when signed in', async () => {
+    const refreshed = emptyAggregate('2026-03-14', 1800)
+    vi.mocked(storage.recomputeAndSaveAggregate).mockResolvedValue(refreshed)
+    await handleAlarm(alarm('echofocus-aggregate'))
+    expect(sync.syncTodayAggregate).toHaveBeenCalledWith(refreshed)
   })
 
   it('uses the local date for the aggregate alarm late in the evening', async () => {

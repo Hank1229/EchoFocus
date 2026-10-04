@@ -9,7 +9,7 @@ import { getPendingSyncDates, enqueueSyncDate, removePendingSyncDate } from './s
 
 export { enqueueSyncDate } from './sync-queue'
 
-const LAST_SYNC_KEY = 'last_sync_at'
+export const LAST_SYNC_KEY = 'last_sync_at'
 
 // How far back a startup catch-up looks for unsynced days. Bounded so a fresh
 // install (no last_sync_at at all) probes a month of keys, not a year.
@@ -153,7 +153,10 @@ export async function backfillHistoryIfNeeded(): Promise<{ backfilled: number; f
   const userId = session.user.id
 
   const marker = await chrome.storage.local.get(HISTORY_BACKFILLED_KEY)
-  if (marker[HISTORY_BACKFILLED_KEY] === userId) return { backfilled: 0, failed: 0 }
+  if (marker[HISTORY_BACKFILLED_KEY] === userId) {
+    console.log('[EchoFocus] History backfill skipped: already done for this account on this device')
+    return { backfilled: 0, failed: 0 }
+  }
 
   const dates: string[] = []
   for (let daysAgo = 0; daysAgo <= MAX_HISTORY_DAYS; daysAgo++) {
@@ -197,12 +200,29 @@ export async function backfillHistoryIfNeeded(): Promise<{ backfilled: number; f
   return { backfilled, failed }
 }
 
+// Today's row, kept current while the day is still being recorded: on every
+// sign-in and every hourly aggregate refresh. A day with nothing recorded yet
+// is skipped so the dashboard shows its empty state, not a row of zeros. A
+// failed upload is left to the next hourly run.
+export async function syncTodayAggregate(aggregate: DailyAggregate): Promise<void> {
+  if (aggregate.totalSeconds === 0) return
+  const session = await getSession()
+  if (!session) return
+  if (await upsertAggregate(aggregate, session.user.id)) {
+    await chrome.storage.local.set({ [LAST_SYNC_KEY]: new Date().toISOString() })
+    console.log(`[EchoFocus] Synced today's aggregate (${aggregate.date})`)
+  }
+}
+
 // Everything the moment of signing in owes the user: the rules/preferences
-// first-contact merge, the full local history, and any queued days — so a
-// try-first-register-later account starts from everything, not from zero.
+// first-contact merge, the full local history, today as recorded so far, and
+// any queued days — so a try-first-register-later account starts from
+// everything, not from zero. The history backfill runs once per account per
+// device, so today goes up separately on every sign-in.
 export async function postSignInBootstrap(): Promise<{ backfilled: number; failed: number } | null> {
   await reconcileWithCloud()
   const result = await backfillHistoryIfNeeded()
+  await syncTodayAggregate(await recomputeAndSaveAggregate(getTodayDateString()))
   await drainSyncQueue()
   return result
 }

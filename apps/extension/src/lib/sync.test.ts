@@ -19,6 +19,7 @@ import {
   getLastSyncTime,
   backfillHistoryIfNeeded,
   postSignInBootstrap,
+  syncTodayAggregate,
 } from './sync'
 
 interface UpsertCall {
@@ -510,6 +511,41 @@ describe('backfillHistoryIfNeeded (first sign-in carries the archive up)', () =>
   })
 })
 
+describe('syncTodayAggregate (today, kept current while signed in)', () => {
+  it('uploads the aggregate and stamps last_sync_at', async () => {
+    await syncTodayAggregate(aggregate('2026-03-15', { totalSeconds: 1200 }))
+
+    expect(upsertCalls).toHaveLength(1)
+    expect(upsertCalls[0]?.payload.date).toBe('2026-03-15')
+    expect(upsertCalls[0]?.payload.total_seconds).toBe(1200)
+    expect(chromeStub.store['last_sync_at']).toBe(new Date(2026, 2, 15, 0, 5, 0).toISOString())
+  })
+
+  it('skips a day with nothing recorded yet, so the dashboard keeps its empty state', async () => {
+    await syncTodayAggregate(aggregate('2026-03-15', { totalSeconds: 0 }))
+
+    expect(upsertCalls).toHaveLength(0)
+    expect(chromeStub.store['last_sync_at']).toBeUndefined()
+  })
+
+  it('does nothing signed out', async () => {
+    vi.mocked(getSession).mockResolvedValue(null)
+
+    await syncTodayAggregate(aggregate('2026-03-15'))
+
+    expect(upsertCalls).toHaveLength(0)
+  })
+
+  it('leaves a failed upload to the next hourly run: no stamp, nothing queued', async () => {
+    failingDates.add('2026-03-15')
+
+    await syncTodayAggregate(aggregate('2026-03-15'))
+
+    expect(chromeStub.store['last_sync_at']).toBeUndefined()
+    expect(pending()).toEqual([])
+  })
+})
+
 describe('postSignInBootstrap', () => {
   it('backfills and then drains days that were already queued', async () => {
     storeAggregate('2026-03-14')
@@ -520,5 +556,29 @@ describe('postSignInBootstrap', () => {
 
     expect(result).toEqual({ backfilled: 2, failed: 0 })
     expect(pending()).toEqual([])
+  })
+
+  it("uploads today, recomputed from entries, even when this account's history was backfilled before", async () => {
+    vi.setSystemTime(new Date(2026, 2, 15, 15, 0, 0))
+    chromeStub.store.history_backfilled_user = 'user-1'
+    // A stale stored aggregate from the last hourly run; the entries hold more.
+    storeAggregate('2026-03-15', { totalSeconds: 300 })
+    chromeStub.store['entries:2026-03-15'] = [{
+      id: 'e1',
+      domain: 'github.com',
+      url: 'https://github.com',
+      title: '',
+      category: 'productive',
+      startTime: Date.now() - 900_000,
+      duration: 900,
+      date: '2026-03-15',
+    }]
+
+    const result = await postSignInBootstrap()
+
+    expect(result).toEqual({ backfilled: 0, failed: 0 })
+    expect(upsertCalls).toHaveLength(1)
+    expect(upsertCalls[0]?.payload.date).toBe('2026-03-15')
+    expect(upsertCalls[0]?.payload.total_seconds).toBe(900)
   })
 })

@@ -1,6 +1,6 @@
 import { cleanupOldData, recomputeAndSaveAggregate, getStorageInfo, saveAiAnalysis } from './storage'
 import { getTodayDateString } from '@echofocus/shared'
-import { syncYesterdayAggregate } from '../lib/sync'
+import { syncTodayAggregate, syncYesterdayAggregate } from '../lib/sync'
 import { requestAiAnalysis } from '../lib/ai'
 import { recordHeartbeat } from './tracker'
 import { notifyDailySummary } from './notifications'
@@ -24,7 +24,8 @@ export async function setupAlarms(): Promise<void> {
     periodInMinutes: 24 * 60,   // Then every 24 hours
   })
 
-  // Hourly aggregate refresh — keeps today's aggregate fresh
+  // Hourly aggregate refresh — keeps today's aggregate fresh, locally and
+  // (signed in) in the cloud
   await ensureAlarm(AGGREGATE_ALARM, {
     delayInMinutes: 5,
     periodInMinutes: 60,
@@ -126,9 +127,11 @@ async function runCleanup(): Promise<void> {
   console.log(`[EchoFocus] Storage usage: ${usedMB} MB / ${quotaMB} MB`)
 }
 
+// Signed in, the refreshed aggregate also goes up, so the dashboard's Today
+// trails the extension by at most an hour.
 async function runAggregate(): Promise<void> {
-  const today = getTodayDateString()
-  await recomputeAndSaveAggregate(today)
+  const aggregate = await recomputeAndSaveAggregate(getTodayDateString())
+  await syncTodayAggregate(aggregate)
 }
 
 async function runSync(): Promise<void> {

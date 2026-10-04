@@ -5,7 +5,7 @@ import type { Settings, ClassificationRule, Category, MatchType, DailyAggregate 
 import { DEFAULT_SETTINGS, categorizeDomain } from '@echofocus/shared'
 import type { Session } from '@supabase/supabase-js'
 import { signInWithGoogle, signOut, getSession } from '../lib/auth'
-import { syncAggregateForDate, getLastSyncTime, postSignInBootstrap, BACKFILL_RESULT_KEY } from '../lib/sync'
+import { syncAggregateForDate, getLastSyncTime, postSignInBootstrap, BACKFILL_RESULT_KEY, LAST_SYNC_KEY } from '../lib/sync'
 import { isDailySummaryEnabled, setDailySummaryEnabled } from '../background/notifications'
 import { mergeImportedRules } from './rules-import'
 import { addRule } from './rule-list'
@@ -505,7 +505,7 @@ function AccountTab() {
   const [backfillRecord, setBackfillRecord] = useState<{ days: number; at: string } | null>(null)
 
   useEffect(() => {
-    const init = async () => {
+    const load = async () => {
       const [s, ls, stored] = await Promise.all([
         getSession(),
         getLastSyncTime(),
@@ -517,7 +517,16 @@ function AccountTab() {
       if (record) setBackfillRecord(record)
       setIsLoading(false)
     }
-    void init()
+    void load()
+    // A sign-in or sign-out from the popup, onboarding or the dashboard lands
+    // in storage; follow it so this tab never offers a second sign-in. The
+    // sync time and backfill record change as that sign-in uploads.
+    const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+      if (area !== 'local') return
+      if (['supabase_session', LAST_SYNC_KEY, BACKFILL_RESULT_KEY].some(key => key in changes)) void load()
+    }
+    chrome.storage.onChanged.addListener(listener)
+    return () => chrome.storage.onChanged.removeListener(listener)
   }, [])
 
   const handleSignIn = async () => {
