@@ -82,7 +82,7 @@ EchoFocus is a productivity tracker that ships as a **Chrome Extension** (Manife
 2. `chrome.identity.launchWebAuthFlow` opens a Google consent window.
 3. On success, the redirect URL carries the access and refresh tokens in its hash (implicit flow), and the extension passes them to `supabase.auth.setSession()`.
 4. supabase-js writes the session JSON to `chrome.storage.local['supabase_session']`.
-5. `postSignInBootstrap()` merges rules and preferences with the cloud, uploads the local aggregate archive (up to 365 days), and drains the sync queue.
+5. `postSignInBootstrap()` merges rules and preferences with the cloud, uploads the local aggregate archive (up to 365 days), uploads today's aggregate, and drains the sync queue.
 6. The UI switches to the signed-in state: the popup drops its sign-in button, and the Account tab shows the email's initial, the email, and "Connected".
 
 **End state:** The user is authenticated, and the sync and AI features become available. The web dashboard does not share this session: it signs in on its own through `/login` and holds its own Supabase session.

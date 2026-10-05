@@ -194,7 +194,7 @@
     "todaySnapshot": "Today's Daily Snapshot",
     "reloadNote": "Reload the page to see this in the list below",
     "pleaseSignIn": "Please sign in first",
-    "noSyncedData": "No synced data for today — please sync manually from the extension first",
+    "noSyncedData": "No synced data yet. The extension uploads today's data when you sign in and every hour after that, so try again later.",
     "analysisFailed": "Analysis failed: ",
     "unknownError": "An unknown error occurred",
     "latestSnapshot": "Latest snapshot",

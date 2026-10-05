@@ -61,7 +61,7 @@ flowchart TB
 
 **Background timing runs on `chrome.alarms`.** Chrome stops an MV3 service worker after ~30s idle, so a `setTimeout` cannot outlast a pomodoro round. Every schedule (phase ends, nightly sync, heartbeat) is an alarm with an absolute `when`. State lives in storage, and the popup computes its countdown from a stored end timestamp.
 
-**Signing in backfills local history.** Tracking, scoring, and the timer work without an account and keep everything local. Signing in unlocks the dashboard and sync, and `postSignInBootstrap()` uploads the whole local archive (a 365-day scan in batched upserts), so someone who tries EchoFocus first and registers later keeps their history.
+**Signing in backfills local history.** Tracking, scoring, and the timer work without an account and keep everything local. Signing in unlocks the dashboard and sync, and `postSignInBootstrap()` uploads the whole local archive (a 365-day scan in batched upserts) along with today's aggregate, so someone who tries EchoFocus first and registers later keeps their history and sees today on the dashboard right away.
 
 **Two sessions, one sign-out.** The extension and the dashboard each hold their own Supabase session and sign in with one click: the extension through Google with `chrome.identity.launchWebAuthFlow`, the dashboard through the regular web OAuth redirect. One shared session would put two clients on a single refresh-token family and trip reuse detection. Sign-out needs no channel between them. Both sides revoke globally, and the popup checks its session with the server (throttled) when it opens, so a dashboard sign-out reaches the extension on its next open.
 

@@ -194,7 +194,7 @@
     "todaySnapshot": "今日快照",
     "reloadNote": "重新載入頁面以在下方清單中查看",
     "pleaseSignIn": "請先登入",
-    "noSyncedData": "今日尚無同步資料 — 請先從擴充功能手動同步",
+    "noSyncedData": "還沒有同步資料。擴充功能會在登入時上傳今天的資料，之後每小時更新，請稍後再試。",
     "analysisFailed": "分析失敗：",
     "unknownError": "發生未知錯誤",
     "latestSnapshot": "最新快照",
