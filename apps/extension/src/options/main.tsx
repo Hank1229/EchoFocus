@@ -1,4 +1,3 @@
-import '@fontsource-variable/bricolage-grotesque'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'

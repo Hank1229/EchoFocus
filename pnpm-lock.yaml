@@ -17,9 +17,6 @@ importers:
       '@echofocus/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@fontsource-variable/bricolage-grotesque':
-        specifier: ^5.3.0
-        version: 5.3.0
       '@supabase/supabase-js':
         specifier: ^2.116.0
         version: 2.116.0
