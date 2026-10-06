@@ -7,6 +7,7 @@ import { getLocale } from '@/lib/i18n-server'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import TrendsView from './TrendsView'
 import WeeklyReview from './WeeklyReview'
+import { shortDate } from './short-date'
 
 interface SyncedRow {
   date: string
@@ -77,19 +78,14 @@ export default async function TrendsPage({
     : ''
   const rows = newest.filter(r => r.date >= cutoff).reverse()
 
-  const dateLocale = language === 'zh-TW' ? 'zh-TW' : 'en-US'
-
-  const shortDate = (dateStr: string) =>
-    new Date(dateStr + 'T00:00:00').toLocaleDateString(dateLocale, { month: 'short', day: 'numeric' })
-
   const barData = rows.map(r => ({
-    date: shortDate(r.date),
+    date: shortDate(r.date, language),
     productive: r.productive_seconds,
     distraction: r.distraction_seconds,
     neutral: r.neutral_seconds + r.uncategorized_seconds,
   }))
 
-  const scoreData = rows.map(r => ({ date: shortDate(r.date), score: r.focus_score }))
+  const scoreData = rows.map(r => ({ date: shortDate(r.date, language), score: r.focus_score }))
 
   const avgScore = rows.length
     ? Math.round(rows.reduce((s, r) => s + r.focus_score, 0) / rows.length)
@@ -150,7 +146,7 @@ export default async function TrendsPage({
             daysTracked={rows.length}
             totalProductive={totalProductive}
             totalBreaks={totalBreaks}
-            bestDay={best ? { label: shortDate(best.date), score: best.focus_score } : null}
+            bestDay={best ? { label: shortDate(best.date, language), score: best.focus_score } : null}
             hours={sumHours(rows)}
             barData={barData}
             scoreData={scoreData}
