@@ -132,6 +132,7 @@ echofocus/
 
 1. **Dashboard rule edits don't re-sort today.** A rule saved in the extension's Options re-sorts today's recorded time and the live session at once (`SAVE_CUSTOM_RULES` → `reclassifyToday()` in background/tracker.ts). Rules edited on the Dashboard reach the extension through the settings sync, which does not re-sort, so today's dots and category totals keep the old category until new time is recorded. Earlier days are never re-sorted, from either surface.
 2. **Multiple devices on one account: last upload wins for the day.** `synced_aggregates` holds one row per user per date, and each device upserts its own aggregate into it, so when one account tracks on several devices the day's row is whichever device uploaded last. The hourly upload makes this visible during the day too. The fix direction is to store aggregates per device and sum them when reading; not built.
+3. **Settings preview logged a hydration warning once.** Inside the visual-regression container, `/dev/preview/settings` once logged a React hydration attribute mismatch, which the Next dev server shows as an issue badge. It did not recur in later runs and does not reproduce locally; the cause is unknown. The visual suite hides the dev badge, so it never reaches a screenshot.
 
 ---
 
@@ -167,7 +168,7 @@ echofocus/
    - your recommendation.
    Build only after the user decides.
 3. **No side effects: say so and proceed.** When nothing else is affected, put one line in the report, "Impact: limited to X", and carry on without stopping.
-4. **Run the visual regression check after every change.** If it shows a difference you did not expect, report it the same way and wait. Never update the baseline images on your own. Until the repo has a committed visual regression suite, the check is: screenshot every affected surface in both themes from the build before the change (the baseline) and after it, compare them, and publish the before/after comparison.
+4. **Run the visual regression suite after every change.** `pnpm test:visual` runs it in Docker, in the same Playwright image CI uses: 124 screens (popup, Options, Onboarding, and the Dashboard preview pages, in both themes and both languages), compared pixel by pixel against `tests/visual/__screenshots__`. If it shows a difference you did not expect, report it the same way and wait. **Updating baselines always needs the user's approval first, every time:** when a change is meant to alter screens, publish the before/after of every changed screen, and run `pnpm test:visual --update-snapshots` only after the user approves.
 5. **No drive-by changes.** Never change anything outside the instruction's scope, even when it looks like an improvement. Put anything worth changing in the report as a list and let the user decide.
 
 ### Code Style
@@ -208,6 +209,9 @@ pnpm build             # Build all
 
 # Type checking
 pnpm typecheck         # Check all packages
+
+# Visual regression (Docker; see Change Impact rule 4 before updating baselines)
+pnpm test:visual       # Compare all 124 screens against the baselines
 
 # Supabase
 pnpm supabase:start    # Start local Supabase
