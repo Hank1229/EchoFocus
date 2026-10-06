@@ -14,6 +14,7 @@ import DayWaveform from '@/components/dashboard/DayWaveform'
 import TodayReview from './TodayReview'
 import SiteRanking, { type RankedSite } from './SiteRanking'
 import DateNav from './DateNav'
+import { dayLabel, headerDate } from './day-label'
 
 function isValidDateString(value: string | undefined): value is string {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
@@ -76,7 +77,9 @@ export default async function TodayPage({
 
   const availableDates = (availableRows ?? []).map(r => r.date as string)
   const requestedDate = isValidDateString(dateParam) ? dateParam : null
-  const displayDate = requestedDate ?? availableDates[0] ?? getTodayDateString()
+  const headerDay = headerDate(requestedDate, availableDates)
+  // Only for the queries below; with no synced day they return nothing anyway.
+  const displayDate = headerDay ?? getTodayDateString()
 
   // Anchor the streak on the day being shown, never the server clock — this
   // server renders in UTC while the data is keyed to the user's local days.
@@ -125,12 +128,6 @@ export default async function TodayPage({
 
   const dateLocale = language === 'zh-TW' ? 'zh-TW' : 'en-US'
 
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr + 'T00:00:00').toLocaleDateString(dateLocale, {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    })
 
   return (
     <>
@@ -140,7 +137,7 @@ export default async function TodayPage({
         avatarUrl={user?.user_metadata?.avatar_url as string | undefined}
         context={
           <DateNav
-            label={formatDate(displayDate)}
+            label={headerDay ? dayLabel(headerDay, dateLocale) : null}
             syncedAtIso={row?.synced_at ?? null}
             syncedPrefix={t.today.synced}
             locale={dateLocale}

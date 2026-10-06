@@ -4,9 +4,13 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { getTodayDateString } from '@echofocus/shared'
+import { dayLabel } from './day-label'
 
 interface Props {
-  label: string
+  /** null: no synced day yet, so the browser names its own today after
+      mount (the server's clock is UTC). */
+  label: string | null
   /** ISO timestamp of the last sync; formatted in the BROWSER so the shown
       time is the viewer's timezone, not the server's UTC. */
   syncedAtIso: string | null
@@ -37,6 +41,10 @@ export default function DateNav({ label, syncedAtIso, syncedPrefix, locale, prev
   // Formatted only after mount: the server renders no time at all rather
   // than a UTC-shifted one that hydration would leave standing.
   const [syncedLabel, setSyncedLabel] = useState<string | null>(null)
+  const [todayLabel, setTodayLabel] = useState<string | null>(null)
+  useEffect(() => {
+    if (label === null) setTodayLabel(dayLabel(getTodayDateString(), locale))
+  }, [label, locale])
   useEffect(() => {
     if (!syncedAtIso) return
     setSyncedLabel(
@@ -50,7 +58,7 @@ export default function DateNav({ label, syncedAtIso, syncedPrefix, locale, prev
         <ChevronLeft size={14} strokeWidth={1.5} />
       </NavButton>
       <p className="truncate text-caption text-content-tertiary">
-        <span className="text-content-secondary">{label}</span>
+        <span className="text-content-secondary">{label ?? todayLabel}</span>
         {syncedLabel && (
           <>
             <span className="mx-2">·</span>
