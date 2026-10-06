@@ -57,3 +57,8 @@ coverage/
 
 # Playwright MCP debug output
 .playwright-mcp/
+
+# Visual regression run output (baselines in tests/visual/__screenshots__ are tracked)
+apps/extension/dist-vrt/
+tests/visual/test-results/
+tests/visual/playwright-report/

@@ -11,9 +11,14 @@
     "build:web": "pnpm --filter @echofocus/web build",
     "build": "pnpm run build:extension",
     "typecheck": "pnpm -r typecheck",
-    "clean": "pnpm -r exec rm -rf dist node_modules/.vite"
+    "clean": "pnpm -r exec rm -rf dist node_modules/.vite",
+    "test:visual": "sh tests/visual/docker.sh",
+    "test:visual:run": "node tests/visual/build-extension.mjs && playwright test -c tests/visual"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/pngjs": "6.0.5",
+    "pngjs": "7.0.0",
     "typescript": "^5.9.3"
   }
 }
