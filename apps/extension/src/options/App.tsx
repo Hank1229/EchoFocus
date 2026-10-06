@@ -140,7 +140,11 @@ function GeneralTab() {
               <p className="text-xs text-content-tertiary mt-0.5">{t.general.dailyFocusGoalDesc}</p>
             </div>
             <span className="text-sm font-semibold text-accent tabular-nums">
-              {Math.floor(settings.dailyGoalMinutes / 60)}h{settings.dailyGoalMinutes % 60 > 0 ? ` ${settings.dailyGoalMinutes % 60}m` : ''}
+              {settings.dailyGoalMinutes % 60 > 0
+                ? t.general.hoursMinutesUnit
+                  .replace('{h}', String(Math.floor(settings.dailyGoalMinutes / 60)))
+                  .replace('{m}', String(settings.dailyGoalMinutes % 60))
+                : t.general.hoursUnit.replace('{n}', String(settings.dailyGoalMinutes / 60))}
             </span>
           </div>
           <input type="range" min={60} max={720} step={30} value={settings.dailyGoalMinutes}

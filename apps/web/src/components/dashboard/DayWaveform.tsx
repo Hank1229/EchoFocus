@@ -22,7 +22,7 @@ export default function DayWaveform({ hours, label }: Props) {
         {hours.map((seconds, hour) => (
           <span key={hour} className="flex min-w-0 flex-1 items-end justify-center">
             <span
-              title={`${String(hour).padStart(2, '0')}:00 — ${Math.round(seconds / 60)} min`}
+              title={`${String(hour).padStart(2, '0')}:00, ${Math.round(seconds / 60)} min`}
               className="w-[4px] rounded-full"
               style={{
                 height: seconds > 0 ? Math.max((seconds / peak) * BAR_MAX, 7) : BAR_MIN,

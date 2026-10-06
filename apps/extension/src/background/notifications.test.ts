@@ -152,7 +152,7 @@ describe('notification content', () => {
     await notifyDailySummary(TODAY, aggregate({ productiveSeconds: GOAL_SECONDS }))
 
     expect(chromeStub.notifications[0].options.message).toBe(
-      '6h of productive time today — 4 days in a row.',
+      '6h of productive time today, 4 days in a row.',
     )
   })
 
@@ -161,7 +161,7 @@ describe('notification content', () => {
     seedGoalMetDays('2026-03-13')
     await notifyDailySummary(TODAY, aggregate({ productiveSeconds: GOAL_SECONDS }))
 
-    expect(chromeStub.notifications[0].options.message).toBe('今天累積 6h 專注時間 — 已連續 2 天達標。')
+    expect(chromeStub.notifications[0].options.message).toBe('今天累積 6h 專注時間，已連續 2 天達標。')
   })
 
   it('stays quiet about a one-day streak', async () => {
@@ -178,7 +178,7 @@ describe('notification content', () => {
     await notifyDailySummary(TODAY, aggregate({ productiveSeconds: GOAL_SECONDS }))
 
     expect(chromeStub.notifications[0].options.message).toBe(
-      '6h of productive time today — 65 days in a row.',
+      '6h of productive time today, 65 days in a row.',
     )
   })
 

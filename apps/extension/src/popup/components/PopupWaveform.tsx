@@ -21,7 +21,7 @@ export default function PopupWaveform({ hours, label }: Props) {
         {hours.map((seconds, hour) => (
           <span
             key={hour}
-            title={`${String(hour).padStart(2, '0')}:00 — ${Math.round(seconds / 60)} min`}
+            title={`${String(hour).padStart(2, '0')}:00, ${Math.round(seconds / 60)} min`}
             className="min-w-0 flex-1 rounded-sm"
             style={{
               height: seconds > 0 ? Math.max((seconds / peak) * BAR_MAX, 4) : BAR_EMPTY,

@@ -17,7 +17,7 @@
     "focusScore": "Focus score",
     "todaysTotal": "Today's total",
     "noBrowsingYet": "No browsing activity recorded yet",
-    "keepBrowsing": "Keep browsing — stats will appear here",
+    "keepBrowsing": "Keep browsing. Stats will appear here.",
     "startFocus": "Start focus",
     "pause": "Pause",
     "resume": "Resume",
@@ -61,6 +61,8 @@
     "range365d": "365 d",
     "range1hr": "1 hr",
     "range12hr": "12 hr",
+    "hoursUnit": "{n}h",
+    "hoursMinutesUnit": "{h}h {m}m",
     "saved": "Saved",
     "saveSettings": "Save settings",
     "saving": "Saving…",
@@ -87,7 +89,7 @@
     "importRules": "Import rules",
     "importResult": "{added} rules added, {skipped} skipped",
     "importNotRules": "That file doesn't contain a list of rules",
-    "importUnreadable": "Couldn't read that file — it isn't valid JSON",
+    "importUnreadable": "Couldn't read that file. It isn't valid JSON.",
     "matchTypes": {
       "exact": "Exact domain",
       "wildcard": "Wildcard",
@@ -165,7 +167,7 @@
     "dailySummary": {
       "title": "Today's focus score: {score}",
       "message": "{time} of productive time today.",
-      "messageWithStreak": "{time} of productive time today — {n} days in a row."
+      "messageWithStreak": "{time} of productive time today, {n} days in a row."
     },
     "pomodoro": {
       "focusEndTitle": "Focus complete",

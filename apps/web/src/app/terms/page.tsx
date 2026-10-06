@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { getLocale } from '@/lib/i18n-server'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service — EchoFocus',
+  title: 'Terms of Service | EchoFocus',
   description: 'EchoFocus Terms of Service: please read these terms before using our productivity tracking tool.',
 }
 

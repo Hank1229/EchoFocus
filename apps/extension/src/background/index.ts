@@ -145,7 +145,7 @@ chrome.runtime.onMessage.addListener(
       .then(sendResponse)
       .catch((err) => {
         console.error('[EchoFocus] Message handler error:', err)
-        sendResponse({ success: false, error: 'Something went wrong — please try again or reload the extension' })
+        sendResponse({ success: false, error: 'Something went wrong. Please try again or reload the extension.' })
       })
     return true
   },
@@ -198,7 +198,7 @@ export async function handleMessage(
     case 'SAVE_CUSTOM_RULES': {
       const parsed = classificationRuleArraySchema.safeParse(message.payload)
       if (!parsed.success) {
-        return { success: false, error: 'Invalid rules — each rule needs a pattern, match type, and category' }
+        return { success: false, error: 'Invalid rules: each rule needs a pattern, match type, and category' }
       }
       await saveCustomRules(parsed.data)
       try {
@@ -223,7 +223,7 @@ export async function handleMessage(
     case 'REQUEST_AI_ANALYSIS': {
       const parsed = aiAnalysisRequestSchema.safeParse(message.payload)
       if (!parsed.success) {
-        return { success: false, error: 'Invalid request — a date (YYYY-MM-DD) is required' }
+        return { success: false, error: 'Invalid request: a date (YYYY-MM-DD) is required' }
       }
       const date = typeof parsed.data === 'string' ? parsed.data : parsed.data.date
       const language = typeof parsed.data === 'string' ? 'en' : (parsed.data.language ?? 'en')

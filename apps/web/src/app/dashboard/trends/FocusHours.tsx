@@ -39,7 +39,7 @@ export default function FocusHours({ hours, days, copy }: Props) {
         <h2 className="text-label text-content-secondary">{copy.focusHours}</h2>
         {ranked.length > 0 && (
           <p className="text-caption text-content-tertiary">
-            {copy.focusHoursTop}: {ranked.slice(0, 3).map(h => hourLabel(h.hour)).join(', ')}
+            {copy.focusHoursTop.replace('{hours}', ranked.slice(0, 3).map(h => hourLabel(h.hour)).join(copy.focusHoursJoin))}
           </p>
         )}
       </div>
