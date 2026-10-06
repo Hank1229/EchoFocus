@@ -1,5 +1,5 @@
 import {
-  test, expectScreen, resetStorage, openExtensionPage, launchExtension, shotName,
+  test, expect, expectScreen, resetStorage, openExtensionPage, launchExtension, shotName,
   THEMES, LANGUAGES, FIXED_TIME, SESSION, TODAY, TODAY_AGGREGATE,
 } from './support'
 
@@ -73,19 +73,32 @@ for (const theme of THEMES) {
             pomodoro_state: POMODORO.idle,
             ...SIGNED_IN,
           })
+          const start = FIXED_TIME - SESSION_SECONDS * 1000
           // The heartbeat would read the clock jump as the machine sleeping
           // and close the session.
-          await extension.worker.evaluate(async start => {
+          await test.step('pin the worker clock to the session start', () => extension.worker.evaluate(async at => {
             await chrome.alarms.clear('echofocus-heartbeat')
-            Date.now = () => start
-          }, FIXED_TIME - SESSION_SECONDS * 1000)
+            Date.now = () => at
+          }, start))
           const popup = await openExtensionPage(extension, 'src/popup/index.html', POPUP, theme, language)
           await popup.getByText('github.com').waitFor()
-          const site = await extension.context.newPage()
-          await site.route('https://github.com/**', route => route.fulfill({ contentType: 'text/html', body: '<title>GitHub</title>' }))
-          await site.goto('https://github.com/')
-          await extension.worker.evaluate(now => { Date.now = () => now }, FIXED_TIME)
-          await popup.getByText('12:34').waitFor()
+          await test.step('open the tracked site', async () => {
+            const site = await extension.context.newPage()
+            await site.route('https://github.com/**', route => route.fulfill({ contentType: 'text/html', body: '<title>GitHub</title>' }))
+            await site.goto('https://github.com/')
+            // The tracker only follows the focused window's active tab, and a
+            // headless page may open in a window that never got focus.
+            await site.bringToFront()
+          })
+          // The tracker starts the session asynchronously after the tab
+          // loads; moving the clock before it has would start the session at
+          // FIXED_TIME and the row would read 0:00 for good.
+          await test.step('wait for the worker to start the session', () => expect.poll(() => extension.worker.evaluate(async () => {
+            const { tracking_state: state } = await chrome.storage.local.get('tracking_state')
+            return state ? `${state.activeDomain} ${state.sessionStartTime}` : null
+          }), { timeout: 30_000 }).toBe(`github.com ${start}`))
+          await test.step('move the worker clock to FIXED_TIME', () => extension.worker.evaluate(now => { Date.now = () => now }, FIXED_TIME))
+          await popup.getByText('12:34').waitFor({ timeout: 30_000 })
           await expectScreen(popup, shotName('popup', 'current-site', theme, language), [popup.locator('img.favicon')])
         } finally {
           await extension.context.close()
