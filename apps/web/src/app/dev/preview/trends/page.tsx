@@ -4,18 +4,20 @@ import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import TrendsView from '../../../dashboard/trends/TrendsView'
 import WeeklyReview from '../../../dashboard/trends/WeeklyReview'
+import { shortDate } from '../../../dashboard/trends/short-date'
+import { WEEK } from '../fixtures'
 
 // Design-review harness for the Trends page. Dev only — production 404s.
 
-const WEEK = [
-  { date: 'Sep 12', productive: 16920, distraction: 7020, neutral: 2280, score: 58 },
-  { date: 'Sep 13', productive: 21180, distraction: 4920, neutral: 1860, score: 71 },
-  { date: 'Sep 14', productive: 9480, distraction: 10440, neutral: 3120, score: 39 },
-  { date: 'Sep 15', productive: 18660, distraction: 5580, neutral: 2640, score: 64 },
-  { date: 'Sep 16', productive: 23400, distraction: 4020, neutral: 1980, score: 78 },
-  { date: 'Sep 17', productive: 20160, distraction: 6120, neutral: 2400, score: 69 },
-  { date: 'Sep 18', productive: 22680, distraction: 5940, neutral: 2400, score: 76 },
-]
+// The same voice as the real weekly review; figures match WEEK and HOURS.
+const WEEKLY = {
+  en: `Your average focus score this week was 65, and three of the seven days reached the 70-point target. The lowest day was Sep 14 at 39, when breaks and browsing took more time than productive work.
+
+Next week, keep 09:00 to 10:00 for focused work. It was one of your three strongest hours.`,
+  'zh-TW': `這週平均專注分數 65，七天中有三天達到 70 分目標。最低的是 9/14 的 39 分，那天休息與瀏覽的時間比生產力時間還多。
+
+下週可以把 09:00 到 10:00 留給專注工作，這是你最專注的三個時段之一。`,
+}
 
 const HOURS = [
   0, 0, 0, 0, 0, 0, 1200, 4800,
@@ -52,14 +54,14 @@ export default async function TrendsPreviewPage() {
             daysTracked={7}
             totalProductive={totalProductive}
             totalBreaks={totalBreaks}
-            bestDay={{ label: 'Sep 16', score: 78 }}
+            bestDay={{ label: shortDate('2026-09-16', language), score: 78 }}
             hours={HOURS}
-            barData={WEEK.map(({ date, productive, distraction, neutral }) => ({ date, productive, distraction, neutral }))}
-            scoreData={WEEK.map(({ date, score }) => ({ date, score }))}
+            barData={WEEK.map(({ date, productive, distraction, neutral }) => ({ date: shortDate(date, language), productive, distraction, neutral }))}
+            scoreData={WEEK.map(({ date, score }) => ({ date: shortDate(date, language), score }))}
             copy={t.trends}
             neutralLabel={t.today.neutral}
           />
-          <div className="mt-10"><WeeklyReview initialText={"A steady week: four of your six tracked days crossed the goal line, and the strongest stretch landed midweek.\n\nOne suggestion: your Friday tail-off is where most of the lost time lives — shield one morning block there and the week evens out."} language={language} /></div>
+          <div className="mt-10"><WeeklyReview initialText={language === 'zh-TW' ? WEEKLY['zh-TW'] : WEEKLY.en} language={language} /></div>
         </main>
       </div>
     </div>

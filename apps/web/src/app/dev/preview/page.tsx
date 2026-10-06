@@ -6,6 +6,8 @@ import DayWaveform from '@/components/dashboard/DayWaveform'
 import TodayReview from '../../dashboard/today/TodayReview'
 import SiteRanking from '../../dashboard/today/SiteRanking'
 import DateNav from '../../dashboard/today/DateNav'
+import { dayLabel } from '../../dashboard/today/day-label'
+import { PREVIEW_TODAY, STREAK, TODAY_ROW } from './fixtures'
 
 // Design-review harness: the Today page with fixture data and no auth, so the
 // dashboard can be screenshotted and iterated on without a signed-in session.
@@ -30,19 +32,27 @@ const SITES = [
   { domain: 'reddit.com', seconds: 540, category: 'distraction' as const },
 ]
 
-const INSIGHT = `You put together a genuinely strong day — 4 hours of focused work against a 6-and-a-half hour total, and your longest unbroken stretch landed between 14:00 and 16:00, right where your energy usually peaks.
+// Fixture insights in the voice DESIGN.md section 9 sets for the real ones:
+// the numbers, what they show, one concrete suggestion. Figures match the
+// fixture day below.
+const INSIGHT = {
+  en: `You tracked 8h 37m today with a focus score of 76. Productive time came to 6h 18m, and the strongest stretch ran from 14:00 to 17:00.
 
-The morning started slower: the first deep-work block didn't arrive until after 8, and a scattering of short visits before it suggests warm-up drift. Your breaks were well-shaped — most stayed under ten minutes and none derailed the block that followed.
+The morning ramped up more slowly: 39 productive minutes in the 08:00 hour against 59 in the 15:00 hour. Breaks and browsing came to 1h 39m.
 
-One thing to try tomorrow: protect the 9-to-11 window the way you naturally protect mid-afternoon. If the morning matched the afternoon, days like this would be your baseline rather than your best.`
+Tomorrow, try starting your first focus block right at 08:00 to bring the morning closer to the afternoon.`,
+  'zh-TW': `今天共追蹤 8 小時 37 分，專注分數 76。生產力時間 6 小時 18 分，最集中的一段落在 14:00 到 17:00。
+
+上午進入狀態比較慢：08:00 那一小時有 39 分鐘生產力時間，15:00 則有 59 分鐘。休息與瀏覽共 1 小時 39 分。
+
+明天可以在 08:00 一開始就進入第一段專注，讓上午更接近下午的狀態。`,
+}
 
 export default async function PreviewPage() {
   if (process.env.NODE_ENV === 'production') notFound()
   const { t, language } = await getLocale()
 
-  const productive = 22680
-  const distraction = 5940
-  const neutral = 2400
+  const { productive, distraction, neutral } = TODAY_ROW
 
   return (
     <div className="relative flex min-h-screen bg-canvas">
@@ -53,7 +63,7 @@ export default async function PreviewPage() {
           userEmail="preview@echofocus.dev"
           context={
             <DateNav
-              label={language === 'zh-TW' ? '9月18日 星期四' : 'Thursday, September 18'}
+              label={dayLabel(PREVIEW_TODAY, language === 'zh-TW' ? 'zh-TW' : 'en-US')}
               syncedAtIso="2026-09-18T13:02:00Z"
               syncedPrefix={t.today.synced}
               locale={language === 'zh-TW' ? 'zh-TW' : 'en-US'}
@@ -68,14 +78,14 @@ export default async function PreviewPage() {
           <div className="space-y-10">
             <TodayReview
               totalSeconds={productive + distraction + neutral}
-              focusScore={76}
+              focusScore={TODAY_ROW.score}
               productiveSeconds={productive}
               distractionSeconds={distraction}
               neutralSeconds={neutral}
               uncategorizedSeconds={0}
-              streak={{ current: 6, best: 11 }}
-              analysisText={INSIGHT}
-              date="2026-09-18"
+              streak={STREAK}
+              analysisText={language === 'zh-TW' ? INSIGHT['zh-TW'] : INSIGHT.en}
+              date={PREVIEW_TODAY}
               canGenerate
               language={language}
             />
