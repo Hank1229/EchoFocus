@@ -45,3 +45,29 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+
+  # Screenshot regression: the same Playwright image the local
+  # `pnpm test:visual` uses, so baselines compare pixel for pixel.
+  visual:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Fonts and dependencies
+        run: sh tests/visual/setup-container.sh
+
+      - name: Visual regression (124 screens)
+        run: pnpm test:visual:run
+
+      - name: Upload diffs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-diffs
+          path: |
+            tests/visual/test-results
+            tests/visual/playwright-report
+          retention-days: 14
