@@ -21,7 +21,7 @@ export function CategoryColumns({ productiveSeconds, distractionSeconds, neutral
   ]
 
   return (
-    // The middle label ("Breaks & Browsing") is the long one; a symmetric
+    // The middle label ("Breaks & browsing") is the long one; a symmetric
     // wider middle track keeps all three labels whole without moving the axis.
     <div className="grid grid-cols-[1fr_1.3fr_1fr] gap-1">
       {columns.map(column => (

@@ -32,7 +32,7 @@
     "recategorizeHint": "Click to change category"
   },
   "options": {
-    "title": "EchoFocus Settings",
+    "title": "EchoFocus settings",
     "subtitle": "Your browsing history stays on this device",
     "tabs": {
       "general": "General",
@@ -97,7 +97,7 @@
     },
     "categoryLabels": {
       "productive": "Productive",
-      "distraction": "Breaks & Browsing",
+      "distraction": "Breaks & browsing",
       "neutral": "Neutral",
       "uncategorized": "Uncategorized"
     }
@@ -196,7 +196,7 @@
     "step1Desc": "Browse the way you normally do. EchoFocus measures the active tab, pauses on idle or a locked screen, and sorts every site into one of three buckets.",
     "step1CategoryProductiveTitle": "Productive time",
     "step1CategoryProductiveDesc": "Editors, docs, repos, learning",
-    "step1CategoryBreaksTitle": "Breaks & Browsing",
+    "step1CategoryBreaksTitle": "Breaks & browsing",
     "step1CategoryBreaksDesc": "Feeds, video, shopping, games",
     "step1CategoryNeutralTitle": "Neutral",
     "step1CategoryNeutralDesc": "Search, mail, calendar, maps",
