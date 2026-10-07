@@ -168,7 +168,7 @@ echofocus/
    - your recommendation.
    Build only after the user decides.
 3. **No side effects: say so and proceed.** When nothing else is affected, put one line in the report, "Impact: limited to X", and carry on without stopping.
-4. **Run the visual regression suite after every change.** `pnpm test:visual` runs it in Docker, in the same Playwright image CI uses: 124 screens (popup, Options, Onboarding, and the Dashboard preview pages, in both themes and both languages), compared pixel by pixel against `tests/visual/__screenshots__`. If it shows a difference you did not expect, report it the same way and wait. **Updating baselines always needs the user's approval first, every time:** when a change is meant to alter screens, publish the before/after of every changed screen, and run `pnpm test:visual --update-snapshots` only after the user approves.
+4. **Run the visual regression suite after every change.** `pnpm test:visual` runs it in Docker, in the same Playwright image CI uses: every screen of the popup, Options, Onboarding, and the Dashboard preview pages, in both themes and both languages, compared pixel by pixel against `tests/visual/__screenshots__`. If it shows a difference you did not expect, report it the same way and wait. **Updating baselines always needs the user's approval first, every time:** when a change is meant to alter screens, publish the before/after of every changed screen, and run `pnpm test:visual --update-snapshots` only after the user approves.
 5. **No drive-by changes.** Never change anything outside the instruction's scope, even when it looks like an improvement. Put anything worth changing in the report as a list and let the user decide.
 
 ### Code Style
@@ -211,7 +211,7 @@ pnpm build             # Build all
 pnpm typecheck         # Check all packages
 
 # Visual regression (Docker; see Change Impact rule 4 before updating baselines)
-pnpm test:visual       # Compare all 124 screens against the baselines
+pnpm test:visual       # Compare every screen against the baselines
 
 # Supabase
 pnpm supabase:start    # Start local Supabase

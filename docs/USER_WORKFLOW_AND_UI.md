@@ -130,7 +130,7 @@ Tab event → tracker.ts → TrackingEntry → chrome.storage.local['entries:YYY
    - **TrackingToggle:** a pill in the header that reads "Tracking" or "Paused". Clicking it toggles tracking.
    - **Sign-in button:** shown under the header only when signed out (WF-02).
    - **StatusModule:** the shared pomodoro `TimerModule` (`packages/shared/src/ui`). Idle, it shows the focus score ring (0 to 100), today's total, and "Start focus"; during a round it shows a countdown ring with Pause/Resume, Skip, and End.
-   - **CategoryColumns** (`StatsBar.tsx`): productive, Breaks & Browsing, and neutral durations.
+   - **CategoryColumns** (`StatsBar.tsx`): productive, Breaks & browsing, and neutral durations.
    - **PopupWaveform:** 24 hourly bars of productive time.
    - **DomainList:** today's top 5 sites, each with a favicon, category dot, name, and duration. Clicking a row opens Options on the Categories tab with that domain filled in.
 5. The footer holds the date, an EN/繁 language switch, a "View full analysis" button (opens `/dashboard/today` in a new tab), and a **gear** icon (opens `/dashboard/settings` in a new tab).
@@ -236,7 +236,7 @@ DailyAggregate (local) → ai.ts → Edge Function ai-analyze
 3. It renders:
    - **Period selector:** "Last 7 days" and "Last 30 days" links in the header (Next.js `<Link>`).
    - **Focus score trend:** the period's average focus score beside the **Focus Score Line Chart** (`FocusScoreChart.tsx`), a line of the daily focus score against a dashed reference line at the 70-point target.
-   - **Summary stats row:** Productive time, Breaks & Browsing, Days tracked, Best day.
+   - **Summary stats row:** Productive time, Breaks & browsing, Days tracked, Best day.
    - **Activity Bar Chart** (`ActivityBarChart.tsx`): one stacked bar per day, with productive (green), distraction (orange), and neutral (gray).
    - **Best focus hours** (`FocusHours.tsx`) and the **Weekly review** (`WeeklyReview.tsx`).
 4. With no data, the page shows an empty state with a line-chart icon.
@@ -354,7 +354,7 @@ App.tsx
 │   └── Running: countdown ring, [Pause]/[Resume] [Skip] [End], "Focus score N"
 │
 ├── CategoryColumns (StatsBar.tsx)
-│   └── Productive · Breaks & Browsing · Neutral (with durations)
+│   └── Productive · Breaks & browsing · Neutral (with durations)
 │
 ├── PopupWaveform.tsx: 24 hourly bars of productive time
 │
@@ -506,7 +506,7 @@ Header (sticky top bar, border-b border-line)
   ├── TodayReview card
   │   ├── ScoreDial (focus score ring)
   │   ├── Total tracked + streak (when above 0)
-  │   ├── 3 cells: Productive / Breaks & Browsing / Neutral
+  │   ├── 3 cells: Productive / Breaks & browsing / Neutral
   │   │   └── Each: duration + share of the day
   │   ├── Stacked progress bar
   │   └── DailyInsight (Sparkles icon + "Daily insight")
@@ -536,7 +536,7 @@ Header (sticky top bar, border-b border-line)
   │   └── <FocusScoreChart /> — Recharts line chart with dashed reference at 70
   ├── Summary stats row (4 cells):
   │   ├── Productive time
-  │   ├── Breaks & Browsing
+  │   ├── Breaks & browsing
   │   ├── Days tracked
   │   └── Best day
   ├── Daily time breakdown
