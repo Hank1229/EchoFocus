@@ -59,7 +59,7 @@ jobs:
       - name: Fonts and dependencies
         run: sh tests/visual/setup-container.sh
 
-      - name: Visual regression (124 screens)
+      - name: Visual regression
         run: pnpm test:visual:run
 
       - name: Upload diffs
