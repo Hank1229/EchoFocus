@@ -48,9 +48,13 @@ Tomorrow, try starting your first focus block right at 08:00 to bring the mornin
 明天可以在 08:00 一開始就進入第一段專注，讓上午更接近下午的狀態。`,
 }
 
-export default async function PreviewPage() {
+// ?insight=other shows the insight written in the other language, the state
+// that offers to regenerate it in the page's language.
+export default async function PreviewPage({ searchParams }: { searchParams: Promise<{ insight?: string }> }) {
   if (process.env.NODE_ENV === 'production') notFound()
   const { t, language } = await getLocale()
+  const { insight } = await searchParams
+  const insightLanguage = (insight === 'other') !== (language === 'zh-TW') ? 'zh-TW' : 'en'
 
   const { productive, distraction, neutral } = TODAY_ROW
 
@@ -84,7 +88,7 @@ export default async function PreviewPage() {
               neutralSeconds={neutral}
               uncategorizedSeconds={0}
               streak={STREAK}
-              analysisText={language === 'zh-TW' ? INSIGHT['zh-TW'] : INSIGHT.en}
+              analysisText={INSIGHT[insightLanguage]}
               date={PREVIEW_TODAY}
               canGenerate
               language={language}

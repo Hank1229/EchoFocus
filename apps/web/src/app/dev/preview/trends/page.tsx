@@ -25,9 +25,12 @@ const HOURS = [
   18000, 10800, 4500, 1800, 5400, 2700, 600, 0,
 ]
 
-export default async function TrendsPreviewPage() {
+// ?review=other shows the weekly review written in the other language.
+export default async function TrendsPreviewPage({ searchParams }: { searchParams: Promise<{ review?: string }> }) {
   if (process.env.NODE_ENV === 'production') notFound()
   const { t, language } = await getLocale()
+  const { review } = await searchParams
+  const reviewLanguage = (review === 'other') !== (language === 'zh-TW') ? 'zh-TW' : 'en'
 
   const totalProductive = WEEK.reduce((s, d) => s + d.productive, 0)
   const totalBreaks = WEEK.reduce((s, d) => s + d.distraction, 0)
@@ -61,7 +64,7 @@ export default async function TrendsPreviewPage() {
             copy={t.trends}
             neutralLabel={t.today.neutral}
           />
-          <div className="mt-10"><WeeklyReview initialText={language === 'zh-TW' ? WEEKLY['zh-TW'] : WEEKLY.en} language={language} /></div>
+          <div className="mt-10"><WeeklyReview initialText={WEEKLY[reviewLanguage]} language={language} /></div>
         </main>
       </div>
     </div>

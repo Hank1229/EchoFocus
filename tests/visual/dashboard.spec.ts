@@ -9,6 +9,9 @@ const PAGES = [
   { name: 'today', path: '/dev/preview' },
   { name: 'trends', path: '/dev/preview/trends' },
   { name: 'guide', path: '/dev/preview/guide' },
+  // The insight or review written in the other language than the page.
+  { name: 'today-insight-mismatch', path: '/dev/preview?insight=other' },
+  { name: 'trends-review-mismatch', path: '/dev/preview/trends?review=other' },
   ...SETTINGS_TABS.map(tab => ({ name: `settings-${tab}`, path: `/dev/preview/settings?tab=${tab}` })),
 ]
 

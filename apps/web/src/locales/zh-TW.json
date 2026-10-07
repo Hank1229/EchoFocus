@@ -203,8 +203,15 @@
     "weeklyReview": "每週",
     "generateWeekly": "每週回顧",
     "weeklyDesc": "把最近七天彙整成一份回顧。",
-    "quotaDaily": "今日的生成次數已用完，明天會重置。",
-    "quotaWeekly": "本週摘要已生成，下週可再產生一次。"
+    "quotaDaily": "今天的產生次數已用完，{when} 後可以再產生。",
+    "quotaWeekly": "本週回顧已產生，{when} 後可以再產生一次。",
+    "langEnglish": "英文",
+    "langChinese": "中文",
+    "insightWrittenIn": "這段洞察是用{lang}產生的。",
+    "regenerateIn": "用{lang}重新產生",
+    "insightQuotaUsed": "今天的產生次數已用完，{when} 後可以用{lang}重新產生。",
+    "reviewWrittenIn": "這段回顧是用{lang}產生的。",
+    "reviewNext": "下一次回顧在{when} 後開放，會用{lang}產生。"
   },
   "settings": {
     "title": "個人檔案",
