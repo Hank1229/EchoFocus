@@ -50,14 +50,22 @@ export default function DashboardSidebar() {
       </nav>
 
       <div className="flex flex-col gap-3 border-t border-line px-3 py-5 md:px-5">
-        <div className="flex justify-center gap-1 md:justify-start md:gap-0">
+        {/* The popup's EN / 繁 switch: a pill, the chosen half in accent. */}
+        <div
+          role="group"
+          aria-label={t.settings.language}
+          className="flex flex-col items-center self-center rounded-full border border-line p-0.5 md:flex-row md:self-start"
+        >
           {(['en', 'zh-TW'] as Language[]).map(lang => (
             <button
               key={lang}
               onClick={() => setLanguage(lang)}
               aria-pressed={language === lang}
-              className={`pressable px-1.5 text-caption md:px-0 md:pr-4 ${
-                language === lang ? 'text-content' : 'text-content-tertiary hover:text-content-secondary'
+              title={lang === 'en' ? 'English' : '繁體中文'}
+              className={`pressable rounded-full px-2 py-0.5 text-caption ${
+                language === lang
+                  ? 'bg-accent-subtle text-accent'
+                  : 'text-content-secondary hover:bg-surface-hover hover:text-content'
               }`}
             >
               {lang === 'en' ? 'EN' : '繁'}

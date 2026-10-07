@@ -200,7 +200,7 @@ export default function GuideWalkthrough() {
                 <Check size={13} strokeWidth={1.5} />
               </span>
               <span className="min-w-0 flex-1 text-body text-content group-hover:text-content">{item}</span>
-              <span className="flex flex-shrink-0 items-center gap-1 text-caption text-content-tertiary group-hover:text-accent">{checklistLinks[i]} <ArrowRight size={12} strokeWidth={1.5} /></span>
+              <span className="flex flex-shrink-0 items-center gap-1 text-label text-accent">{checklistLinks[i]} <ArrowRight size={12} strokeWidth={1.5} /></span>
             </Link>
           </li>
         ))}
@@ -247,21 +247,21 @@ export default function GuideWalkthrough() {
         <button
           onClick={() => go(step - 1)}
           disabled={step === 0}
-          className="pressable flex items-center gap-2 rounded-md px-4 py-2.5 text-label text-content-secondary hover:text-content disabled:invisible"
+          className="pressable flex items-center gap-2 rounded-md border border-line px-4 py-2.5 text-label text-content-secondary hover:border-line-strong hover:text-content disabled:invisible"
         >
           <ArrowLeft size={15} strokeWidth={1.5} /> {t.guide.prev}
         </button>
         {step < STEPS - 1 ? (
           <button
             onClick={() => go(step + 1)}
-            className="pressable flex items-center gap-2 rounded-md bg-accent px-5 py-2.5 text-label text-accent-ink"
+            className="pressable flex items-center gap-2 rounded-md border border-accent bg-accent px-5 py-2.5 text-label text-accent-ink"
           >
             {t.guide.next} <ArrowRight size={15} strokeWidth={1.5} />
           </button>
         ) : (
           <Link
             href="/dashboard/settings"
-            className="pressable flex items-center gap-2 rounded-md bg-accent px-5 py-2.5 text-label text-accent-ink"
+            className="pressable flex items-center gap-2 rounded-md border border-accent bg-accent px-5 py-2.5 text-label text-accent-ink"
           >
             {t.guide.startSetup} <ArrowRight size={15} strokeWidth={1.5} />
           </Link>

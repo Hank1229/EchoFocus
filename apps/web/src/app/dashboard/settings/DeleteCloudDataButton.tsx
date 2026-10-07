@@ -60,13 +60,13 @@ export default function DeleteCloudDataButton({ userId }: { userId: string }) {
         <button
           onClick={handleDelete}
           disabled={isDeleting}
-          className="pressable rounded-md px-4 py-2 text-label font-semibold disabled:opacity-50" style={{ background: 'var(--danger)', color: 'var(--bg)' }}
+          className="pressable rounded-md border px-4 py-2 text-label font-semibold disabled:opacity-50" style={{ background: 'var(--danger)', borderColor: 'var(--danger)', color: 'var(--bg)' }}
         >
           {isDeleting ? t.settings.deleting : t.settings.confirmDelete}
         </button>
         <button
           onClick={() => setShowConfirm(false)}
-          className="pressable rounded-md px-4 py-2 text-label text-content-secondary hover:text-content"
+          className="pressable rounded-md border border-line px-4 py-2 text-label text-content-secondary hover:border-line-strong hover:text-content"
         >
           {t.settings.cancel}
         </button>

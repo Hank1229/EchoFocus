@@ -126,12 +126,12 @@ export default function SettingsContent({ t, tab, user, prefs, prefsError, ruleR
         <p className="max-w-[62ch] text-body text-content-secondary">{t.settings.aboutBlurb}</p>
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-body text-content-secondary">
           <span>EchoFocus {t.settings.appVersion}</span>
-          <Link href="/privacy" className="pressable hover:text-content">{t.common.privacyPolicy}</Link>
-          <Link href="/terms" className="pressable hover:text-content">{t.common.termsOfService}</Link>
-          <a href="https://github.com/Hank1229/EchoFocus" target="_blank" rel="noreferrer" className="pressable hover:text-content">
+          <Link href="/privacy" className="pressable text-label text-accent">{t.common.privacyPolicy}</Link>
+          <Link href="/terms" className="pressable text-label text-accent">{t.common.termsOfService}</Link>
+          <a href="https://github.com/Hank1229/EchoFocus" target="_blank" rel="noreferrer" className="pressable text-label text-accent">
             GitHub
           </a>
-          <a href="https://github.com/Hank1229/EchoFocus/issues" target="_blank" rel="noreferrer" className="pressable hover:text-content">
+          <a href="https://github.com/Hank1229/EchoFocus/issues" target="_blank" rel="noreferrer" className="pressable text-label text-accent">
             {t.settings.reportIssue}
           </a>
         </div>

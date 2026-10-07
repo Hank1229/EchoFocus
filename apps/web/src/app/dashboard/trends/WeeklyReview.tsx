@@ -78,7 +78,7 @@ export default function WeeklyReview({ initialText, language }: Props) {
           <button
             onClick={run}
             disabled={isRunning}
-            className="pressable flex-shrink-0 text-caption text-content-tertiary hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
+            className="pressable flex-shrink-0 rounded-md border border-accent px-3 py-1 text-label text-accent hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isRunning ? t.today.regenerating : t.today.regenerate}
           </button>

@@ -297,14 +297,14 @@ export default function RulesEditor({ userId, initialRules }: { userId: string; 
                         <button
                           onClick={() => startEdit(rule)}
                           aria-label={t.rules.editAria.replace('{pattern}', rule.pattern)}
-                          className="pressable rounded-md p-1.5 text-content-tertiary hover:text-content"
+                          className="pressable rounded-md border border-line p-1.5 text-content-secondary hover:border-line-strong hover:text-content"
                         >
                           <Pencil size={14} strokeWidth={1.5} />
                         </button>
                         <button
                           onClick={() => { setConfirmingId(rule.id); setRowError(null) }}
                           aria-label={t.rules.deleteAria.replace('{pattern}', rule.pattern)}
-                          className="pressable rounded-md p-1.5 text-content-tertiary hover:text-[color:var(--danger)]"
+                          className="pressable rounded-md border border-line p-1.5 text-content-secondary hover:border-line-strong hover:text-[color:var(--danger)]"
                         >
                           <Trash2 size={14} strokeWidth={1.5} />
                         </button>
@@ -317,13 +317,13 @@ export default function RulesEditor({ userId, initialRules }: { userId: string; 
                         <button
                           onClick={() => remove(rule.id)}
                           disabled={deletingId === rule.id}
-                          className="pressable rounded-md px-3 py-1.5 text-caption font-semibold disabled:opacity-50" style={{ background: 'var(--danger)', color: 'var(--bg)' }}
+                          className="pressable rounded-md border px-3 py-1.5 text-caption font-semibold disabled:opacity-50" style={{ background: 'var(--danger)', borderColor: 'var(--danger)', color: 'var(--bg)' }}
                         >
                           {deletingId === rule.id ? t.rules.deleting : t.rules.confirmDelete}
                         </button>
                         <button
                           onClick={() => setConfirmingId(null)}
-                          className="pressable flex items-center gap-1 text-caption text-content-secondary hover:text-content"
+                          className="pressable flex items-center gap-1 rounded-md border border-line px-3 py-1.5 text-caption text-content-secondary hover:border-line-strong hover:text-content"
                         >
                           <X size={12} strokeWidth={2} />
                           {t.rules.cancel}
