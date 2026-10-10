@@ -33,7 +33,7 @@ let session: { access_token: string; user: { id: string } } | null
 
 function row(overrides: Partial<AggregateRow> = {}): AggregateRow {
   return {
-    total_seconds: 3630, // 60.5 min → 61
+    total_seconds: 3630, // 60.5 min → 60
     productive_seconds: 1800,
     distraction_seconds: 900,
     neutral_seconds: 600,
@@ -174,14 +174,14 @@ describe('requestAiAnalysis — the request it sends', () => {
     })
   })
 
-  it('converts seconds to rounded minutes', async () => {
+  it('floors seconds to whole minutes', async () => {
     await requestAiAnalysis('2026-03-14', 'en')
     expect(sentPayload()).toMatchObject({
       date: '2026-03-14',
       language: 'en',
       aggregate: {
         date: '2026-03-14',
-        totalMinutes: 61,
+        totalMinutes: 60,
         productiveMinutes: 30,
         distractionMinutes: 15,
         focusScore: 67,
@@ -191,9 +191,9 @@ describe('requestAiAnalysis — the request it sends', () => {
 
   it('merges uncategorized seconds into neutralMinutes', async () => {
     await requestAiAnalysis('2026-03-14', 'en')
-    // (600 + 330) / 60 = 15.5 → 16. Rounding each separately would give 10 + 6.
+    // (600 + 330) / 60 = 15.5 → 15; without the uncategorized seconds it would be 10.
     const payload = sentPayload().aggregate as { neutralMinutes: number }
-    expect(payload.neutralMinutes).toBe(16)
+    expect(payload.neutralMinutes).toBe(15)
   })
 
   it('slices topDomains to the top 8', async () => {
@@ -387,7 +387,7 @@ describe('requestWeeklyAnalysis', () => {
       totalMinutes: 10,
       productiveMinutes: 30,
       distractionMinutes: 15,
-      neutralMinutes: 16,
+      neutralMinutes: 15,
       focusScore: 61,
       topDomains: [{ domain: 'github.com', minutes: 30, category: 'productive' }],
     })

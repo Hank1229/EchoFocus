@@ -28,17 +28,19 @@ interface AggregatePayload {
   topDomains: { domain: string; minutes: number; category: string }[]
 }
 
+// Minutes are floored like formatDuration, so the insight quotes the same
+// minutes the dashboard shows for the same synced row.
 function toAggregatePayload(date: string, row: SyncedAggregateRow): AggregatePayload {
   return {
     date,
-    totalMinutes: Math.round(row.total_seconds / 60),
-    productiveMinutes: Math.round(row.productive_seconds / 60),
-    distractionMinutes: Math.round(row.distraction_seconds / 60),
-    neutralMinutes: Math.round((row.neutral_seconds + row.uncategorized_seconds) / 60),
+    totalMinutes: Math.floor(row.total_seconds / 60),
+    productiveMinutes: Math.floor(row.productive_seconds / 60),
+    distractionMinutes: Math.floor(row.distraction_seconds / 60),
+    neutralMinutes: Math.floor((row.neutral_seconds + row.uncategorized_seconds) / 60),
     focusScore: row.focus_score,
     topDomains: (row.top_domains ?? []).slice(0, 8).map(d => ({
       domain: d.domain,
-      minutes: Math.round(d.seconds / 60),
+      minutes: Math.floor(d.seconds / 60),
       category: d.category,
     })),
   }

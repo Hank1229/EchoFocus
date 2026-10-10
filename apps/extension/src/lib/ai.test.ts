@@ -15,7 +15,7 @@ const NOW = new Date(2026, 2, 14, 21, 0, 0).getTime()
 function aggregate(overrides: Partial<DailyAggregate> = {}): DailyAggregate {
   return {
     date: '2026-03-14',
-    totalSeconds: 3630, // 60.5 min → rounds to 61
+    totalSeconds: 3630, // 60.5 min → floors to 60
     productiveSeconds: 1800,
     distractionSeconds: 900,
     neutralSeconds: 600,
@@ -140,10 +140,10 @@ describe('the payload sent to the Edge Function', () => {
     })
   })
 
-  it('converts seconds to rounded minutes', async () => {
+  it('floors seconds to whole minutes', async () => {
     await requestAiAnalysis('2026-03-14')
     expect(sentPayload().aggregate).toMatchObject({
-      totalMinutes: 61, // 3630s
+      totalMinutes: 60, // 3630s
       productiveMinutes: 30,
       distractionMinutes: 15,
     })
@@ -151,8 +151,8 @@ describe('the payload sent to the Edge Function', () => {
 
   it('merges uncategorized time into neutralMinutes', async () => {
     await requestAiAnalysis('2026-03-14')
-    // (600 + 330) / 60 = 15.5 → 16
-    expect(sentPayload().aggregate.neutralMinutes).toBe(16)
+    // (600 + 330) / 60 = 15.5 → 15; without the uncategorized seconds it would be 10
+    expect(sentPayload().aggregate.neutralMinutes).toBe(15)
   })
 
   it('caps topDomains at 8 entries', async () => {

@@ -14,12 +14,13 @@ export type AiAnalysisOutcome =
 const FUNCTIONS_URL = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL as string
 
 // Build the anonymized payload for the AI Edge Function.
-// Converts seconds → minutes; includes ONLY domain + minutes + category (no URLs/titles).
+// Converts seconds → minutes, floored like formatDuration so the insight quotes the
+// minutes the popup and dashboard show; includes ONLY domain + minutes + category (no URLs/titles).
 function buildPayload(date: string, language: string, aggregate: NonNullable<Awaited<ReturnType<typeof getAggregateForDate>>>) {
   const totalSeconds = aggregate.totalSeconds
   const topDomains = aggregate.topDomains.slice(0, 8).map(d => ({
     domain: d.domain,
-    minutes: Math.round(d.seconds / 60),
+    minutes: Math.floor(d.seconds / 60),
     category: d.category,
   }))
 
@@ -28,10 +29,10 @@ function buildPayload(date: string, language: string, aggregate: NonNullable<Awa
     language,
     aggregate: {
       date,
-      totalMinutes: Math.round(totalSeconds / 60),
-      productiveMinutes: Math.round(aggregate.productiveSeconds / 60),
-      distractionMinutes: Math.round(aggregate.distractionSeconds / 60),
-      neutralMinutes: Math.round((aggregate.neutralSeconds + aggregate.uncategorizedSeconds) / 60),
+      totalMinutes: Math.floor(totalSeconds / 60),
+      productiveMinutes: Math.floor(aggregate.productiveSeconds / 60),
+      distractionMinutes: Math.floor(aggregate.distractionSeconds / 60),
+      neutralMinutes: Math.floor((aggregate.neutralSeconds + aggregate.uncategorizedSeconds) / 60),
       focusScore: aggregate.focusScore,
       topDomains,
     },

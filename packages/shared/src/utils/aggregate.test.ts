@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { Category, TrackingEntry } from '../types/tracking'
-import { aggregateEntries, formatLocalDate, getTodayDateString, getDateNDaysAgo } from './aggregate'
+import { aggregateEntries, formatDuration, formatLocalDate, getTodayDateString, getDateNDaysAgo } from './aggregate'
 
 function entry(
   startTime: Date,
@@ -140,5 +140,31 @@ describe('getDateNDaysAgo', () => {
   it('crosses year boundaries', () => {
     const now = new Date(2026, 0, 1, 8, 0, 0)
     expect(getDateNDaysAgo(1, now)).toBe('2025-12-31')
+  })
+})
+
+describe('formatDuration', () => {
+  it('shows seconds under a minute', () => {
+    expect(formatDuration(0)).toBe('0s')
+    expect(formatDuration(59)).toBe('59s')
+  })
+
+  it('shows exactly 60 seconds as one minute', () => {
+    expect(formatDuration(60)).toBe('1m')
+  })
+
+  it('floors 59m 59s to 59m', () => {
+    expect(formatDuration(59 * 60 + 59)).toBe('59m')
+  })
+
+  it('drops the minutes on a whole hour', () => {
+    expect(formatDuration(3600)).toBe('1h')
+    expect(formatDuration(2 * 3600)).toBe('2h')
+  })
+
+  it('shows hours and minutes, flooring the leftover seconds', () => {
+    expect(formatDuration(3780)).toBe('1h 3m')
+    expect(formatDuration(3839)).toBe('1h 3m')
+    expect(formatDuration(2 * 3600 + 40 * 60 + 10)).toBe('2h 40m')
   })
 })
