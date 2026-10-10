@@ -35,8 +35,15 @@ function localDayOffset(from: Date, to: Date): number {
   return Math.round((end.getTime() - start.getTime()) / 86_400_000)
 }
 
+// 下週 means the next Monday-to-Sunday week, not seven days on: said on a
+// Wednesday, the coming Monday is 下週一.
+function inNextWeek(from: Date, offset: number): boolean {
+  const daysSinceMonday = (from.getDay() + 6) % 7
+  return daysSinceMonday + offset >= 7
+}
+
 // When a reset happens, in the browser's zone, worded relative to now:
-// "今晚 7:00", "明天早上 8:00", "週一早上 8:00" / "7:00 PM tonight",
+// "今晚 7:00", "明天早上 8:00", "下週一早上 8:00" / "7:00 PM tonight",
 // "8:00 AM tomorrow", "8:00 AM on Monday".
 export function resetPhrase(reset: Date, now: Date, language: InsightLanguage): string {
   const hour = reset.getHours()
@@ -46,7 +53,7 @@ export function resetPhrase(reset: Date, now: Date, language: InsightLanguage): 
     const time = `${zhPeriod(hour)} ${clock(reset)}`
     if (offset === 0) return hour >= 18 ? `今晚 ${clock(reset)}` : `今天${time}`
     if (offset === 1) return `明天${time}`
-    return `${offset >= 7 ? '下' : ''}${ZH_WEEKDAYS[weekday]}${time}`
+    return `${inNextWeek(now, offset) ? '下' : ''}${ZH_WEEKDAYS[weekday]}${time}`
   }
   const time = `${clock(reset)} ${hour < 12 ? 'AM' : 'PM'}`
   if (offset === 0) return hour >= 18 ? `${time} tonight` : `${time} today`

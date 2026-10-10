@@ -52,6 +52,7 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
         case 'cached':
           setText(outcome.analysisText)
           if (mismatch) setQuotaResetsAt(dailyReset())
+          else setError(t.aiInsights.quotaDaily.replace('{when}', dailyReset()))
           break
         case 'error':
           if (outcome.reason === 'not-signed-in') setError(t.aiInsights.pleaseSignIn)

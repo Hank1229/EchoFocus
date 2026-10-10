@@ -204,7 +204,7 @@
     "generateWeekly": "Weekly review",
     "weeklyDesc": "Summarize the last seven days in one read.",
     "quotaDaily": "Today's generation limit is used up. You can generate again after {when}.",
-    "quotaWeekly": "This week's summary is already generated. A new one unlocks after {when}.",
+    "quotaWeekly": "This week's review is already generated. A new one unlocks after {when}.",
     "langEnglish": "English",
     "langChinese": "Chinese",
     "insightWrittenIn": "This insight was written in {lang}.",

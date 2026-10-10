@@ -56,7 +56,7 @@ describe('the weekly reset, Monday 00:00 UTC', () => {
   })
 
   it('is a weekday and a time, in each zone', () => {
-    expect(weekly('Asia/Taipei', 'zh-TW')).toBe('週一早上 8:00')
+    expect(weekly('Asia/Taipei', 'zh-TW')).toBe('下週一早上 8:00')
     expect(weekly('Asia/Taipei', 'en')).toBe('8:00 AM on Monday')
     expect(weekly('America/Chicago', 'zh-TW')).toBe('週日晚上 7:00')
     expect(weekly('America/Chicago', 'en')).toBe('7:00 PM on Sunday')
@@ -77,6 +77,34 @@ describe('the weekly reset, Monday 00:00 UTC', () => {
     const monday = new Date(Date.UTC(2026, 9, 5, 1, 0))
     expect(weekly('UTC', 'zh-TW', monday)).toBe('下週一凌晨 12:00')
     expect(weekly('UTC', 'en', monday)).toBe('12:00 AM next Monday')
+  })
+})
+
+describe('下週 in Chinese, by the Monday-to-Sunday week', () => {
+  const at = (iso: string) => new Date(iso)
+
+  it('puts today and tomorrow ahead of next week', () => {
+    expect(weekly('Asia/Taipei', 'zh-TW', at('2026-10-11T15:00:00+08:00'))).toBe('明天早上 8:00')
+    expect(weekly('Asia/Taipei', 'en', at('2026-10-11T15:00:00+08:00'))).toBe('8:00 AM tomorrow')
+    expect(weekly('Asia/Taipei', 'zh-TW', at('2026-10-12T06:00:00+08:00'))).toBe('今天早上 8:00')
+    expect(weekly('Asia/Taipei', 'en', at('2026-10-12T06:00:00+08:00'))).toBe('8:00 AM today')
+  })
+
+  it('is next week once this week\'s reset has passed', () => {
+    expect(weekly('Asia/Taipei', 'zh-TW', at('2026-10-12T10:00:00+08:00'))).toBe('下週一早上 8:00')
+    expect(weekly('Asia/Taipei', 'en', at('2026-10-12T10:00:00+08:00'))).toBe('8:00 AM next Monday')
+    expect(weekly('America/Chicago', 'zh-TW', at('2026-10-11T20:00:00-05:00'))).toBe('下週日晚上 7:00')
+    expect(weekly('America/Chicago', 'en', at('2026-10-11T20:00:00-05:00'))).toBe('7:00 PM next Sunday')
+  })
+
+  it('holds for the daily and weekly cases checked by hand', () => {
+    expect(daily('America/Chicago', 'zh-TW', at('2026-10-07T14:00:00-05:00'))).toBe('今晚 7:00')
+    expect(daily('America/Chicago', 'zh-TW', at('2026-10-07T20:00:00-05:00'))).toBe('明天晚上 7:00')
+    expect(daily('Asia/Taipei', 'zh-TW', at('2026-10-07T15:00:00+08:00'))).toBe('明天早上 8:00')
+    expect(weekly('America/Chicago', 'zh-TW', at('2026-10-07T14:00:00-05:00'))).toBe('週日晚上 7:00')
+    expect(weekly('America/Chicago', 'zh-TW', at('2026-10-11T15:00:00-05:00'))).toBe('今晚 7:00')
+    expect(weekly('Asia/Taipei', 'zh-TW', at('2026-10-07T15:00:00+08:00'))).toBe('下週一早上 8:00')
+    expect(weekly('Asia/Taipei', 'en', at('2026-10-07T15:00:00+08:00'))).toBe('8:00 AM on Monday')
   })
 })
 

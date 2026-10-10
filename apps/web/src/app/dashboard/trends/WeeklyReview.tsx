@@ -47,8 +47,12 @@ export default function WeeklyReview({ initialText, language }: Props) {
       const outcome = await requestWeeklyAnalysis(language)
       switch (outcome.status) {
         case 'success':
+          setText(outcome.analysisText)
+          break
+        // The weekly cap was hit and the stored review came back unchanged.
         case 'cached':
           setText(outcome.analysisText)
+          setError(t.aiInsights.quotaWeekly.replace('{when}', weeklyReset()))
           break
         case 'error':
           if (outcome.reason === 'not-signed-in') setError(t.aiInsights.pleaseSignIn)
