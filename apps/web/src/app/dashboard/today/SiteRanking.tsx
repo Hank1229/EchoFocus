@@ -12,7 +12,7 @@ interface Props {
   heading: string
   sites: RankedSite[]
   emptyLabel: string
-  /** Formatted total for the listed sites, shown beside the heading. */
+  /** The day's formatted total tracked time, sites not in the list included, shown beside the heading. */
   total?: string
   /** Single column, for narrow containers like the Guide's demo card. */
   compact?: boolean

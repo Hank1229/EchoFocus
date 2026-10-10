@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { formatDuration } from '@echofocus/shared'
 import { getLocale } from '@/lib/i18n-server'
 import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import DashboardHeader from '@/components/layout/DashboardHeader'
@@ -57,6 +58,7 @@ export default async function PreviewPage({ searchParams }: { searchParams: Prom
   const insightLanguage = (insight === 'other') !== (language === 'zh-TW') ? 'zh-TW' : 'en'
 
   const { productive, distraction, neutral } = TODAY_ROW
+  const totalSeconds = productive + distraction + neutral
 
   return (
     <div className="relative flex min-h-screen bg-canvas">
@@ -81,7 +83,7 @@ export default async function PreviewPage({ searchParams }: { searchParams: Prom
         <main className="mx-auto w-full max-w-[1200px] flex-1 px-6 pb-16 pt-8">
           <div className="space-y-10">
             <TodayReview
-              totalSeconds={productive + distraction + neutral}
+              totalSeconds={totalSeconds}
               focusScore={TODAY_ROW.score}
               productiveSeconds={productive}
               distractionSeconds={distraction}
@@ -103,7 +105,7 @@ export default async function PreviewPage({ searchParams }: { searchParams: Prom
               heading={t.today.whereTimeWent}
               sites={SITES}
               emptyLabel={t.today.noData}
-              total="8h 39m"
+              total={formatDuration(totalSeconds)}
             />
           </div>
         </main>
