@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { formatDuration } from '../utils'
 
 // The pomodoro status module — one component for the popup (live state from
@@ -38,11 +39,16 @@ interface TimerModuleProps {
   remainingMs: number
   strings: TimerStrings
   onCommand: (cmd: TimerCommand) => void
+  /** Shown above Start focus while idle. The popup passes its duration
+   *  steppers; the Guide demo passes nothing and keeps its spacing. */
+  idleControls?: ReactNode
 }
 
 // Idle and timer views live stacked in one fixed-height cell and swap with a
 // --dur-slow opacity crossfade, so switching never hard-cuts or shifts layout.
-export function TimerModule({ score, totalSeconds, snapshot, remainingMs, strings, onCommand }: TimerModuleProps) {
+// The hidden view is inert, not just transparent: Tab must never land on a
+// control the user cannot see.
+export function TimerModule({ score, totalSeconds, snapshot, remainingMs, strings, onCommand, idleControls }: TimerModuleProps) {
   const active = snapshot !== null && snapshot.phase !== 'idle'
     ? { ...snapshot, phase: snapshot.phase as 'focusing' | 'break' }
     : null
@@ -52,15 +58,17 @@ export function TimerModule({ score, totalSeconds, snapshot, remainingMs, string
   return (
     <section className="relative h-[224px]">
       <div
-        className={`xfade absolute inset-0 flex flex-col items-center justify-center gap-3 ${
-          running ? 'pointer-events-none opacity-0' : 'opacity-100'
-        }`}
+        inert={running}
+        className={`xfade absolute inset-0 flex flex-col items-center justify-center ${
+          idleControls ? 'gap-2' : 'gap-3'
+        } ${running ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
       >
         <ScoreRing score={score} label={strings.focusScore} />
         <div className="flex items-baseline gap-2">
           <span className="text-caption text-content-secondary">{strings.todaysTotal}</span>
           <span className="text-stat text-content">{formatDuration(totalSeconds)}</span>
         </div>
+        {idleControls}
         <button
           onClick={() => onCommand('start')}
           className="pressable rounded-md bg-accent px-5 py-2 text-label text-accent-ink"
@@ -70,6 +78,7 @@ export function TimerModule({ score, totalSeconds, snapshot, remainingMs, string
       </div>
 
       <div
+        inert={!running}
         className={`xfade absolute inset-0 flex flex-col items-center justify-center gap-3 ${
           running ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}

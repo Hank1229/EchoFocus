@@ -56,6 +56,16 @@ export async function getPomodoroSettings(): Promise<PomodoroSettings> {
   return parsed.success ? parsed.data : { focusMinutes: 25, breakMinutes: 5 }
 }
 
+// The popup's steppers write here. Durations only change while idle: a round
+// in flight keeps the length it started with, and the steppers are hidden.
+// Returns null when a round is running, paused, or on break.
+export async function setDurations(durations: PomodoroSettings): Promise<PomodoroSnapshot | null> {
+  const state = await getState()
+  if (state.phase !== 'idle') return null
+  await chrome.storage.local.set({ [POMODORO_SETTINGS_KEY]: durations })
+  return snapshot()
+}
+
 export async function snapshot(): Promise<PomodoroSnapshot> {
   const [state, settings] = await Promise.all([getState(), getPomodoroSettings()])
   return { ...state, ...settings }

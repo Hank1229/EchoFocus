@@ -22,7 +22,7 @@ const LANGUAGES: { value: Language; short: string; name: string }[] = [
 export default function App() {
   const { t, language, setLanguage } = useLocale()
   const { aggregate, trackingState, currentSession, isLoading, refreshAggregate, refreshTrackingState } = useTodayStats()
-  const { pomodoro, remainingMs, command } = usePomodoro()
+  const { pomodoro, remainingMs, command, setDurations } = usePomodoro()
 
   // Sign-in entry, shown only while signed out, directly under the header:
   // the popup outgrows Chrome's 600px cap, so anything lower needs a scroll.
@@ -140,6 +140,7 @@ export default function App() {
           pomodoro={pomodoro}
           remainingMs={remainingMs}
           onCommand={command}
+          onDurations={setDurations}
         />
 
         <CategoryColumns

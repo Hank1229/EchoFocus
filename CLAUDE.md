@@ -125,7 +125,7 @@ echofocus/
 1. **Signed out = the full product.** Tracking, categorization, scoring, the pomodoro timer, and the popup all work with no account. Data lives only in chrome.storage.local, pruned by the retention setting, and never uploaded.
 2. **Signing in unlocks** the web dashboard (history, trends, AI insights) and cross-device sync.
 3. **Sign-in backfills history.** `postSignInBootstrap()` (lib/sync.ts) merges rules/preferences, then uploads the WHOLE local aggregate archive (365-day scan, direct batched upserts that bypass the 60-entry retry queue). The per-user marker `history_backfilled_user` is set only after a clean pass, so an interrupted backfill reruns on the next startup. Every sign-in also recomputes today's aggregate and uploads it, even when the marker says the archive is already up. Try-first-register-later users never start from zero.
-4. **Settings ownership.** The extension Options page is the device-level editor and the only one that works signed out. Signed in, Options and Dashboard Settings edit the same user_preferences row (cloud authoritative). "Local non-default wins" applies only to the first-contact bootstrap merge.
+4. **Settings ownership.** The extension Options page is the device-level editor and the only one that works signed out. Signed in, Options and Dashboard Settings edit the same user_preferences row (cloud authoritative). "Local non-default wins" applies only to the first-contact bootstrap merge. The popup's idle steppers also edit the two pomodoro durations.
 5. **Concurrent-edit trade-off (accepted).** Cross-surface settings writes resolve last-writer-wins: a device pushing stale values can overwrite a newer cloud row in the window before its next pull. Accepted deliberately (single user, narrow window); escalate to conditional writes only if real multi-device conflicts appear.
 
 ## Known Limitations (accepted)
@@ -136,6 +136,7 @@ echofocus/
 4. **Category minutes may not add up to the total.** Each category is floored to whole minutes on its own (`formatDuration`), so the three categories on Today's card can add up to 0–2 minutes less than the total, which is floored from the exact total seconds. The percentages are rounded one by one and may not sum to 100%.
 5. **An insight keeps the numbers from when it was generated.** The Today card follows the synced aggregate, which uploads hourly; an insight quotes the minutes it was sent at generation time, so the two can drift apart as the day goes on.
 6. **The dashboard trails the popup.** The popup reads the local aggregate plus the session in progress, live. The dashboard reads the synced row, which the extension uploads once an hour (the `echofocus-aggregate` alarm), at sign-in, and when "Sync today's data" is pressed in Options → Account. The dashboard's "Synced" time shows when that row was last uploaded. A session in progress reaches the dashboard only at the first upload after it ends, and no hourly upload runs while the computer sleeps or Chrome is closed, so the gap can exceed an hour. Before a demo, press "Sync today's data", then reload the dashboard.
+7. **Pomodoro durations follow the last whole-row upload.** The extension uploads the whole preferences row, so when two devices each change one duration, the later upload sets both. Changing durations from the popup makes this easier to hit than before.
 
 ---
 

@@ -29,7 +29,15 @@
     "viewFullAnalysis": "View full analysis",
     "signInHint": "Sign in for AI insights and cross-device sync",
     "connecting": "Connecting…",
-    "recategorizeHint": "Click to change category"
+    "recategorizeHint": "Click to change category",
+    "focusLabel": "Focus",
+    "breakLabel": "Break",
+    "shorterFocus": "Shorten focus duration",
+    "longerFocus": "Lengthen focus duration",
+    "shorterBreak": "Shorten break duration",
+    "longerBreak": "Lengthen break duration",
+    "minuteValue": "{n} minute",
+    "minutesValue": "{n} minutes"
   },
   "options": {
     "title": "EchoFocus settings",

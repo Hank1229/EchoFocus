@@ -3,6 +3,7 @@ import { TimerModule, type TimerStrings } from '@echofocus/shared/ui'
 import type { PomodoroCommand } from '../../lib/schemas'
 import type { PomodoroSnapshot } from '../../background/pomodoro'
 import { useLocale } from '../../lib/i18n'
+import DurationSteppers from './DurationSteppers'
 
 interface StatusModuleProps {
   score: number
@@ -10,11 +11,12 @@ interface StatusModuleProps {
   pomodoro: PomodoroSnapshot | null
   remainingMs: number
   onCommand: (cmd: PomodoroCommand) => Promise<void>
+  onDurations: (focusMinutes: number, breakMinutes: number) => Promise<void>
 }
 
 // Thin wrapper over the shared TimerModule: the popup supplies live worker
 // state and its locale strings; the Guide demo supplies mock state.
-export default function StatusModule({ score, totalSeconds, pomodoro, remainingMs, onCommand }: StatusModuleProps) {
+export default function StatusModule({ score, totalSeconds, pomodoro, remainingMs, onCommand, onDurations }: StatusModuleProps) {
   const { t } = useLocale()
 
   const strings: TimerStrings = {
@@ -38,6 +40,13 @@ export default function StatusModule({ score, totalSeconds, pomodoro, remainingM
       remainingMs={remainingMs}
       strings={strings}
       onCommand={cmd => void onCommand(cmd)}
+      idleControls={pomodoro && (
+        <DurationSteppers
+          focusMinutes={pomodoro.focusMinutes}
+          breakMinutes={pomodoro.breakMinutes}
+          onChange={(focus, brk) => void onDurations(focus, brk)}
+        />
+      )}
     />
   )
 }

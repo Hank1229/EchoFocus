@@ -291,7 +291,7 @@
     "pomodoroReminders": "End-of-round reminders",
     "pomodoroRemindersDesc": "System notifications when a focus round or break ends.",
     "pomodoroDndNote": "System notifications will not appear while macOS Focus or Do Not Disturb is on.",
-    "pomodoroSyncNote": "Saved values reach the extension popup the next time it opens.",
+    "pomodoroSyncNote": "Once saved, the extension popup picks this up within a few seconds.",
     "extensionOnlyNote": "Device-level settings (the tracking switch, offline rule editing, and local data export or deletion) live in the extension's Options page: right-click the EchoFocus icon and choose Options."
   },
   "rules": {
@@ -526,7 +526,7 @@
     "setupChecklist": "Set your daily goal and idle timeout;Reclassify any site the defaults got wrong;Sign in to sync and unlock AI insights",
     "checklistLinks": "General settings;Category rules;Account",
     "timerTitle": "The focus timer",
-    "timerBody": "The extension popup carries a pomodoro timer: focus rounds and breaks alternate, the badge counts the minutes down, and a system notification marks each hand-off. Durations live in Settings; the defaults are 25 and 5.",
+    "timerBody": "The extension popup carries a pomodoro timer: focus rounds and breaks alternate, the badge counts the minutes down, and a system notification marks each hand-off. Adjust the durations in the extension popup or on the Settings page. Defaults are 25 and 5 minutes.",
     "timerDemoHint": "Press start. This is the extension's actual timer.",
     "demoSites": "And a day builds up like this"
   },

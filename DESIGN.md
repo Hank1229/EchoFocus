@@ -140,7 +140,7 @@ The pomodoro timer has four states, distinguishable by color and motion without 
 
 | State | Visual |
 |---|---|
-| idle | No glow. Top module shows score ring + today's total + a "Start focus" button |
+| idle | No glow. Top module shows score ring + today's total + one row of focus and break duration steppers + a "Start focus" button |
 | focusing | Countdown is the hero. Ring uses --accent; a breathing glow outside the ring (`box-shadow` or a blurred pseudo-element), opacity 0.12 ↔ 0.24, 4s ease-in-out cycle. That is the ceiling; brighter turns cheap |
 | break | Same layout; ring and glow switch to --rest, glow opacity capped at 0.16, lighter than focusing |
 | paused | Keeps the focusing layout; ring turns --text-tertiary, glow and breathing stop, countdown digits drop to 0.6 opacity |
@@ -154,7 +154,7 @@ Width 360px, top to bottom:
 1. Header: logo + tracking toggle
 2. Current site row (domain + category color dot for the current session)
 3. **Top status module** (the only centered area; switches by timer state, see section 6)
-   - idle: score ring (--text-hero) + "Today total" hours + Start focus button
+   - idle: score ring (--text-hero) + "Today total" hours + one row of focus and break duration steppers (label, −, value, +) + Start focus button
    - focusing / break / paused: countdown (--text-hero) + pause/resume + skip; the score shrinks to one --text-caption line at the module's bottom
 4. Three category numbers: Productive / Rest & browsing / Neutral, label + number, one row, three centered columns on the status module's axis
 5. 24-hour mini distribution bar (max height 40px; communicates only "which hours I focused today")
@@ -164,7 +164,7 @@ Width 360px, top to bottom:
 Rules:
 
 - Nothing on the popup takes more than a few seconds to read. The daily insight never appears on the popup; its entry point is the footer link.
-- Pomodoro durations are not configured in the popup; a small link goes to Dashboard settings. The popup only has start, pause/resume, skip.
+- Pomodoro durations can be adjusted in the popup only while idle: one row of − / + steppers for focus and break, above the Start focus button, with the same limits and steps as Dashboard settings. A change is saved at once as the default, the same value Dashboard settings edits. While focusing, on break, or paused, the steppers are hidden and unreachable, and the popup only has pause/resume, skip, and end session.
 - Extension icon badge shows remaining minutes (accent background while focusing, rest background during break); cleared when idle.
 
 ## 8. Dashboard spec
@@ -178,7 +178,7 @@ Dashboard polish comes from chart quality, never from effects.
 - Hover highlight: active data point grows to 4px radius, other series drop to 0.3 opacity, 150ms transition.
 - Empty states are designed: one sentence on what will appear here + the next action. No illustrations.
 - "Daily snapshot" and "Daily insight" merge into a single "Today's review" block: data on top (total time, score, category split), AI insight text below.
-- The settings page holds the theme selector (Light / Dark / Follow system, next to language) and the pomodoro settings (focus duration, break duration, reminder toggle; defaults 25 / 5). Saved values reach the popup by the next time it opens — the popup pulls the cloud copy on open.
+- The settings page holds the theme selector (Light / Dark / Follow system, next to language) and the pomodoro settings (focus duration, break duration, reminder toggle; defaults 25 / 5). The popup's idle steppers edit the same focus and break durations. A saved value reaches an open popup within a few seconds and a closed one when it next opens; a duration changed in the popup shows on this page after a reload.
 
 ## 9. Copy and tone
 

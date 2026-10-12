@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { BREAK_DURATION_LIMITS, FOCUS_DURATION_LIMITS, isValidDuration } from '@echofocus/shared'
 import type {
   TrackingEntry,
   DailyAggregate,
@@ -119,6 +120,13 @@ export const pomodoroSettingsSchema = z.object({
 })
 
 export type PomodoroSettings = z.infer<typeof pomodoroSettingsSchema>
+
+// What the popup's steppers may write: the same limits and steps as
+// Dashboard settings, unlike the lenient read schema above.
+export const pomodoroDurationsSchema = z.object({
+  focusMinutes: z.number().refine(n => isValidDuration(n, FOCUS_DURATION_LIMITS)),
+  breakMinutes: z.number().refine(n => isValidDuration(n, BREAK_DURATION_LIMITS)),
+})
 
 export const pomodoroCommandSchema = z.enum(['start', 'pause', 'resume', 'skip', 'stop'])
 

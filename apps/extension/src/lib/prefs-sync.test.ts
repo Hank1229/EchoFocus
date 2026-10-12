@@ -8,7 +8,7 @@ vi.mock('./auth', () => ({ getSession: vi.fn(), refreshSession: vi.fn() }))
 
 import { getSupabaseClient } from './supabase'
 import { getSession, refreshSession } from './auth'
-import { pushRules, pushSettings, reconcileWithCloud, reconcileIfStale, pullInstantPrefs } from './prefs-sync'
+import { pushRules, pushSettings, pushSettingsSoon, reconcileWithCloud, reconcileIfStale, pullInstantPrefs } from './prefs-sync'
 import { getCustomRules, getSettings, saveCustomRules, saveSettings } from '../background/storage'
 
 const USER = 'user-1'
@@ -528,5 +528,92 @@ describe('pullInstantPrefs — outside the reconcile throttle', () => {
     supabase.rows.user_preferences = [cloudPrefs({ theme: 'dark' })]
     await pullInstantPrefs()
     expect(chromeStub.store.theme).toBeUndefined()
+  })
+})
+
+describe('popup steppers — a pending duration is never reverted by a pull', () => {
+  function cloudWithDurations(focus: number, brk: number): Record<string, unknown> {
+    return cloudPrefs({ theme: 'dark', pomodoro_focus_minutes: focus, pomodoro_break_minutes: brk, pomodoro_reminders_enabled: true })
+  }
+
+  beforeEach(() => {
+    alreadyBootstrapped()
+    chromeStub.store.cloud_prefs_v2 = true
+  })
+
+  it('pullInstantPrefs keeps the local durations while settings are pending, and still takes the theme', async () => {
+    chromeStub.store.pomodoro_settings = { focusMinutes: 40, breakMinutes: 8 }
+    chromeStub.store.pending_prefs_push = ['settings']
+    supabase.rows.user_preferences = [cloudWithDurations(25, 5)]
+
+    await pullInstantPrefs()
+
+    expect(chromeStub.store.pomodoro_settings).toEqual({ focusMinutes: 40, breakMinutes: 8 })
+    expect(chromeStub.store.theme).toBe('dark')
+  })
+
+  it('a failed upload stays pending; neither pull reverts the durations until the upload lands', async () => {
+    chromeStub.store.pomodoro_settings = { focusMinutes: 40, breakMinutes: 8 }
+    supabase.rows.user_preferences = [cloudWithDurations(25, 5)]
+    supabase.failing.add('user_preferences:upsert')
+
+    await pushSettings()
+    await reconcileWithCloud()
+    await pullInstantPrefs()
+
+    expect(chromeStub.store.pending_prefs_push).toContain('settings')
+    expect(chromeStub.store.pomodoro_settings).toEqual({ focusMinutes: 40, breakMinutes: 8 })
+
+    supabase.failing.clear()
+    await reconcileWithCloud()
+
+    expect(chromeStub.store.pending_prefs_push).not.toContain('settings')
+    expect(supabase.rows.user_preferences[0]).toEqual(expect.objectContaining({ pomodoro_focus_minutes: 40, pomodoro_break_minutes: 8 }))
+    expect(chromeStub.store.pomodoro_settings).toEqual({ focusMinutes: 40, breakMinutes: 8 })
+  })
+
+  it('a press that lands while an upload is in flight stays pending after that upload', async () => {
+    chromeStub.store.pomodoro_settings = { focusMinutes: 30, breakMinutes: 5 }
+    supabase.rows.user_preferences = [cloudWithDurations(25, 5)]
+    const client = supabase.client
+    vi.mocked(getSupabaseClient).mockReturnValue({
+      from(name: string) {
+        const table = client.from(name)
+        return {
+          ...table,
+          upsert(...args: Parameters<typeof table.upsert>) {
+            chromeStub.store.pomodoro_settings = { focusMinutes: 45, breakMinutes: 5 }
+            return table.upsert(...args)
+          },
+        }
+      },
+    } as never)
+
+    await pushSettings()
+    expect(chromeStub.store.pending_prefs_push).toContain('settings')
+
+    await pullInstantPrefs()
+    expect(chromeStub.store.pomodoro_settings).toEqual({ focusMinutes: 45, breakMinutes: 5 })
+  })
+
+  it('pushSettingsSoon marks pending at once and folds quick presses into one upload', async () => {
+    vi.useFakeTimers()
+    try {
+      chromeStub.store.pomodoro_settings = { focusMinutes: 30, breakMinutes: 5 }
+      await pushSettingsSoon()
+      chromeStub.store.pomodoro_settings = { focusMinutes: 35, breakMinutes: 5 }
+      await pushSettingsSoon()
+
+      expect(chromeStub.store.pending_prefs_push).toContain('settings')
+      expect(upserts('user_preferences')).toHaveLength(0)
+
+      await vi.advanceTimersByTimeAsync(500)
+      await vi.waitFor(() => expect(upserts('user_preferences')).toHaveLength(1))
+
+      expect(upserts('user_preferences')[0]).toEqual(expect.objectContaining({ pomodoro_focus_minutes: 35, pomodoro_break_minutes: 5 }))
+      await vi.waitFor(() => expect(chromeStub.store.pending_prefs_push).not.toContain('settings'))
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

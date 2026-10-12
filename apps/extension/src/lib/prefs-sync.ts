@@ -88,6 +88,10 @@ async function pendingPushes(): Promise<Pushable[]> {
   return raw.filter((kind): kind is Pushable => kind === 'rules' || kind === 'settings')
 }
 
+async function settingsPending(): Promise<boolean> {
+  return (await pendingPushes()).includes('settings')
+}
+
 async function markPending(kind: Pushable): Promise<void> {
   await withStorageLock(async () => {
     const pending = await pendingPushes()
@@ -243,10 +247,13 @@ async function localExtras(): Promise<SyncedExtras> {
   }
 }
 
-async function adoptExtras(extras: Partial<SyncedExtras>): Promise<void> {
+// keepLocalDurations: a settings push is still pending, so the local
+// durations are newer than the cloud's (a stepper press in the popup, say)
+// and a pull must not revert them.
+async function adoptExtras(extras: Partial<SyncedExtras>, keepLocalDurations = false): Promise<void> {
   const writes: Record<string, unknown> = {}
   if (extras.theme !== undefined) writes[THEME_KEY] = extras.theme
-  if (extras.focusMinutes !== undefined && extras.breakMinutes !== undefined) {
+  if (!keepLocalDurations && extras.focusMinutes !== undefined && extras.breakMinutes !== undefined) {
     writes[POMODORO_SETTINGS_KEY] = { focusMinutes: extras.focusMinutes, breakMinutes: extras.breakMinutes }
   }
   if (extras.remindersEnabled !== undefined) writes[POMODORO_REMINDERS_KEY] = extras.remindersEnabled
@@ -303,32 +310,40 @@ async function fetchCloudSettings(userId: string): Promise<{
   }
 }
 
-async function uploadSettings(userId: string): Promise<boolean> {
-  const supabase = getSupabaseClient()
+async function settingsRow(): Promise<Record<string, unknown>> {
   const settings = await getSettings()
   const extras = await localExtras()
-  const withExtras = await cloudSupportsExtras()
+  return {
+    idle_timeout_minutes: settings.idleTimeoutMinutes,
+    data_retention_days: settings.dataRetentionDays,
+    daily_goal_minutes: settings.dailyGoalMinutes,
+    ...(await cloudSupportsExtras()
+      ? {
+          theme: extras.theme,
+          pomodoro_focus_minutes: extras.focusMinutes,
+          pomodoro_break_minutes: extras.breakMinutes,
+          pomodoro_reminders_enabled: extras.remindersEnabled,
+        }
+      : {}),
+  }
+}
+
+async function uploadSettings(userId: string): Promise<boolean> {
+  const supabase = getSupabaseClient()
+  const row = await settingsRow()
 
   const pushed = await run(() =>
     supabase.from('user_preferences').upsert({
       user_id: userId,
-      idle_timeout_minutes: settings.idleTimeoutMinutes,
-      data_retention_days: settings.dataRetentionDays,
-      daily_goal_minutes: settings.dailyGoalMinutes,
-      ...(withExtras
-        ? {
-            theme: extras.theme,
-            pomodoro_focus_minutes: extras.focusMinutes,
-            pomodoro_break_minutes: extras.breakMinutes,
-            pomodoro_reminders_enabled: extras.remindersEnabled,
-          }
-        : {}),
+      ...row,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id' }),
   )
   if (!pushed.ok) return false
 
-  await clearPending('settings')
+  // A stepper press that landed while this upload was in flight is not in the
+  // cloud yet: stay pending, so no pull reverts it before its own push.
+  if (JSON.stringify(await settingsRow()) === JSON.stringify(row)) await clearPending('settings')
   return true
 }
 
@@ -337,7 +352,7 @@ async function pullSettings(userId: string): Promise<void> {
   // SyncedSettings can't carry trackingEnabled, so applySettings can never be
   // handed the master switch from here.
   if (cloud.value) await applySettings(cloud.value)
-  if (cloud.extras) await adoptExtras(cloud.extras)
+  if (cloud.extras) await adoptExtras(cloud.extras, await settingsPending())
 }
 
 // ─── First Contact ─────────────────────────────────────────────────────────
@@ -426,6 +441,19 @@ export async function pushSettings(): Promise<void> {
   await flush('settings')
 }
 
+let settingsPushTimer: ReturnType<typeof setTimeout> | null = null
+
+// The popup's steppers save on every press. Pending is marked at once, so no
+// pull can revert a press, and one upload goes out once the presses stop.
+export async function pushSettingsSoon(delayMs = 500): Promise<void> {
+  await markPending('settings')
+  if (settingsPushTimer !== null) clearTimeout(settingsPushTimer)
+  settingsPushTimer = setTimeout(() => {
+    settingsPushTimer = null
+    void flush('settings')
+  }, delayMs)
+}
+
 async function flush(kind: Pushable): Promise<void> {
   try {
     const session = await getSession()
@@ -480,7 +508,7 @@ export async function pullInstantPrefs(): Promise<void> {
       focusMinutes: parsed.data.pomodoro_focus_minutes,
       breakMinutes: parsed.data.pomodoro_break_minutes,
       remindersEnabled: parsed.data.pomodoro_reminders_enabled,
-    })
+    }, await settingsPending())
   } catch (err) {
     console.error('[EchoFocus] Instant prefs pull failed:', err)
   }

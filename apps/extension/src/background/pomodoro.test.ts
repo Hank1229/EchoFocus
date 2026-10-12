@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { installChromeStub, type ChromeStub } from '../test/chrome-stub'
-import { POMODORO_ALARM, advance, refreshBadge, run, snapshot } from './pomodoro'
+import { POMODORO_ALARM, advance, refreshBadge, run, setDurations, snapshot } from './pomodoro'
 
 const NOW = new Date(2026, 2, 14, 9, 0, 0)
 
@@ -167,6 +167,43 @@ describe('advance', () => {
     await advance()
 
     expect(chromeStub.notifications[0].options.title).toBe('專注完成')
+  })
+})
+
+describe('setDurations', () => {
+  it('writes the durations while idle and returns the new snapshot', async () => {
+    const result = await setDurations({ focusMinutes: 40, breakMinutes: 8 })
+
+    expect(result).toEqual(expect.objectContaining({ phase: 'idle', focusMinutes: 40, breakMinutes: 8 }))
+    expect(chromeStub.store['pomodoro_settings']).toEqual({ focusMinutes: 40, breakMinutes: 8 })
+  })
+
+  it('the next focus round and the break after it both use the new durations', async () => {
+    await setDurations({ focusMinutes: 40, breakMinutes: 8 })
+
+    const started = await run('start')
+    expect(started.endsAt).toBe(minutesFromNow(40))
+
+    vi.setSystemTime(new Date(NOW.getTime() + 40 * 60_000))
+    await advance()
+
+    const state = await snapshot()
+    expect(state.phase).toBe('break')
+    expect(state.endsAt).toBe(Date.now() + 8 * 60_000)
+  })
+
+  it('refuses while focusing, on break, or paused, and keeps the old durations', async () => {
+    await run('start')
+    expect(await setDurations({ focusMinutes: 40, breakMinutes: 8 })).toBeNull()
+
+    await run('pause')
+    expect(await setDurations({ focusMinutes: 40, breakMinutes: 8 })).toBeNull()
+
+    await run('resume')
+    await run('skip')
+    expect(await setDurations({ focusMinutes: 40, breakMinutes: 8 })).toBeNull()
+
+    expect(chromeStub.store['pomodoro_settings']).toBeUndefined()
   })
 })
 

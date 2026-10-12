@@ -14,12 +14,12 @@ import {
 import { applySettings } from './settings'
 import { setupAlarms, ensureHeartbeatAlarm, handleAlarm } from './alarms'
 import { openDailySummary } from './notifications'
-import { partialSettingsSchema, classificationRuleArraySchema, dateStringSchema, aiAnalysisRequestSchema, pomodoroCommandSchema } from '../lib/schemas'
+import { partialSettingsSchema, classificationRuleArraySchema, dateStringSchema, aiAnalysisRequestSchema, pomodoroCommandSchema, pomodoroDurationsSchema } from '../lib/schemas'
 import * as pomodoro from './pomodoro'
 import { requestAiAnalysis } from '../lib/ai'
 import { getTodayDateString } from '@echofocus/shared'
 import { drainSyncQueue, enqueueMissedSyncDates, backfillHistoryIfNeeded, postSignInBootstrap } from '../lib/sync'
-import { pushRules, pushSettings, reconcileWithCloud, reconcileIfStale, pullInstantPrefs } from '../lib/prefs-sync'
+import { pushRules, pushSettings, pushSettingsSoon, reconcileWithCloud, reconcileIfStale, pullInstantPrefs } from '../lib/prefs-sync'
 import { signInWithGoogle, verifySessionAlive } from '../lib/auth'
 
 // ─── Message Types ─────────────────────────────────────────────────────────
@@ -39,6 +39,7 @@ type MessageType =
   | 'GET_STORAGE_INFO'
   | 'GET_POMODORO'
   | 'POMODORO_COMMAND'
+  | 'SET_POMODORO_DURATIONS'
   | 'SIGN_IN'
   | 'REFRESH_CLOUD_PREFS'
 
@@ -295,6 +296,19 @@ export async function handleMessage(
         return { success: false, error: 'Invalid pomodoro command' }
       }
       return { success: true, data: await pomodoro.run(parsed.data) }
+    }
+
+    case 'SET_POMODORO_DURATIONS': {
+      const parsed = pomodoroDurationsSchema.safeParse(message.payload)
+      if (!parsed.success) {
+        return { success: false, error: 'Invalid pomodoro durations' }
+      }
+      const snapshot = await pomodoro.setDurations(parsed.data)
+      if (!snapshot) {
+        return { success: false, error: 'Durations can only change while the timer is idle' }
+      }
+      await pushSettingsSoon()
+      return { success: true, data: snapshot }
     }
 
     default:

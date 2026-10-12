@@ -161,6 +161,43 @@ describe('SAVE_CUSTOM_RULES', () => {
   })
 })
 
+describe('SET_POMODORO_DURATIONS', () => {
+  it('saves valid durations while idle and marks the settings for upload', async () => {
+    const res = await handleMessage({ type: 'SET_POMODORO_DURATIONS', payload: { focusMinutes: 30, breakMinutes: 10 } })
+
+    expect(res.success).toBe(true)
+    expect(res.data).toEqual(expect.objectContaining({ phase: 'idle', focusMinutes: 30, breakMinutes: 10 }))
+    expect(chromeStub.store['pomodoro_settings']).toEqual({ focusMinutes: 30, breakMinutes: 10 })
+    // Pending from the first press, so no cloud pull can revert it before
+    // the debounced upload goes out.
+    expect(chromeStub.store['pending_prefs_push']).toContain('settings')
+  })
+
+  it.each([
+    ['focus below the minimum', { focusMinutes: 0, breakMinutes: 5 }],
+    ['focus above the maximum', { focusMinutes: 125, breakMinutes: 5 }],
+    ['focus off its 5-minute step', { focusMinutes: 37, breakMinutes: 5 }],
+    ['break below the minimum', { focusMinutes: 25, breakMinutes: 0 }],
+    ['break above the maximum', { focusMinutes: 25, breakMinutes: 31 }],
+    ['a fractional break', { focusMinutes: 25, breakMinutes: 2.5 }],
+    ['a missing field', { focusMinutes: 25 }],
+  ])('rejects %s and writes nothing', async (_name, payload) => {
+    const res = await handleMessage({ type: 'SET_POMODORO_DURATIONS', payload })
+
+    expect(res.success).toBe(false)
+    expect(chromeStub.store['pomodoro_settings']).toBeUndefined()
+  })
+
+  it('refuses while a round is running', async () => {
+    await handleMessage({ type: 'POMODORO_COMMAND', payload: 'start' })
+
+    const res = await handleMessage({ type: 'SET_POMODORO_DURATIONS', payload: { focusMinutes: 30, breakMinutes: 10 } })
+
+    expect(res.success).toBe(false)
+    expect(chromeStub.store['pomodoro_settings']).toBeUndefined()
+  })
+})
+
 describe('SIGN_IN (one-click from the popup)', () => {
   it('acknowledges immediately and completes OAuth + bootstrap in the worker', async () => {
     const res = await handleMessage({ type: 'SIGN_IN' })

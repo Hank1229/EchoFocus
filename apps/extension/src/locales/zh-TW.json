@@ -29,7 +29,15 @@
     "viewFullAnalysis": "查看完整分析",
     "signInHint": "登入以取得 AI 洞察與跨裝置同步",
     "connecting": "連結中…",
-    "recategorizeHint": "點擊修改分類"
+    "recategorizeHint": "點擊修改分類",
+    "focusLabel": "專注",
+    "breakLabel": "休息",
+    "shorterFocus": "縮短專注時長",
+    "longerFocus": "延長專注時長",
+    "shorterBreak": "縮短休息時長",
+    "longerBreak": "延長休息時長",
+    "minuteValue": "{n} 分鐘",
+    "minutesValue": "{n} 分鐘"
   },
   "options": {
     "title": "EchoFocus 設定",

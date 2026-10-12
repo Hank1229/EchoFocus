@@ -2,24 +2,16 @@
 
 import { useState } from 'react'
 import { Check } from 'lucide-react'
+import { BREAK_DURATION_LIMITS, FOCUS_DURATION_LIMITS } from '@echofocus/shared'
 import { createClient } from '@/lib/supabase/client'
 import { useLocale, type Language } from '@/lib/i18n'
 import { useTheme, type ThemePreference } from '@/lib/theme'
 import SettingRow from '@/components/dashboard/SettingRow'
+import { prefsToWrite, type UserPreference } from './prefs-to-write'
 
 // NOTE (Phase 0): the email-report toggle and "send test email" UI are hidden
 // until a verified sending domain + scheduler exist. The user_preferences
 // columns (email_report_enabled etc.) remain in the DB untouched.
-
-interface UserPreference {
-  email_report_enabled: boolean
-  idle_timeout_minutes: number
-  data_retention_days: number
-  daily_goal_minutes: number
-  pomodoro_focus_minutes: number
-  pomodoro_break_minutes: number
-  pomodoro_reminders_enabled: boolean
-}
 
 interface SettingsFormProps {
   userId: string
@@ -137,6 +129,7 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
   const { t, language, setLanguage } = useLocale()
   const { theme, setTheme } = useTheme()
   const [prefs, setPrefs] = useState<UserPreference>({ ...DEFAULT_PREFS, ...initialPrefs })
+  const [saved, setSaved] = useState<UserPreference | null>(initialPrefs ? { ...DEFAULT_PREFS, ...initialPrefs } : null)
   const [isSaving, setIsSaving] = useState(false)
   const [saveState, setSaveState] = useState<'idle' | 'saved' | 'error'>('idle')
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -147,19 +140,26 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
   }
 
   const save = async () => {
+    const changes = prefsToWrite(saved, prefs)
+    if (Object.keys(changes).length === 0) {
+      setSaveState('saved')
+      return
+    }
+    const submitted = prefs
     setIsSaving(true)
     setSaveState('idle')
     try {
       const supabase = createClient()
       const { error } = await supabase.from('user_preferences').upsert({
         user_id: userId,
-        ...prefs,
+        ...changes,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' })
       if (error) {
         setSaveError(error.message)
         setSaveState('error')
       } else {
+        setSaved(submitted)
         setSaveState('saved')
       }
     } catch (err) {
@@ -255,11 +255,11 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
         <Slider
           value={prefs.pomodoro_focus_minutes}
           valueText={minutes(prefs.pomodoro_focus_minutes)}
-          min={5}
-          max={120}
-          step={5}
-          minLabel={minutes(5)}
-          maxLabel={minutes(120)}
+          min={FOCUS_DURATION_LIMITS.min}
+          max={FOCUS_DURATION_LIMITS.max}
+          step={FOCUS_DURATION_LIMITS.step}
+          minLabel={minutes(FOCUS_DURATION_LIMITS.min)}
+          maxLabel={minutes(FOCUS_DURATION_LIMITS.max)}
           ariaLabel={t.settings.focusDuration}
           onChange={v => update('pomodoro_focus_minutes', v)}
         />
@@ -269,10 +269,11 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
         <Slider
           value={prefs.pomodoro_break_minutes}
           valueText={minutes(prefs.pomodoro_break_minutes)}
-          min={1}
-          max={30}
-          minLabel={minutes(1)}
-          maxLabel={minutes(30)}
+          min={BREAK_DURATION_LIMITS.min}
+          max={BREAK_DURATION_LIMITS.max}
+          step={BREAK_DURATION_LIMITS.step}
+          minLabel={minutes(BREAK_DURATION_LIMITS.min)}
+          maxLabel={minutes(BREAK_DURATION_LIMITS.max)}
           ariaLabel={t.settings.breakDuration}
           onChange={v => update('pomodoro_break_minutes', v)}
         />
