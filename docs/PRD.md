@@ -202,7 +202,7 @@ interface DailyAggregate {
 2. The extension sends the summary to a Supabase Edge Function (the dashboard sends the same summary, built from the synced aggregate)
 3. The Edge Function calls the Gemini API with a structured prompt
 4. The Edge Function stores the result in the `ai_analyses` table and returns it; the extension also keeps a copy in chrome.storage.local
-5. The server keeps the summary it received, in `ai_analyses.aggregated_input` next to the result
+5. The server stores only the analysis text and the focus score; the summary it received is not kept
 
 **AI Prompt Template:**
 ```
@@ -387,7 +387,7 @@ CREATE TABLE ai_analyses (
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   date DATE NOT NULL,
   type TEXT DEFAULT 'daily',    -- 'daily' or 'weekly'
-  aggregated_input JSONB,       -- anonymized stats sent to AI
+  aggregated_input JSONB,       -- no longer written (since 2026-10-12); column kept until a later migration drops it
   analysis_text TEXT,           -- AI response
   focus_score INT,
   created_at TIMESTAMPTZ DEFAULT NOW(),

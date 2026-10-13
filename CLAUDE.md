@@ -137,6 +137,7 @@ echofocus/
 5. **An insight keeps the numbers from when it was generated.** The Today card follows the synced aggregate, which uploads hourly; an insight quotes the minutes it was sent at generation time, so the two can drift apart as the day goes on.
 6. **The dashboard trails the popup.** The popup reads the local aggregate plus the session in progress, live. The dashboard reads the synced row, which the extension uploads once an hour (the `echofocus-aggregate` alarm), at sign-in, and when "Sync today's data" is pressed in Options → Account. The dashboard's "Synced" time shows when that row was last uploaded. A session in progress reaches the dashboard only at the first upload after it ends, and no hourly upload runs while the computer sleeps or Chrome is closed, so the gap can exceed an hour. Before a demo, press "Sync today's data", then reload the dashboard.
 7. **Pomodoro durations follow the last whole-row upload.** The extension uploads the whole preferences row, so when two devices each change one duration, the later upload sets both. Changing durations from the popup makes this easier to hit than before.
+8. **The daily alarms drift across a DST change or a timezone move.** The 00:05 sync and the 21:00 analysis (`echofocus-sync`, `echofocus-ai-daily` in background/alarms.ts) are created once at the next local 00:05 or 21:00 and then repeat every fixed 24 hours, so after a DST switch or a move to another timezone they fire an hour or more off the clock time until the alarm is rebuilt. Taiwan has no DST, so current users are not affected.
 
 ---
 
@@ -145,7 +146,7 @@ echofocus/
 ### Privacy (MOST IMPORTANT)
 
 1. **NEVER send raw URLs, page titles, or full browsing history to any server**
-2. **NEVER store browsing data in Supabase** — only user preferences, auth, and AI analysis results
+2. **NEVER store browsing data in Supabase** — only user preferences, auth, daily aggregates (domain names, seconds, categories, productive-by-hour) and AI analysis text
 3. **AI analysis input must be aggregated** — only domain names + durations + categories, NEVER full URLs
 4. **All browsing data lives in chrome.storage.local** — the user's device only
 5. When displaying privacy-related UI, be explicit about what data goes where
