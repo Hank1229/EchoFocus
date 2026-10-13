@@ -778,11 +778,11 @@ function PrivacyTab() {
           .map(([date, agg]) =>
             [
               date,
-              Math.round((agg.totalSeconds ?? 0) / 60),
-              Math.round((agg.productiveSeconds ?? 0) / 60),
-              Math.round((agg.distractionSeconds ?? 0) / 60),
-              Math.round((agg.neutralSeconds ?? 0) / 60),
-              Math.round((agg.uncategorizedSeconds ?? 0) / 60),
+              Math.floor((agg.totalSeconds ?? 0) / 60),
+              Math.floor((agg.productiveSeconds ?? 0) / 60),
+              Math.floor((agg.distractionSeconds ?? 0) / 60),
+              Math.floor((agg.neutralSeconds ?? 0) / 60),
+              Math.floor((agg.uncategorizedSeconds ?? 0) / 60),
               agg.focusScore ?? 0,
             ].join(',')
           ),
