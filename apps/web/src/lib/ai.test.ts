@@ -377,6 +377,27 @@ describe('requestWeeklyAnalysis', () => {
     expect(payload.aggregates.map((a) => a.date)).toEqual(['2026-03-12', '2026-03-13', '2026-03-14'])
   })
 
+  it('keeps only the seven calendar days ending on the newest synced day', async () => {
+    // Newest first, as Supabase returns them. Seven rows span six weeks; the
+    // window is 2026-03-08 … 2026-03-14, with 03-08 exactly on the boundary.
+    queryResult = {
+      data: [
+        { ...row(), date: '2026-03-14' },
+        { ...row(), date: '2026-03-11' },
+        { ...row(), date: '2026-03-08' },
+        { ...row(), date: '2026-03-07' },
+        { ...row(), date: '2026-02-28' },
+        { ...row(), date: '2026-02-14' },
+        { ...row(), date: '2026-01-30' },
+      ],
+      error: null,
+    }
+    await requestWeeklyAnalysis('en')
+
+    const payload = sentPayload() as { aggregates: { date: string }[] }
+    expect(payload.aggregates.map((a) => a.date)).toEqual(['2026-03-08', '2026-03-11', '2026-03-14'])
+  })
+
   it('maps each day through the same seconds→minutes conversion', async () => {
     queryResult = { data: week, error: null }
     await requestWeeklyAnalysis('en')

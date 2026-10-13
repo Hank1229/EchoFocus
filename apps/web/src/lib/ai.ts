@@ -1,3 +1,4 @@
+import { getDateNDaysAgo } from '@echofocus/shared'
 import { createClient } from '@/lib/supabase/client'
 
 const SUPABASE_FUNCTIONS_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -168,8 +169,16 @@ export async function requestWeeklyAnalysis(language: string): Promise<AiAnalysi
   const rows = (data ?? []) as (SyncedAggregateRow & { date: string })[]
   if (rows.length === 0) return { status: 'error', reason: 'no-data' }
 
+  // "The last seven days" is a calendar window ending on the newest synced
+  // day, as Trends draws it — never the last seven synced rows, which with
+  // sync gaps silently span months while the review still calls it a week.
+  // Anchored to the data's own (user-local) date, not this machine's clock.
+  const cutoff = getDateNDaysAgo(6, new Date(rows[0]!.date + 'T00:00:00'))
   // Oldest first, so the Edge Function stores the summary under the latest date.
-  const aggregates = rows.map(row => toAggregatePayload(row.date, row)).reverse()
+  const aggregates = rows
+    .filter(row => row.date >= cutoff)
+    .map(row => toAggregatePayload(row.date, row))
+    .reverse()
   const averageFocusScore = Math.round(
     aggregates.reduce((sum, day) => sum + day.focusScore, 0) / aggregates.length,
   )
