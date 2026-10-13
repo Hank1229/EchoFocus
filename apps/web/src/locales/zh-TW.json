@@ -270,6 +270,7 @@
     "settingsTitle": "設定",
     "settingsIntro": "語言、每日目標，以及擴充功能在這個帳戶上的行為。儲存後會在擴充功能下次同步時套用。",
     "deleteFailed": "無法刪除雲端資料：",
+    "exportFailed": "無法匯出雲端資料：",
     "tabGeneral": "一般",
     "tabCategories": "類別",
     "tabPrivacy": "隱私",

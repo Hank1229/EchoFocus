@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Download } from 'lucide-react'
+import { formatLocalDate } from '@echofocus/shared'
 import { useLocale } from '@/lib/i18n'
 import { fetchCloudExport } from './cloud-export'
 
@@ -25,7 +26,7 @@ export default function ExportCloudDataButton({ userId }: { userId: string }) {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `echofocus-export-${new Date().toISOString().split('T')[0]}.json`
+      a.download = `echofocus-export-${formatLocalDate(new Date())}.json`
       a.click()
       URL.revokeObjectURL(url)
     } finally {
@@ -45,7 +46,7 @@ export default function ExportCloudDataButton({ userId }: { userId: string }) {
       </button>
       {error && (
         <p role="alert" className="mt-3 text-caption leading-relaxed" style={{ color: 'var(--danger)' }}>
-          {t.common.loadFailed}{error}
+          {t.settings.exportFailed}{error}
         </p>
       )}
     </>
