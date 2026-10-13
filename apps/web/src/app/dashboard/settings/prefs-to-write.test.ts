@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { prefsToWrite, type UserPreference } from './prefs-to-write'
+import { DEFAULT_PREFS, prefsToWrite, type UserPreference } from './prefs-to-write'
 
 const loaded: UserPreference = {
   email_report_enabled: false,
@@ -29,5 +29,12 @@ describe('prefsToWrite', () => {
 
   it('writes every field when the account has no row yet, as before', () => {
     expect(prefsToWrite(null, loaded)).toEqual(loaded)
+  })
+
+  // With no row, the first Save writes DEFAULT_PREFS whole, so it must not
+  // switch on a feature the database default (migration 007) keeps off.
+  it('defaults email reports to off, like the database does', () => {
+    expect(DEFAULT_PREFS.email_report_enabled).toBe(false)
+    expect(prefsToWrite(null, DEFAULT_PREFS)).toMatchObject({ email_report_enabled: false })
   })
 })

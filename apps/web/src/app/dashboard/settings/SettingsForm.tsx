@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useLocale, type Language } from '@/lib/i18n'
 import { useTheme, type ThemePreference } from '@/lib/theme'
 import SettingRow from '@/components/dashboard/SettingRow'
-import { prefsToWrite, type UserPreference } from './prefs-to-write'
+import { DEFAULT_PREFS, prefsToWrite, type UserPreference } from './prefs-to-write'
 
 // NOTE (Phase 0): the email-report toggle and "send test email" UI are hidden
 // until a verified sending domain + scheduler exist. The user_preferences
@@ -16,16 +16,6 @@ import { prefsToWrite, type UserPreference } from './prefs-to-write'
 interface SettingsFormProps {
   userId: string
   initialPrefs: UserPreference | null
-}
-
-const DEFAULT_PREFS: UserPreference = {
-  email_report_enabled: true,
-  idle_timeout_minutes: 2,
-  data_retention_days: 30,
-  daily_goal_minutes: 360,
-  pomodoro_focus_minutes: 25,
-  pomodoro_break_minutes: 5,
-  pomodoro_reminders_enabled: true,
 }
 
 function SegmentedControl<T extends string>({
