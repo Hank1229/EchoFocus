@@ -1,6 +1,6 @@
 import { formatDuration } from '@echofocus/shared'
 
-export type SiteCategory = 'productive' | 'distraction' | 'neutral' | 'uncategorized'
+type SiteCategory = 'productive' | 'distraction' | 'neutral' | 'uncategorized'
 
 export interface RankedSite {
   domain: string

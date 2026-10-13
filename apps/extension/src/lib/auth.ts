@@ -9,7 +9,7 @@ import { getSupabaseClient } from './supabase'
 // 'busy': Chrome runs one auth flow per extension at a time and one is still
 // open — often a window the user lost track of — so nothing new can start
 // until that one is finished or closed.
-export type SignInFailure = 'busy' | 'cancelled' | 'failed'
+type SignInFailure = 'busy' | 'cancelled' | 'failed'
 export type SignInOutcome = { session: Session } | { failure: SignInFailure }
 
 function flowFailure(err: unknown): SignInFailure {
@@ -97,7 +97,7 @@ export async function signOut(): Promise<void> {
 
 // The dashboard already revoked the account server-side; only this device's
 // copy is left to drop. storage.onChanged flips every open page.
-export async function signOutLocally(): Promise<void> {
+async function signOutLocally(): Promise<void> {
   const supabase = getSupabaseClient()
   await supabase.auth.signOut({ scope: 'local' })
 }

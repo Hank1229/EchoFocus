@@ -7,7 +7,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 type Row = Record<string, unknown>
 
-export interface StubRequest {
+interface StubRequest {
   table: string
   op: 'select' | 'upsert' | 'delete'
   /** Rows sent by an upsert, exactly as the caller built them. */

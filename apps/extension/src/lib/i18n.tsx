@@ -3,7 +3,7 @@ import en from '../locales/en.json'
 import zhTW from '../locales/zh-TW.json'
 
 export type Language = 'en' | 'zh-TW'
-export type Locale = typeof en
+type Locale = typeof en
 
 const LOCALES: Record<Language, Locale> = {
   en,

@@ -16,7 +16,7 @@ import type {
 
 export const categorySchema = z.enum(['productive', 'distraction', 'neutral', 'uncategorized'])
 
-export const trackingEntrySchema: z.ZodType<TrackingEntry> = z.object({
+const trackingEntrySchema: z.ZodType<TrackingEntry> = z.object({
   id: z.string(),
   domain: z.string(),
   url: z.string(),
@@ -79,7 +79,7 @@ export const partialSettingsSchema = z
   })
   .partial()
 
-export const classificationRuleSchema: z.ZodType<ClassificationRule> = z.object({
+const classificationRuleSchema: z.ZodType<ClassificationRule> = z.object({
   id: z.string(),
   pattern: z.string().min(1),
   matchType: z.enum(['exact', 'wildcard', 'path']),

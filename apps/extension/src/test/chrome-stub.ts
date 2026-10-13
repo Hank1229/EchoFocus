@@ -12,13 +12,13 @@ export interface StubTab {
   audible?: boolean
 }
 
-export interface StubAlarm {
+interface StubAlarm {
   name: string
   scheduledTime: number
   periodInMinutes?: number
 }
 
-export interface StubNotification {
+interface StubNotification {
   id: string
   options: chrome.notifications.NotificationOptions<true>
 }

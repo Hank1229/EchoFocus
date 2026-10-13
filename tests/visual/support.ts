@@ -14,7 +14,7 @@ export const LANGUAGES = ['en', 'zh-TW'] as const
 export type Theme = (typeof THEMES)[number]
 export type Language = (typeof LANGUAGES)[number]
 
-export const EXTENSION_DIR = path.resolve(__dirname, '../../apps/extension/dist-vrt')
+const EXTENSION_DIR = path.resolve(__dirname, '../../apps/extension/dist-vrt')
 
 // The shape supabase-js stores under supabase_session. The build points at an
 // unreachable Supabase URL, so this token is never sent anywhere that answers.

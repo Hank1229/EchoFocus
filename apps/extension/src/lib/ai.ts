@@ -5,7 +5,7 @@ import { getAggregateForDate } from '../background/storage'
 
 // Every failure used to collapse into null, so the popup blamed the network for
 // expired sessions and empty days alike. Callers localize these reasons.
-export type AiFailureReason = 'signed-out' | 'session-expired' | 'no-data' | 'unavailable'
+type AiFailureReason = 'signed-out' | 'session-expired' | 'no-data' | 'unavailable'
 
 export type AiAnalysisOutcome =
   | { ok: true; result: AiAnalysisResult }
