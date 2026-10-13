@@ -387,7 +387,7 @@
         "Analysis text only, no raw browsing data"
       ],
       [
-        "Account info (email, preferences)",
+        "Account info (email, display name, preferences)",
         "Supabase",
         "Used for authentication only"
       ]
