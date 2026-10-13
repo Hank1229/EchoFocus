@@ -218,7 +218,7 @@
     "account": "Account",
     "googleAccount": "Google Account",
     "reset": "Reset",
-    "deleteCloudDesc": "Removes every synced stat and AI analysis from the cloud. Data stored in the extension on this device is not affected.",
+    "deleteCloudDesc": "Removes every synced stat and AI analysis from the cloud. Data stored in the extension on this device is not affected. If the extension is still signed in, it re-uploads today within an hour and recent days at its next start. Sign out of the extension first to keep the cloud empty.",
     "preferences": "Preferences",
     "dailyEmailReport": "Daily Email Report",
     "emailReportDesc": "Receive a daily productivity summary in your inbox",
@@ -241,7 +241,7 @@
     "exporting": "Exporting…",
     "exportDesc": "Download your synced stats and AI analyses from the last 30 days as JSON.",
     "deleteAllCloud": "Delete all cloud data",
-    "deleteCloudConfirm": "This permanently deletes all synced stats and AI analyses from the cloud. Local extension data is not affected. This cannot be undone.",
+    "deleteCloudConfirm": "This permanently deletes all synced stats and AI analyses from the cloud. Local extension data is not affected. This cannot be undone. A signed-in extension re-uploads recent days; sign out of it first to keep the cloud empty.",
     "cancel": "Cancel",
     "confirmDelete": "Confirm delete",
     "deleting": "Deleting…",
@@ -429,7 +429,7 @@
     "section5Intro": "You can, at any time:",
     "section5Items": [
       "Export or delete all local data from the Privacy tab of the extension's options page",
-      "Delete all synced stats and AI analyses, or export the last 30 days of them, from the Privacy tab of the dashboard's Settings",
+      "Delete all synced stats and AI analyses, or export the last 30 days of them, from the Privacy tab of the dashboard's Settings. If the extension is still signed in, it re-uploads today within an hour and recent days at its next start; sign out of the extension first to keep the cloud empty",
       "Pause or disable tracking entirely from the extension",
       "Sign out and keep using every local feature. An account is never required for tracking"
     ],
