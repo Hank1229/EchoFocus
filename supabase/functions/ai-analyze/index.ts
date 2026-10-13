@@ -348,7 +348,7 @@ async function callGemini(prompt: string): Promise<string> {
     if (!res.ok) {
       // Log server-side only; the caller gets a generic 502.
       const err = await res.text()
-      console.error(`Gemini API error ${res.status}: ${err}`)
+      console.error(`Gemini API error ${res.status}: ${err.slice(0, 300)}`)
       throw new GeminiError(false)
     }
 
@@ -376,7 +376,7 @@ async function callGemini(prompt: string): Promise<string> {
     // An abort means the 20s timeout fired mid-generation, which Google has
     // already charged for; any other transport error happened before that.
     const timedOut = err instanceof Error && err.name === 'AbortError'
-    console.error('Gemini fetch failed:', err instanceof Error ? err.message : err)
+    console.error('Gemini fetch failed:', err instanceof Error ? err.message : String(err).slice(0, 200))
     throw new GeminiError(timedOut)
   } finally {
     clearTimeout(timeout)
@@ -603,7 +603,7 @@ Deno.serve(async (req: Request) => {
 
     return jsonResponse({ analysis_text: analysisText, focus_score: aggregate.focusScore }, 200)
   } catch (err) {
-    console.error('ai-analyze error:', err)
+    console.error('ai-analyze error:', err instanceof Error ? err.message : String(err).slice(0, 200))
     return jsonResponse({ error: 'Server error' }, 500)
   }
 })
