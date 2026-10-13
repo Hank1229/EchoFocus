@@ -295,7 +295,7 @@ DailyAggregate (local) → ai.ts → Edge Function ai-analyze
 **Current state:**
 
 1. `supabase/functions/send-email-report/index.ts` is a stub that answers every request with 503 ("Email reports are not available yet.").
-2. The original implementation, which built an HTML report and sent it through Resend, is parked in `index.parked.ts`.
+2. The original implementation, which built an HTML report and sent it through Resend, is in commit ffecd14 at `supabase/functions/send-email-report/index.parked.ts`.
 3. No cron or alarm calls the function.
 4. Dashboard Settings has no email toggle and no test-email button; `SettingsForm.tsx` keeps them hidden.
 5. Migration `007_email_shelved.sql` sets `user_preferences.email_report_enabled` to default false and turns it off on every existing row.

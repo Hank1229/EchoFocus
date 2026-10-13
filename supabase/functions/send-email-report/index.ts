@@ -3,8 +3,9 @@
 // The email-report feature is deliberately parked until a verified sending
 // domain exists. The previous deployment was live with no rate limit, so any
 // signed-in user could loop it and burn the Resend quota. This stub locks the
-// endpoint; the real implementation is preserved in index.parked.ts and
-// returns with its own quota table when the feature does.
+// endpoint; the original implementation is in commit ffecd14 at
+// supabase/functions/send-email-report/index.parked.ts and returns with its
+// own quota table when the feature does.
 
 const HEADERS = {
   'Access-Control-Allow-Origin': '*',

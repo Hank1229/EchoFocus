@@ -224,7 +224,7 @@ Format: Plain text, no Markdown formatting, no emoji
 
 ### 4.6 Daily Email Report
 
-**Status:** shelved. The send-email-report function is a 503 stub (the real code is parked in `index.parked.ts`), the dashboard hides the email settings, and migration 007 defaults `email_report_enabled` to false. Nothing sends email.
+**Status:** shelved. The send-email-report function is a 503 stub (the original implementation is in commit ffecd14 at `supabase/functions/send-email-report/index.parked.ts`), the dashboard hides the email settings, and migration 007 defaults `email_report_enabled` to false. Nothing sends email.
 
 **Trigger:** A Supabase cron job or Edge Function sends it at the time the user picks (default 8 PM).
 
