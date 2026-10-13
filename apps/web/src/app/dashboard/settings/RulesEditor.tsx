@@ -45,9 +45,11 @@ const matchHints = (t: Locale): Record<MatchType, string> => ({
 
 type Problem = 'empty' | 'tooLong' | 'spaces' | 'wildcard' | 'path' | 'slash' | 'duplicate'
 
-// The extension's matcher compares hostnames for exact/wildcard rules and does a
-// substring test on the full URL for path rules, so a pattern that contradicts
-// its match type would be stored and then silently never fire.
+// The shared matcher (categorize.ts) compares hostnames for exact/wildcard
+// rules; a path rule's host half must match the hostname exactly (www. and
+// trailing dot stripped) and its path half is a prefix of pathname+search, so
+// a pattern that contradicts its match type would be stored and then silently
+// never fire.
 function check(draft: Draft, rules: Rule[], editingId: string | null): Problem | null {
   const pattern = draft.pattern.trim().toLowerCase()
   if (!pattern) return 'empty'
