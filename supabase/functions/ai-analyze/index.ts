@@ -484,7 +484,6 @@ async function analyzeWeek(supabase: ServiceClient, userId: string, rawBody: unk
     user_id: userId,
     date,
     type: 'weekly',
-    aggregated_input: { aggregates: days },
     analysis_text: analysisText,
     focus_score: focusScore,
   }, { onConflict: 'user_id,date,type' })
@@ -591,7 +590,6 @@ Deno.serve(async (req: Request) => {
       user_id: user.id,
       date,
       type: 'daily',
-      aggregated_input: aggregate,
       analysis_text: analysisText,
       focus_score: aggregate.focusScore,
     }, { onConflict: 'user_id,date,type' })
