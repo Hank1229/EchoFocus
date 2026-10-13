@@ -402,7 +402,7 @@
       },
       {
         "label": "Cross-device sync:",
-        "text": "When you sign in, your preferences, site rules and daily aggregates sync through Supabase so the dashboard works on any device."
+        "text": "When you sign in, your preferences, site rules and daily aggregates sync through Supabase so the dashboard works on any device. Signing in uploads this device's whole local history to that account."
       }
     ],
     "section3Intro": "EchoFocus relies on the following third-party services, each governed by its own privacy policy:",
