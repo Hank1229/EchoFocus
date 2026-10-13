@@ -76,18 +76,3 @@ export interface AiAnalysisResult {
   analyzedAt: number  // Unix timestamp ms
   type?: AiAnalysisType  // absent means daily
 }
-
-// Anonymized daily aggregate that gets synced to Supabase.
-// NEVER contains raw URLs or page titles — only domain names + durations.
-export interface SyncedAggregate {
-  userId: string
-  date: string              // YYYY-MM-DD
-  totalSeconds: number
-  productiveSeconds: number
-  distractionSeconds: number
-  neutralSeconds: number
-  uncategorizedSeconds: number
-  focusScore: number
-  topDomains: TopDomain[]   // domain name + seconds + category only
-  syncedAt: string          // ISO timestamp
-}

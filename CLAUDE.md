@@ -24,7 +24,6 @@ echofocus/
 │       │   ├── types/           # Shared type definitions
 │       │   │   ├── tracking.ts  # TrackingEntry, DailyAggregate, Category
 │       │   │   ├── rules.ts     # ClassificationRule, MatchType
-│       │   │   ├── user.ts      # UserProfile, UserPreferences
 │       │   │   └── index.ts
 │       │   ├── constants/       # Shared constants
 │       │   │   ├── categories.ts # Default domain categorizations
