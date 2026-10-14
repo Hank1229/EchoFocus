@@ -62,3 +62,4 @@ coverage/
 apps/extension/dist-vrt/
 tests/visual/test-results/
 tests/visual/playwright-report/
+tests/e2e/test-results/

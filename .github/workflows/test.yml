@@ -71,3 +71,28 @@ jobs:
             tests/visual/test-results
             tests/visual/playwright-report
           retention-days: 14
+
+  # The extension driven end to end in a real Chromium: tracking, rules,
+  # export, delete, corrupt storage. Same image as the visual job; nothing
+  # here compares pixels.
+  e2e:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Fonts and dependencies
+        run: sh tests/visual/setup-container.sh
+
+      - name: End-to-end
+        run: pnpm test:e2e
+
+      - name: Upload traces
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-results
+          path: tests/e2e/test-results
+          retention-days: 14

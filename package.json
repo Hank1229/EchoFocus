@@ -13,7 +13,8 @@
     "typecheck": "pnpm -r typecheck",
     "clean": "pnpm -r exec rm -rf dist node_modules/.vite",
     "test:visual": "sh tests/visual/docker.sh",
-    "test:visual:run": "node tests/visual/build-extension.mjs && playwright test -c tests/visual"
+    "test:visual:run": "node tests/visual/build-extension.mjs && playwright test -c tests/visual",
+    "test:e2e": "node tests/visual/build-extension.mjs && playwright test -c tests/e2e"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

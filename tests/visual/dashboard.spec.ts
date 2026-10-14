@@ -1,4 +1,4 @@
-import { test } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 import { expectScreen, shotName, THEMES, LANGUAGES, FIXED_TIME, TIMEZONE } from './support'
 
 // The /dev/preview pages render the real dashboard components on fixture
@@ -41,6 +41,12 @@ for (const theme of THEMES) {
             { name: 'echofocus-theme', value: theme, url: baseURL! },
             { name: 'echofocus-lang', value: language, url: baseURL! },
           ])
+          // A12: a preview page that logs a console error or throws (a
+          // hydration mismatch, a failed chart measure) fails the screen even
+          // when the pixels happen to match.
+          const errors: string[] = []
+          page.on('console', message => { if (message.type() === 'error') errors.push(message.text()) })
+          page.on('pageerror', error => errors.push(String(error)))
           await page.clock.setFixedTime(FIXED_TIME)
           await page.goto(path, { waitUntil: 'networkidle' })
           await page.evaluate(() => document.fonts.ready)
@@ -59,6 +65,7 @@ for (const theme of THEMES) {
           const height = await page.evaluate(() => document.documentElement.scrollHeight)
           await page.setViewportSize({ width: 1280, height: Math.max(800, height) })
           await expectScreen(page, shotName('dashboard', name, theme, language))
+          expect(errors, 'console errors on the page').toEqual([])
         })
       }
     })
