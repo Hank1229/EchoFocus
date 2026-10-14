@@ -4,11 +4,14 @@ import { installChromeStub, type ChromeStub } from '../test/chrome-stub'
 vi.mock('./supabase', () => ({ getSupabaseClient: vi.fn() }))
 
 import { getSupabaseClient } from './supabase'
-import { signInWithGoogle } from './auth'
+import { signInSilently, signInWithGoogle } from './auth'
 
 let oauthOptions: Record<string, unknown> | undefined
 let flowRequests: Array<{ url: string; interactive?: boolean }>
 let flowResponse: string | undefined | Error
+// Per-call answers for a test that needs the silent and the windowed flow to differ.
+let flowResponses: Array<string | undefined | Error> | null
+let oauthCalls: Array<Record<string, unknown> | undefined>
 let setSessionCalls: number
 let chromeStub: ChromeStub
 
@@ -19,16 +22,20 @@ beforeEach(() => {
   oauthOptions = undefined
   flowRequests = []
   flowResponse = undefined
+  flowResponses = null
+  oauthCalls = []
   setSessionCalls = 0
   chrome.identity.launchWebAuthFlow = async (details) => {
     flowRequests.push({ url: details.url, interactive: details.interactive })
-    if (flowResponse instanceof Error) throw flowResponse
-    return flowResponse
+    const response = flowResponses ? flowResponses.shift() : flowResponse
+    if (response instanceof Error) throw response
+    return response
   }
   vi.mocked(getSupabaseClient).mockReturnValue({
     auth: {
       signInWithOAuth: async ({ options }: { options: Record<string, unknown> }) => {
         oauthOptions = options
+        oauthCalls.push(options.queryParams as Record<string, unknown>)
         return { data: { url: 'https://auth.test/authorize' }, error: null }
       },
       setSession: async () => { setSessionCalls++; return { data: { session: { user: { id: 'u' } } }, error: null } },
@@ -84,5 +91,48 @@ describe('signInWithGoogle — why a sign-in failed', () => {
   it('reports cancelled when the user closes the Google window', async () => {
     flowResponse = new Error('The user did not approve access.')
     expect(await signInWithGoogle()).toEqual({ failure: 'cancelled' })
+  })
+})
+
+describe('signInSilently — the dashboard\'s one-click link', () => {
+  const signedIn = 'https://echofocus-test.chromiumapp.org/#access_token=a&refresh_token=r'
+
+  it('signs in without a window when Google allows it', async () => {
+    flowResponse = signedIn
+    expect(await signInSilently('me@example.com')).toEqual({ session: { user: { id: 'u' } } })
+    expect(flowRequests.map(r => r.interactive)).toEqual([false])
+    expect(oauthCalls).toEqual([{ prompt: 'none', login_hint: 'me@example.com' }])
+  })
+
+  it('opens a window, account pre-filled, when Chrome says the user must act', async () => {
+    flowResponses = [new Error('User interaction required.'), signedIn]
+    expect(await signInSilently('me@example.com')).toEqual({ session: { user: { id: 'u' } } })
+    expect(flowRequests.map(r => r.interactive)).toEqual([false, true])
+    expect(oauthCalls).toEqual([
+      { prompt: 'none', login_hint: 'me@example.com' },
+      { login_hint: 'me@example.com' },
+    ])
+  })
+
+  it.each(['interaction_required', 'login_required', 'consent_required', 'account_selection_required'])(
+    'opens a window when Google answers %s',
+    async (code) => {
+      flowResponses = [`https://echofocus-test.chromiumapp.org/#error=${code}&error_description=x`, signedIn]
+      expect(await signInSilently('me@example.com')).toEqual({ session: { user: { id: 'u' } } })
+      expect(flowRequests.map(r => r.interactive)).toEqual([false, true])
+    },
+  )
+
+  it('any other failure ends there, with no window', async () => {
+    flowResponse = new Error('Authorization page could not be loaded.')
+    expect(await signInSilently('me@example.com')).toEqual({ failure: 'failed' })
+    expect(flowRequests.map(r => r.interactive)).toEqual([false])
+    expect(setSessionCalls).toBe(0)
+  })
+
+  it('leaves linked_user to the caller, which checks the account first', async () => {
+    flowResponse = signedIn
+    await signInSilently('me@example.com')
+    expect(chromeStub.store.linked_user).toBeUndefined()
   })
 })
