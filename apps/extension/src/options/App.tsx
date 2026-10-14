@@ -758,7 +758,7 @@ function PrivacyTab() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `echofocus-export-${new Date().toISOString().split('T')[0]}.json`
+      a.download = `echofocus-export-${getTodayDateString()}.json`
       a.click()
       URL.revokeObjectURL(url)
     }
@@ -791,7 +791,7 @@ function PrivacyTab() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `echofocus-aggregates-${new Date().toISOString().split('T')[0]}.csv`
+      a.download = `echofocus-aggregates-${getTodayDateString()}.csv`
       a.click()
       URL.revokeObjectURL(url)
     }
