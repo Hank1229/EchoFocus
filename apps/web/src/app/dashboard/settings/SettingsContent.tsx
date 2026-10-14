@@ -7,6 +7,7 @@ import RulesEditor, { type Rule } from './RulesEditor'
 import ExportCloudDataButton from './ExportCloudDataButton'
 import DeleteCloudDataButton from './DeleteCloudDataButton'
 import SignOutButton from './SignOutButton'
+import ExtensionLinkCard from '@/components/dashboard/ExtensionLinkCard'
 
 export interface UserPreference {
   email_report_enabled: boolean
@@ -119,6 +120,7 @@ export default function SettingsContent({ t, tab, user, prefs, prefsError, ruleR
           <SignOutButton />
         </div>
         <p className="mt-4 max-w-[62ch] text-caption text-content-tertiary">{t.settings.signOutNote}</p>
+        <ExtensionLinkCard variant="settings" userId={user.id} email={user.email ?? ''} hasAnyData />
       </div>
     ),
 

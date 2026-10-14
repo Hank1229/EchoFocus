@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getLocale } from '@/lib/i18n-server'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import DayWaveform from '@/components/dashboard/DayWaveform'
+import ExtensionLinkCard from '@/components/dashboard/ExtensionLinkCard'
 import TodayReview from './TodayReview'
 import SiteRanking, { type RankedSite } from './SiteRanking'
 import DateNav from './DateNav'
@@ -150,6 +151,12 @@ export default async function TodayPage({
       />
 
       <main className="mx-auto w-full max-w-[1200px] flex-1 px-6 pb-16 pt-8">
+        <ExtensionLinkCard
+          variant="today"
+          userId={user.id}
+          email={user.email ?? ''}
+          hasAnyData={availableDates.length > 0}
+        />
         {loadError ? (
           <p role="alert" className="max-w-xl text-body" style={{ color: 'var(--danger)' }}>
             {t.common.loadFailed}{loadError.message}

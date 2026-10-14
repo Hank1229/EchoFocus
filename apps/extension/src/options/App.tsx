@@ -4,7 +4,7 @@ import iconSrc from '../assets/icon-32.png'
 import type { Settings, ClassificationRule, Category, MatchType, DailyAggregate, RulePatternProblem } from '@echofocus/shared'
 import { DEFAULT_SETTINGS, RULE_PATTERN_MAX, categorizeDomain, checkRulePattern, normalizeRulePattern } from '@echofocus/shared'
 import type { Session } from '@supabase/supabase-js'
-import { signInWithGoogle, signOut, getSession } from '../lib/auth'
+import { signInWithGoogle, signOut, getSession, LINKED_USER_KEY } from '../lib/auth'
 import { syncAggregateForDate, getLastSyncTime, postSignInBootstrap, BACKFILL_RESULT_KEY, LAST_SYNC_KEY } from '../lib/sync'
 import { isDailySummaryEnabled, setDailySummaryEnabled } from '../background/notifications'
 import { mergeImportedRules } from './rules-import'
@@ -525,15 +525,17 @@ function AccountTab() {
   const [syncMessage, setSyncMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const [lastSync, setLastSync] = useState<string | null>(null)
   const [backfillRecord, setBackfillRecord] = useState<{ days: number; at: string } | null>(null)
+  const [deviceLinked, setDeviceLinked] = useState(false)
 
   useEffect(() => {
     const load = async () => {
       const [s, ls, stored] = await Promise.all([
         getSession(),
         getLastSyncTime(),
-        chrome.storage.local.get(BACKFILL_RESULT_KEY),
+        chrome.storage.local.get([BACKFILL_RESULT_KEY, LINKED_USER_KEY]),
       ])
       setSession(s)
+      setDeviceLinked(typeof stored[LINKED_USER_KEY] === 'string')
       setLastSync(ls)
       const record = stored[BACKFILL_RESULT_KEY] as { days: number; at: string } | undefined
       if (record) setBackfillRecord(record)
@@ -712,6 +714,9 @@ function AccountTab() {
             </button>
             {signInError && (
               <p role="alert" className="text-xs text-danger">{signInError}</p>
+            )}
+            {deviceLinked && (
+              <p className="text-xs text-content-tertiary leading-relaxed">{t.account.deviceLinkedNote}</p>
             )}
           </section>
         </>
