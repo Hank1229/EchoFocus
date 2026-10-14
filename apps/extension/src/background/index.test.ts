@@ -259,6 +259,34 @@ describe('worker startup', () => {
 
     expect(chromeStub.store.signin_in_progress).toBeUndefined()
   })
+
+  describe('linked_user for a device signed in before the marker existed', () => {
+    const session = (id: string) => JSON.stringify({ access_token: 'secret', user: { id, email: 'me@example.com' } })
+
+    async function startWorker(): Promise<void> {
+      vi.resetModules()
+      await import('./index')
+      await flushSignInFlow()
+    }
+
+    it('writes the session account when the marker is missing', async () => {
+      chromeStub.store.supabase_session = session('user-a')
+      await startWorker()
+      expect(chromeStub.store.linked_user).toBe('user-a')
+    })
+
+    it('keeps a marker that is already there', async () => {
+      chromeStub.store.supabase_session = session('user-a')
+      chromeStub.store.linked_user = 'user-b'
+      await startWorker()
+      expect(chromeStub.store.linked_user).toBe('user-b')
+    })
+
+    it('writes nothing when signed out', async () => {
+      await startWorker()
+      expect(chromeStub.store).not.toHaveProperty('linked_user')
+    })
+  })
 })
 
 describe('dashboard link (externally_connectable)', () => {

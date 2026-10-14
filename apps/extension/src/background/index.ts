@@ -65,6 +65,14 @@ const ready: Promise<void> = (async () => {
   await chrome.storage.local.remove('signin_in_progress')
   await restoreState()
   await ensureHeartbeatAlarm()
+  // A device signed in before linked_user existed has a session and no
+  // marker; without one, the device-linked-elsewhere refusal would let any
+  // account in after the next sign-out.
+  const stored = await chrome.storage.local.get(['supabase_session', LINKED_USER_KEY])
+  const sessionUserId = accountUserId(stored.supabase_session)
+  if (sessionUserId && typeof stored[LINKED_USER_KEY] !== 'string') {
+    await chrome.storage.local.set({ [LINKED_USER_KEY]: sessionUserId })
+  }
 })().catch((err) => {
   console.error('[EchoFocus] Initialization failed:', err)
 })
