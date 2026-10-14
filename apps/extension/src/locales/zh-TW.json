@@ -98,6 +98,12 @@
     "importResult": "已新增 {added} 條規則，略過 {skipped} 條",
     "importNotRules": "這個檔案不包含規則清單",
     "importUnreadable": "無法讀取這個檔案，它不是有效的 JSON",
+    "errorEmpty": "請輸入網站樣式。",
+    "errorTooLong": "網站樣式請控制在 {max} 個字元以內。",
+    "errorSpaces": "網站樣式不能包含空白。",
+    "errorWildcard": "萬用字元的樣式必須以 *. 開頭，例如 *.google.com",
+    "errorPath": "路徑的樣式需要包含斜線，例如 youtube.com/playlist",
+    "errorSlash": "網域樣式不能包含斜線，請把比對方式改成路徑。",
     "matchTypes": {
       "exact": "完全比對",
       "wildcard": "萬用字元",

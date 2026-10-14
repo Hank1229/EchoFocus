@@ -98,6 +98,12 @@
     "importResult": "{added} rules added, {skipped} skipped",
     "importNotRules": "That file doesn't contain a list of rules",
     "importUnreadable": "Couldn't read that file. It isn't valid JSON.",
+    "errorEmpty": "Enter a site pattern.",
+    "errorTooLong": "Keep the pattern under {max} characters.",
+    "errorSpaces": "A site pattern can't contain spaces.",
+    "errorWildcard": "A wildcard pattern has to start with *. (for example *.google.com)",
+    "errorPath": "A path pattern needs a slash, for example youtube.com/playlist",
+    "errorSlash": "A domain pattern can't contain a slash. Switch the match type to Path.",
     "matchTypes": {
       "exact": "Exact domain",
       "wildcard": "Wildcard",

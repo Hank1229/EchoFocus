@@ -87,6 +87,24 @@ describe('per-rule validation', () => {
   })
 })
 
+describe('format rules shared with the Options form and the Dashboard editor', () => {
+  it('skips rules that could never fire and counts them as skipped (H12)', () => {
+    const merged = mergeImportedRules([], [
+      rule({ pattern: 'pathy.example.com/blog', matchType: 'exact' }),  // exact with a path
+      rule({ pattern: 'bare.example.com', matchType: 'wildcard' }),     // wildcard without *.
+      rule({ pattern: 'example.com', matchType: 'path' }),              // path without a slash
+      rule({ pattern: 'bad host.com' }),                                // spaces
+      rule({ pattern: 'a'.repeat(121) }),                               // over the shared length cap
+      rule({ pattern: '*.wild.example.com', matchType: 'wildcard' }),
+      rule({ pattern: 'example.com/docs', matchType: 'path' }),
+    ])
+
+    expect(merged?.added).toBe(2)
+    expect(merged?.skipped).toBe(5)
+    expect(merged?.rules.map(r => r.pattern)).toEqual(['*.wild.example.com', 'example.com/docs'])
+  })
+})
+
 describe('de-duplication on pattern + match type', () => {
   it('skips a rule the user already has', () => {
     const merged = mergeImportedRules([rule()], [rule({ id: 'imported', pattern: 'github.com' })])
@@ -104,7 +122,9 @@ describe('de-duplication on pattern + match type', () => {
   })
 
   it('treats the same pattern with a different match type as a new rule', () => {
-    const merged = mergeImportedRules([rule()], [rule({ pattern: 'github.com', matchType: 'wildcard' })])
+    // "*.github.com" is the one shape that is well-formed as both exact and wildcard.
+    const existing = [rule({ pattern: '*.github.com' })]
+    const merged = mergeImportedRules(existing, [rule({ pattern: '*.github.com', matchType: 'wildcard' })])
 
     expect(merged?.added).toBe(1)
     expect(merged?.rules.map(r => r.matchType)).toEqual(['exact', 'wildcard'])
@@ -121,7 +141,7 @@ describe('de-duplication on pattern + match type', () => {
     const merged = mergeImportedRules([], [
       rule({ pattern: 'notion.so' }),
       rule({ pattern: 'notion.so' }),
-      rule({ pattern: 'notion.so', matchType: 'path' }),
+      rule({ pattern: 'notion.so/docs', matchType: 'path' }),
     ])
 
     expect(merged?.added).toBe(2)

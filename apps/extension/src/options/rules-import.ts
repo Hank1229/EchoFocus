@@ -1,12 +1,12 @@
 import type { ClassificationRule } from '@echofocus/shared'
+import { checkRulePattern, normalizeRulePattern } from '@echofocus/shared'
 import { classificationRuleArraySchema } from '../lib/schemas'
 
 const ruleSchema = classificationRuleArraySchema.element
 
 // A crafted file shouldn't be able to push custom_rules toward the 5 MB
-// storage quota, or slow every classification down with a huge pattern.
+// storage quota; the pattern length cap lives in the shared format check.
 const MAX_IMPORTED_RULES = 500
-const MAX_PATTERN_LENGTH = 200
 
 export interface MergedRules {
   rules: ClassificationRule[]
@@ -21,7 +21,7 @@ export interface MergedRules {
 export function mergeImportedRules(existing: ClassificationRule[], raw: unknown): MergedRules | null {
   if (!Array.isArray(raw)) return null
 
-  const seen = new Set(existing.map(rule => identity({ ...rule, pattern: normalize(rule.pattern) })))
+  const seen = new Set(existing.map(rule => identity({ ...rule, pattern: normalizeRulePattern(rule.pattern) })))
   const rules = [...existing]
   let added = 0
   let skipped = 0
@@ -38,9 +38,12 @@ export function mergeImportedRules(existing: ClassificationRule[], raw: unknown)
       continue
     }
 
-    const pattern = normalize(parsed.data.pattern)
+    // The same format rules as the Options form and the Dashboard editor: a
+    // rule that could never fire (an exact pattern with a path, a wildcard
+    // without "*.") is skipped rather than stored dead.
+    const pattern = normalizeRulePattern(parsed.data.pattern)
     const key = identity({ ...parsed.data, pattern })
-    if (!pattern || pattern.length > MAX_PATTERN_LENGTH || seen.has(key)) {
+    if (checkRulePattern(pattern, parsed.data.matchType) !== null || seen.has(key)) {
       skipped++
       continue
     }
@@ -57,8 +60,4 @@ export function mergeImportedRules(existing: ClassificationRule[], raw: unknown)
 
 function identity(rule: ClassificationRule): string {
   return `${rule.pattern}|${rule.matchType}`
-}
-
-function normalize(pattern: string): string {
-  return pattern.trim().toLowerCase()
 }

@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { ArrowUpRight, Check, Download, Lock, Upload, X } from 'lucide-react'
 import iconSrc from '../assets/icon-32.png'
-import type { Settings, ClassificationRule, Category, MatchType, DailyAggregate } from '@echofocus/shared'
-import { DEFAULT_SETTINGS, categorizeDomain } from '@echofocus/shared'
+import type { Settings, ClassificationRule, Category, MatchType, DailyAggregate, RulePatternProblem } from '@echofocus/shared'
+import { DEFAULT_SETTINGS, RULE_PATTERN_MAX, categorizeDomain, checkRulePattern, normalizeRulePattern } from '@echofocus/shared'
 import type { Session } from '@supabase/supabase-js'
 import { signInWithGoogle, signOut, getSession } from '../lib/auth'
 import { syncAggregateForDate, getLastSyncTime, postSignInBootstrap, BACKFILL_RESULT_KEY, LAST_SYNC_KEY } from '../lib/sync'
@@ -241,6 +241,7 @@ function CategoriesTab({ focusDomain }: { focusDomain: string | null }) {
   const [newPattern, setNewPattern] = useState(focusDomain ?? '')
   const [newMatchType, setNewMatchType] = useState<MatchType>('exact')
   const [newCategory, setNewCategory] = useState<Category>('productive')
+  const [newRuleProblem, setNewRuleProblem] = useState<RulePatternProblem | null>(null)
 
   const fileInput = useRef<HTMLInputElement>(null)
   const categorySelect = useRef<HTMLSelectElement>(null)
@@ -258,6 +259,15 @@ function CategoriesTab({ focusDomain }: { focusDomain: string | null }) {
     exact: t.categories.matchTypes.exact,
     wildcard: t.categories.matchTypes.wildcard,
     path: t.categories.matchTypes.path,
+  }
+
+  const PROBLEM_TEXT: Record<RulePatternProblem, string> = {
+    empty: t.categories.errorEmpty,
+    tooLong: t.categories.errorTooLong.replace('{max}', String(RULE_PATTERN_MAX)),
+    spaces: t.categories.errorSpaces,
+    wildcard: t.categories.errorWildcard,
+    path: t.categories.errorPath,
+    slash: t.categories.errorSlash,
   }
 
   const load = useCallback(async () => {
@@ -297,8 +307,13 @@ function CategoriesTab({ focusDomain }: { focusDomain: string | null }) {
   }
 
   const saveNewRule = async () => {
-    const pattern = newPattern.trim().toLowerCase()
+    const pattern = normalizeRulePattern(newPattern)
     if (!pattern) return
+    // Same format rules as the Dashboard editor and the import: a pattern
+    // that contradicts its match type would be stored and never fire.
+    const problem = checkRulePattern(pattern, newMatchType)
+    setNewRuleProblem(problem)
+    if (problem) return
     const rule: ClassificationRule = {
       id: crypto.randomUUID(),
       pattern,
@@ -376,13 +391,13 @@ function CategoriesTab({ focusDomain }: { focusDomain: string | null }) {
           <input
             type="text"
             value={newPattern}
-            onChange={e => setNewPattern(e.target.value)}
+            onChange={e => { setNewPattern(e.target.value); setNewRuleProblem(null) }}
             onKeyDown={e => { if (e.key === 'Enter') void saveNewRule() }}
             placeholder={t.categories.patternPlaceholder}
             className="w-full bg-surface-hover border border-line-strong rounded-lg px-3 py-2 text-sm text-content placeholder:text-content-tertiary focus:outline-none focus:border-accent"
           />
           <div className="flex gap-2">
-            <select value={newMatchType} onChange={e => setNewMatchType(e.target.value as MatchType)}
+            <select value={newMatchType} onChange={e => { setNewMatchType(e.target.value as MatchType); setNewRuleProblem(null) }}
               className="flex-1 bg-surface-hover border border-line-strong rounded-lg px-3 py-2 text-sm text-content focus:outline-none focus:border-accent">
               {(Object.entries(MATCH_TYPE_LABELS) as [MatchType, string][]).map(([v, label]) => (
                 <option key={v} value={v}>{label}</option>
@@ -395,6 +410,9 @@ function CategoriesTab({ focusDomain }: { focusDomain: string | null }) {
               ))}
             </select>
           </div>
+          {newRuleProblem && (
+            <p role="alert" className="text-xs text-danger">{PROBLEM_TEXT[newRuleProblem]}</p>
+          )}
           <button onClick={() => void saveNewRule()} disabled={!newPattern.trim() || isSaving}
             className="w-full py-2 bg-accent hover:bg-accent disabled:opacity-50 text-accent-ink text-sm font-semibold rounded-lg transition-colors">
             {t.categories.addRule}

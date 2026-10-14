@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from 'react'
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
-import type { Category, MatchType } from '@echofocus/shared'
+import { checkRulePattern, normalizeRulePattern, RULE_PATTERN_MAX, type Category, type MatchType, type RulePatternProblem } from '@echofocus/shared'
 import { createClient } from '@/lib/supabase/client'
 import { useLocale, type Locale } from '@/lib/i18n'
 
@@ -21,7 +21,6 @@ interface Draft {
 
 const MATCH_TYPES: MatchType[] = ['exact', 'wildcard', 'path']
 const CATEGORIES: Category[] = ['productive', 'distraction', 'neutral', 'uncategorized']
-const PATTERN_MAX = 120
 const EMPTY_DRAFT: Draft = { pattern: '', matchType: 'exact', category: 'productive' }
 
 const DOT: Record<Category, string> = {
@@ -43,21 +42,15 @@ const matchHints = (t: Locale): Record<MatchType, string> => ({
   path: t.rules.matchPathHint,
 })
 
-type Problem = 'empty' | 'tooLong' | 'spaces' | 'wildcard' | 'path' | 'slash' | 'duplicate'
+type Problem = RulePatternProblem | 'duplicate'
 
-// The shared matcher (categorize.ts) compares hostnames for exact/wildcard
-// rules; a path rule's host half must match the hostname exactly (www. and
-// trailing dot stripped) and its path half is a prefix of pathname+search, so
-// a pattern that contradicts its match type would be stored and then silently
-// never fire.
+// The format rules live in packages/shared (rule-check.ts) so the extension's
+// Options form and import reject the same patterns; only the duplicate check
+// is this editor's own, since it knows the account's saved rules.
 function check(draft: Draft, rules: Rule[], editingId: string | null): Problem | null {
-  const pattern = draft.pattern.trim().toLowerCase()
-  if (!pattern) return 'empty'
-  if (pattern.length > PATTERN_MAX) return 'tooLong'
-  if (/\s/.test(pattern)) return 'spaces'
-  if (draft.matchType === 'wildcard' && !pattern.startsWith('*.')) return 'wildcard'
-  if (draft.matchType === 'path' && !pattern.includes('/')) return 'path'
-  if (draft.matchType !== 'path' && pattern.includes('/')) return 'slash'
+  const problem = checkRulePattern(draft.pattern, draft.matchType)
+  if (problem) return problem
+  const pattern = normalizeRulePattern(draft.pattern)
   if (rules.some(r => r.id !== editingId && r.pattern === pattern && r.match_type === draft.matchType)) {
     return 'duplicate'
   }
@@ -86,7 +79,7 @@ function RuleFields({
         onChange={e => onChange({ ...draft, pattern: e.target.value })}
         placeholder={t.rules.patternPlaceholder}
         aria-label={t.rules.patternLabel}
-        maxLength={PATTERN_MAX}
+        maxLength={RULE_PATTERN_MAX}
         autoFocus={autoFocus}
         className={`${FIELD} min-w-0 flex-1 placeholder:text-content-tertiary`}
       />
@@ -135,7 +128,7 @@ export default function RulesEditor({ userId, initialRules }: { userId: string; 
 
   const problemText: Record<Problem, string> = {
     empty: t.rules.errorEmpty,
-    tooLong: t.rules.errorTooLong.replace('{max}', String(PATTERN_MAX)),
+    tooLong: t.rules.errorTooLong.replace('{max}', String(RULE_PATTERN_MAX)),
     spaces: t.rules.errorSpaces,
     wildcard: t.rules.errorWildcard,
     path: t.rules.errorPath,
@@ -144,7 +137,7 @@ export default function RulesEditor({ userId, initialRules }: { userId: string; 
   }
 
   const columns = (draft: Draft) => ({
-    pattern: draft.pattern.trim().toLowerCase(),
+    pattern: normalizeRulePattern(draft.pattern),
     match_type: draft.matchType,
     category: draft.category,
   })
