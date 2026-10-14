@@ -1,12 +1,13 @@
 import { chromium, expect, test as base, type BrowserContext, type Page, type Worker } from '@playwright/test'
-import path from 'node:path'
+import { EXTENSION_DIR } from './extension-id'
+
+export { EXTENSION_DIR, unpackedExtensionId } from './extension-id'
 
 // The extension is loaded the way tests/visual/support.ts loads it (the
 // dist-vrt build, --load-extension), but on the real clock and in the
 // machine's own timezone: the service worker's clock is not covered by
 // Playwright's timezone emulation at install time, so "today" is always asked
 // of the worker itself (workerToday) and never computed in Node.
-const EXTENSION_DIR = path.resolve(__dirname, '../../apps/extension/dist-vrt')
 
 export interface Extension {
   context: BrowserContext
