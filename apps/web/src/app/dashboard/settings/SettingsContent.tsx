@@ -118,6 +118,7 @@ export default function SettingsContent({ t, tab, user, prefs, prefsError, ruleR
           </div>
           <SignOutButton />
         </div>
+        <p className="mt-4 max-w-[62ch] text-caption text-content-tertiary">{t.settings.signOutNote}</p>
       </div>
     ),
 

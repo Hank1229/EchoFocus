@@ -90,13 +90,24 @@ export async function signInWithGoogle(): Promise<SignInOutcome> {
   return { session: sessionData.session }
 }
 
+// Keys that describe the account this device last synced to. The per-user
+// markers (history_backfilled_user, prefs_bootstrapped_user, linked_user) and
+// the retry queue stay: signing back in to the same account must not re-run
+// the year-long backfill or the first-contact merge.
+export const ACCOUNT_KEYS = ['last_sync_at', 'history_backfill_result', 'last_session_verify_at', 'pending_prefs_push']
+
+// The extension and the dashboard each hold their own session, so this signs
+// out the extension alone; the dashboard stays signed in. supabase-js drops
+// the stored session even when the server cannot be reached, so the account
+// keys go with it either way.
 export async function signOut(): Promise<void> {
   const supabase = getSupabaseClient()
-  await supabase.auth.signOut({ scope: 'global' })
+  await supabase.auth.signOut({ scope: 'local' })
+  await chrome.storage.local.remove(ACCOUNT_KEYS)
 }
 
-// The dashboard already revoked the account server-side; only this device's
-// copy is left to drop. storage.onChanged flips every open page.
+// The server already revoked this session; only this device's copy is left
+// to drop. storage.onChanged flips every open page.
 async function signOutLocally(): Promise<void> {
   const supabase = getSupabaseClient()
   await supabase.auth.signOut({ scope: 'local' })
@@ -117,7 +128,7 @@ export async function refreshSession(): Promise<Session | null> {
   const { data, error } = await supabase.auth.refreshSession()
   if (error || !data.session) {
     console.warn('[EchoFocus] Session refresh failed; signing out locally.')
-    await supabase.auth.signOut()
+    await supabase.auth.signOut({ scope: 'local' })
     return null
   }
   return data.session
@@ -125,11 +136,12 @@ export async function refreshSession(): Promise<Session | null> {
 
 const LAST_VERIFY_KEY = 'last_session_verify_at'
 
-// The other direction of the product rule: a dashboard sign-out revokes this
-// session server-side, but the stateless JWT keeps working locally until it
-// expires. Ask the auth server (which checks revocation) on popup opens,
-// throttled; a revoked session signs out locally, which flips every open
-// page via storage.onChanged and stops the sync chain at once. Network
+// A session revoked server-side (the account deleted, a sign-out of every
+// device elsewhere) keeps working locally until its stateless JWT expires.
+// Ask the auth server, which checks revocation, on popup opens, throttled; a
+// revoked session signs out locally, which flips every open page via
+// storage.onChanged and stops the sync chain at once. A dashboard sign-out
+// no longer lands here: it ends the dashboard's own session only. Network
 // failures must never sign the user out.
 export async function verifySessionAlive(minIntervalMs = 60_000): Promise<void> {
   const supabase = getSupabaseClient()

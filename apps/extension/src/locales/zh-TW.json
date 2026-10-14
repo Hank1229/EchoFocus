@@ -134,6 +134,7 @@
     "webDashboard": "網頁儀表板",
     "openDashboard": "開啟儀表板",
     "signOut": "登出",
+    "signOutNote": "登出只會讓這個擴充功能登出，網頁 Dashboard 不受影響。",
     "backfilling": "正在補傳本機的每日彙總…",
     "backfillDone": "已補傳 {n} 天的每日彙總。",
     "backfillPartial": "部分日期尚未上傳成功，之後會自動重試。",

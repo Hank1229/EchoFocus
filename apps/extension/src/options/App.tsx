@@ -680,10 +680,13 @@ function AccountTab() {
           </section>
 
           {/* Sign out */}
-          <button onClick={() => void handleSignOut()}
-            className="w-full py-2 text-danger hover:text-danger/80 text-sm transition-colors">
-            {t.account.signOut}
-          </button>
+          <div className="space-y-1">
+            <button onClick={() => void handleSignOut()}
+              className="w-full py-2 text-danger hover:text-danger/80 text-sm transition-colors">
+              {t.account.signOut}
+            </button>
+            <p className="px-5 text-xs text-content-tertiary">{t.account.signOutNote}</p>
+          </div>
         </>
       ) : (
         <>

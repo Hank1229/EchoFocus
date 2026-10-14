@@ -235,6 +235,7 @@
     "profile": "Profile",
     "connectedViaGoogle": "Connected via Google",
     "signOut": "Sign out",
+    "signOutNote": "Signs out of this website only. To stop the extension from uploading, sign out in the extension's Options page.",
     "language": "Language",
     "languageEn": "English",
     "languageZhTW": "繁體中文",

@@ -134,6 +134,7 @@
     "webDashboard": "Web dashboard",
     "openDashboard": "Open dashboard",
     "signOut": "Sign out",
+    "signOutNote": "Signing out here signs out this extension only. The web dashboard stays signed in.",
     "backfilling": "Backing up your daily aggregates…",
     "backfillDone": "Backed up {n} days of daily aggregates.",
     "backfillPartial": "Some days could not be uploaded yet. They will retry automatically.",

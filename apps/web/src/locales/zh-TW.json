@@ -235,6 +235,7 @@
     "profile": "個人檔案",
     "connectedViaGoogle": "透過 Google 連接",
     "signOut": "登出",
+    "signOutNote": "只會登出這個網站；要停止擴充功能上傳，請在擴充功能的設定頁登出。",
     "language": "語言",
     "languageEn": "English",
     "languageZhTW": "繁體中文",
