@@ -1,5 +1,5 @@
 import { cleanupOldData, recomputeAndSaveAggregate, getStorageInfo, saveAiAnalysis } from './storage'
-import { getTodayDateString } from '@echofocus/shared'
+import { MIN_TRACKED_SECONDS_FOR_ANALYSIS, getTodayDateString } from '@echofocus/shared'
 import { syncTodayAggregate, syncYesterdayAggregate } from '../lib/sync'
 import { requestAiAnalysis } from '../lib/ai'
 import { recordHeartbeat } from './tracker'
@@ -156,7 +156,7 @@ async function runEveningSummary(): Promise<void> {
   }
 
   console.log('[EchoFocus] Running daily AI analysis for', today)
-  if (aggregate.totalSeconds < 30 * 60) {
+  if (aggregate.totalSeconds < MIN_TRACKED_SECONDS_FOR_ANALYSIS) {
     console.log('[EchoFocus] Insufficient data, skipping AI analysis')
     return
   }

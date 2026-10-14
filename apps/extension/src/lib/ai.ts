@@ -132,7 +132,16 @@ export async function requestAiAnalysis(date: string, language = 'en'): Promise<
     return { ok: false, reason: 'unavailable' }
   }
 
-  const raw = parseJsonObject(responseBody) as { analysis_text?: unknown; focus_score?: unknown } | null
+  const raw = parseJsonObject(responseBody) as {
+    analysis_text?: unknown
+    focus_score?: unknown
+    insufficient?: unknown
+  } | null
+  // The function found too little tracked time to analyze and spent no
+  // generation on it: the same answer as an empty day.
+  if (raw?.insufficient === true) {
+    return { ok: false, reason: 'no-data' }
+  }
   const result = validateAiAnalysisResult({
     analysisText: raw?.analysis_text,
     focusScore: raw?.focus_score,

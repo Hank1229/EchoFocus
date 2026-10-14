@@ -142,6 +142,29 @@ describe('requestAiAnalysis — outcomes', () => {
     expect(globalThis.fetch).not.toHaveBeenCalled()
   })
 
+  it('reports insufficient-data below 30 tracked minutes without fetching (B1)', async () => {
+    queryResult = { data: row({ total_seconds: 1799 }), error: null }
+    expect(await requestAiAnalysis('2026-03-14', 'en')).toEqual({
+      status: 'error',
+      reason: 'insufficient-data',
+    })
+    expect(globalThis.fetch).not.toHaveBeenCalled()
+  })
+
+  it('sends exactly 30 tracked minutes to the function', async () => {
+    queryResult = { data: row({ total_seconds: 1800 }), error: null }
+    await requestAiAnalysis('2026-03-14', 'en')
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('reports insufficient-data when the function answers { insufficient: true }', async () => {
+    respondWith(200, JSON.stringify({ insufficient: true }))
+    expect(await requestAiAnalysis('2026-03-14', 'en')).toEqual({
+      status: 'error',
+      reason: 'insufficient-data',
+    })
+  })
+
   it('returns success with the analysis text and score', async () => {
     expect(await requestAiAnalysis('2026-03-14', 'en')).toEqual({
       status: 'success',

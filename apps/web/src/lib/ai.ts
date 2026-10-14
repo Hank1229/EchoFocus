@@ -1,4 +1,4 @@
-import { getDateNDaysAgo } from '@echofocus/shared'
+import { MIN_TRACKED_SECONDS_FOR_ANALYSIS, getDateNDaysAgo } from '@echofocus/shared'
 import { createClient } from '@/lib/supabase/client'
 
 const SUPABASE_FUNCTIONS_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -52,7 +52,9 @@ export type AiAnalysisOutcome =
   // Daily generation cap reached (429) — the Edge Function returns the
   // analysis already stored for today, which is still worth showing.
   | { status: 'cached'; analysisText: string; focusScore: number }
-  | { status: 'error'; reason: 'not-signed-in' | 'no-data' | 'request-failed' | 'daily-quota' | 'weekly-quota'; message?: string }
+  // 'insufficient-data': the day has less than MIN_TRACKED_SECONDS_FOR_ANALYSIS
+  // tracked, so no generation was spent on it.
+  | { status: 'error'; reason: 'not-signed-in' | 'no-data' | 'insufficient-data' | 'request-failed' | 'daily-quota' | 'weekly-quota'; message?: string }
 
 /**
  * POST a validated payload to the ai-analyze Edge Function.
@@ -112,12 +114,14 @@ async function postAnalysis(
     }
   }
 
-  let result: { analysis_text: string; focus_score: number }
+  let result: { analysis_text: string; focus_score: number; insufficient?: boolean }
   try {
-    result = await res.json() as { analysis_text: string; focus_score: number }
+    result = await res.json() as typeof result
   } catch {
     return { status: 'error', reason: 'request-failed' }
   }
+  // The function's own copy of the check below; it spent no generation.
+  if (result.insufficient === true) return { status: 'error', reason: 'insufficient-data' }
   return { status: 'success', analysisText: result.analysis_text, focusScore: result.focus_score }
 }
 
@@ -140,6 +144,9 @@ export async function requestAiAnalysis(date: string, language: string): Promise
   if (aggError) return { status: 'error', reason: 'request-failed', message: aggError.message }
   if (!data) return { status: 'error', reason: 'no-data' }
   const agg = data as SyncedAggregateRow
+  // Too little of the day to analyze: say so locally, without spending one of
+  // the day's generations on a "not enough data" answer.
+  if (agg.total_seconds < MIN_TRACKED_SECONDS_FOR_ANALYSIS) return { status: 'error', reason: 'insufficient-data' }
 
   return postAnalysis(
     { date, language, aggregate: toAggregatePayload(date, agg) },

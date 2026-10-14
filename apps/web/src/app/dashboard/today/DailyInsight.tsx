@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
+import { MIN_TRACKED_SECONDS_FOR_ANALYSIS } from '@echofocus/shared'
 import { useLocale } from '@/lib/i18n'
 import { requestAiAnalysis } from '@/lib/ai'
 import { insightLanguage, type InsightLanguage } from '@/lib/insight-language'
@@ -24,6 +25,10 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
   const [text, setText] = useState<string | null>(analysisText)
   const [isRunning, setIsRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Too little of the day tracked to analyze. Not an error: nothing failed
+  // and no generation was spent, so it reads in the ordinary secondary tone
+  // and any cached insight above it stays.
+  const [notice, setNotice] = useState<string | null>(null)
   // Set when the quota stopped a regeneration: when it resets, in the
   // reader's own time.
   const [quotaResetsAt, setQuotaResetsAt] = useState<string | null>(null)
@@ -42,6 +47,7 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
   const run = async () => {
     setIsRunning(true)
     setError(null)
+    setNotice(null)
     try {
       const outcome = await requestAiAnalysis(date, language)
       switch (outcome.status) {
@@ -57,6 +63,9 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
         case 'error':
           if (outcome.reason === 'not-signed-in') setError(t.aiInsights.pleaseSignIn)
           else if (outcome.reason === 'no-data') setError(t.aiInsights.noSyncedData)
+          else if (outcome.reason === 'insufficient-data') {
+            setNotice(t.aiInsights.insufficientData.replace('{minutes}', String(MIN_TRACKED_SECONDS_FOR_ANALYSIS / 60)))
+          }
           else if (outcome.reason === 'daily-quota' && mismatch) setQuotaResetsAt(dailyReset())
           else if (outcome.reason === 'daily-quota') setError(t.aiInsights.quotaDaily.replace('{when}', dailyReset()))
           else setError(`${t.aiInsights.analysisFailed}${outcome.message ?? t.aiInsights.unknownError}`)
@@ -137,6 +146,12 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
             </button>
           )}
         </div>
+      )}
+
+      {notice && (
+        <p role="status" className="mt-4 text-caption text-content-secondary">
+          {notice}
+        </p>
       )}
 
       {error && (

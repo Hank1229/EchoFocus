@@ -236,6 +236,11 @@ describe('response handling', () => {
     await expect(requestAiAnalysis('2026-03-14')).resolves.toEqual({ ok: false, reason: 'unavailable' })
   })
 
+  it('reports no-data when the function answers insufficient (B1)', async () => {
+    respondWith({ status: 200, body: JSON.stringify({ insufficient: true }) })
+    expect(await requestAiAnalysis('2026-03-14')).toEqual({ ok: false, reason: 'no-data' })
+  })
+
   it('reports unavailable when the success body is missing the expected fields', async () => {
     respondWith({ status: 200, body: JSON.stringify({ analysis_text: 'text' }) })
     expect(await requestAiAnalysis('2026-03-14')).toEqual({ ok: false, reason: 'unavailable' })
