@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { installChromeStub } from '../test/chrome-stub'
+import { installChromeStub, type ChromeStub } from '../test/chrome-stub'
 
 vi.mock('./supabase', () => ({ getSupabaseClient: vi.fn() }))
 
@@ -10,9 +10,10 @@ let oauthOptions: Record<string, unknown> | undefined
 let flowRequests: Array<{ url: string; interactive?: boolean }>
 let flowResponse: string | undefined | Error
 let setSessionCalls: number
+let chromeStub: ChromeStub
 
 beforeEach(() => {
-  installChromeStub()
+  chromeStub = installChromeStub()
   vi.spyOn(console, 'log').mockImplementation(() => undefined)
   vi.spyOn(console, 'error').mockImplementation(() => undefined)
   oauthOptions = undefined
@@ -52,6 +53,23 @@ describe('signInWithGoogle', () => {
     flowResponse = 'https://echofocus-test.chromiumapp.org/#error=access_denied'
     expect(await signInWithGoogle()).toEqual({ failure: 'failed' })
     expect(setSessionCalls).toBe(0)
+  })
+})
+
+// Options calls signInWithGoogle in its own page and the worker's SIGN_IN
+// (popup, onboarding) calls it too, so this is the write both paths make.
+describe('signInWithGoogle — linked_user', () => {
+  it('records the signed-in account as soon as the session is set', async () => {
+    flowResponse = 'https://echofocus-test.chromiumapp.org/#access_token=a&refresh_token=r'
+    await signInWithGoogle()
+    expect(chromeStub.store.linked_user).toBe('u')
+  })
+
+  it('a failed sign-in leaves the previous account in place', async () => {
+    chromeStub.store.linked_user = 'earlier-user'
+    flowResponse = new Error('The user did not approve access.')
+    await signInWithGoogle()
+    expect(chromeStub.store.linked_user).toBe('earlier-user')
   })
 })
 

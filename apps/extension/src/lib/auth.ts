@@ -12,6 +12,12 @@ import { getSupabaseClient } from './supabase'
 type SignInFailure = 'busy' | 'cancelled' | 'failed'
 export type SignInOutcome = { session: Session } | { failure: SignInFailure }
 
+// The account this device last signed in to, written the moment a sign-in
+// succeeds and kept through sign-out. A sign-in the dashboard asks for is
+// refused when it names a different account (lib/handoff.ts), so a web page
+// can never move this device's history to another account on its own.
+export const LINKED_USER_KEY = 'linked_user'
+
 function flowFailure(err: unknown): SignInFailure {
   const message = err instanceof Error ? err.message : String(err)
   if (message.includes('Only one web auth flow')) return 'busy'
@@ -86,6 +92,8 @@ export async function signInWithGoogle(): Promise<SignInOutcome> {
     return { failure: 'failed' }
   }
 
+  // Options and the worker's SIGN_IN (popup, onboarding) both end here.
+  await chrome.storage.local.set({ [LINKED_USER_KEY]: sessionData.session.user.id })
   console.log('[EchoFocus] OAuth: sign-in successful')
   return { session: sessionData.session }
 }

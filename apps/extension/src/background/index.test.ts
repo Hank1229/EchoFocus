@@ -204,6 +204,7 @@ describe('SIGN_IN (one-click from the popup)', () => {
     expect(res.success).toBe(true)
 
     await flushSignInFlow()
+    // signInWithGoogle writes linked_user (lib/auth-signin.test.ts).
     expect(auth.signInWithGoogle).toHaveBeenCalledTimes(1)
     expect(sync.postSignInBootstrap).toHaveBeenCalled()
     expect(chromeStub.store.signin_in_progress).toBeUndefined()
