@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import type { DailyAggregate, TrackingState, Category } from '@echofocus/shared'
 import { getTodayDateString } from '@echofocus/shared'
 import { sendMessage } from '../../lib/messaging'
+import { parseStoredAggregate } from './stored-aggregate'
 
 interface CurrentSession {
   domain: string | null
@@ -28,8 +29,7 @@ export function useTodayStats(): TodayStatsResult {
     const today = getTodayDateString()
     const key = `aggregates:${today}`
     const result = await chrome.storage.local.get(key)
-    const agg = result[key] as DailyAggregate | undefined
-    setAggregate(agg ?? null)
+    setAggregate(parseStoredAggregate(result[key]))
   }, [])
 
   const loadTrackingState = useCallback(async () => {
@@ -71,7 +71,7 @@ export function useTodayStats(): TodayStatsResult {
 
     const listener = (changes: Record<string, chrome.storage.StorageChange>) => {
       if (aggregateKey in changes) {
-        setAggregate(changes[aggregateKey].newValue as DailyAggregate ?? null)
+        setAggregate(parseStoredAggregate(changes[aggregateKey].newValue))
       }
     }
 
