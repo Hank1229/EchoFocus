@@ -197,6 +197,7 @@
     "pleaseSignIn": "Please sign in first",
     "noSyncedData": "No synced data yet. The extension uploads today's data when you sign in and every hour after that, so try again later.",
     "insufficientData": "Less than {minutes} minutes tracked today. Let a little more build up before analyzing.",
+    "remainingToday": "{n} regenerations left today",
     "analysisFailed": "Analysis failed: ",
     "unknownError": "An unknown error occurred",
     "latestSnapshot": "Latest snapshot",

@@ -47,14 +47,35 @@ function toAggregatePayload(date: string, row: SyncedAggregateRow): AggregatePay
   }
 }
 
+// How much of the day's generation allowance is used, as the ai-analyze
+// function reports it on its daily answers (success, insufficient and 429).
+// Absent from the weekly path and from older function deployments.
+export interface DailyQuota {
+  used: number
+  max: number
+}
+
 export type AiAnalysisOutcome =
-  | { status: 'success'; analysisText: string; focusScore: number }
+  | { status: 'success'; analysisText: string; focusScore: number; quota?: DailyQuota }
   // Daily generation cap reached (429) — the Edge Function returns the
   // analysis already stored for today, which is still worth showing.
-  | { status: 'cached'; analysisText: string; focusScore: number }
+  | { status: 'cached'; analysisText: string; focusScore: number; quota?: DailyQuota }
   // 'insufficient-data': the day has less than MIN_TRACKED_SECONDS_FOR_ANALYSIS
   // tracked, so no generation was spent on it.
-  | { status: 'error'; reason: 'not-signed-in' | 'no-data' | 'insufficient-data' | 'request-failed' | 'daily-quota' | 'weekly-quota'; message?: string }
+  | { status: 'error'; reason: 'not-signed-in' | 'no-data' | 'insufficient-data' | 'request-failed' | 'daily-quota' | 'weekly-quota'; message?: string; quota?: DailyQuota }
+
+function parseQuota(value: unknown): DailyQuota | undefined {
+  if (typeof value !== 'object' || value === null) return undefined
+  const { used, max } = value as { used?: unknown; max?: unknown }
+  if (typeof used !== 'number' || typeof max !== 'number') return undefined
+  return { used, max }
+}
+
+// Attached only when the function sent one, so the shape of an outcome
+// without quota stays exactly what it was.
+function withQuota<T extends object>(outcome: T, quota: DailyQuota | undefined): T {
+  return quota ? { ...outcome, quota } : outcome
+}
 
 /**
  * POST a validated payload to the ai-analyze Edge Function.
@@ -91,17 +112,19 @@ async function postAnalysis(
       error?: unknown
       analysis_text?: unknown
       focus_score?: unknown
+      quota?: unknown
     }
+    const quota = parseQuota(parsed.quota)
     if (res.status === 429 && typeof parsed.analysis_text === 'string' && parsed.analysis_text.length > 0) {
       // The stored analysis travels with its own score; the caller's live
       // score is only the fallback for older function deployments.
       const storedScore = typeof parsed.focus_score === 'number' ? parsed.focus_score : cachedFocusScore
-      return { status: 'cached', analysisText: parsed.analysis_text, focusScore: storedScore }
+      return withQuota({ status: 'cached', analysisText: parsed.analysis_text, focusScore: storedScore }, quota)
     }
     if (res.status === 429) {
       // Cap reached and nothing stored to show — the client owns the wording
       // (localized, section-9 tone), never the server's English string.
-      return { status: 'error', reason: payload.type === 'weekly' ? 'weekly-quota' : 'daily-quota' }
+      return withQuota({ status: 'error', reason: payload.type === 'weekly' ? 'weekly-quota' : 'daily-quota' }, quota)
     }
     return {
       status: 'error',
@@ -114,15 +137,16 @@ async function postAnalysis(
     }
   }
 
-  let result: { analysis_text: string; focus_score: number; insufficient?: boolean }
+  let result: { analysis_text: string; focus_score: number; insufficient?: boolean; quota?: unknown }
   try {
     result = await res.json() as typeof result
   } catch {
     return { status: 'error', reason: 'request-failed' }
   }
+  const quota = parseQuota(result.quota)
   // The function's own copy of the check below; it spent no generation.
-  if (result.insufficient === true) return { status: 'error', reason: 'insufficient-data' }
-  return { status: 'success', analysisText: result.analysis_text, focusScore: result.focus_score }
+  if (result.insufficient === true) return withQuota({ status: 'error', reason: 'insufficient-data' }, quota)
+  return withQuota({ status: 'success', analysisText: result.analysis_text, focusScore: result.focus_score }, quota)
 }
 
 /**

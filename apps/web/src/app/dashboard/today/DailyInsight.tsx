@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { MIN_TRACKED_SECONDS_FOR_ANALYSIS } from '@echofocus/shared'
 import { useLocale } from '@/lib/i18n'
-import { requestAiAnalysis } from '@/lib/ai'
+import { requestAiAnalysis, type DailyQuota } from '@/lib/ai'
 import { insightLanguage, type InsightLanguage } from '@/lib/insight-language'
 import { nextDailyReset, resetPhrase } from '@/lib/quota-reset'
 
@@ -29,6 +29,9 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
   // and no generation was spent, so it reads in the ordinary secondary tone
   // and any cached insight above it stays.
   const [notice, setNotice] = useState<string | null>(null)
+  // Regenerations left today, known only once the function has answered:
+  // nothing is shown before the first press.
+  const [quota, setQuota] = useState<DailyQuota | null>(null)
   // Set when the quota stopped a regeneration: when it resets, in the
   // reader's own time.
   const [quotaResetsAt, setQuotaResetsAt] = useState<string | null>(null)
@@ -50,6 +53,7 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
     setNotice(null)
     try {
       const outcome = await requestAiAnalysis(date, language)
+      if (outcome.quota) setQuota(outcome.quota)
       switch (outcome.status) {
         case 'success':
           setText(outcome.analysisText)
@@ -89,13 +93,20 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
           {t.today.dailyInsight}
         </h3>
         {text && canGenerate && !mismatch && (
-          <button
-            onClick={run}
-            disabled={isRunning}
-            className="pressable flex-shrink-0 rounded-md border border-accent px-3 py-1 text-label text-accent hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isRunning ? t.today.regenerating : t.today.regenerate}
-          </button>
+          <div className="flex flex-shrink-0 items-center gap-3">
+            {quota && (
+              <span className="text-caption text-content-secondary">
+                {t.aiInsights.remainingToday.replace('{n}', String(Math.max(0, quota.max - quota.used)))}
+              </span>
+            )}
+            <button
+              onClick={run}
+              disabled={isRunning}
+              className="pressable flex-shrink-0 rounded-md border border-accent px-3 py-1 text-label text-accent hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isRunning ? t.today.regenerating : t.today.regenerate}
+            </button>
+          </div>
         )}
       </div>
 

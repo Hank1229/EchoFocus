@@ -165,6 +165,30 @@ describe('requestAiAnalysis — outcomes', () => {
     })
   })
 
+  it('carries the daily quota the function reports on success, 429 and insufficient (B2)', async () => {
+    respondWith(200, JSON.stringify({ analysis_text: 'Great focus.', focus_score: 81, quota: { used: 3, max: 8 } }))
+    expect(await requestAiAnalysis('2026-03-14', 'en')).toEqual({
+      status: 'success',
+      analysisText: 'Great focus.',
+      focusScore: 81,
+      quota: { used: 3, max: 8 },
+    })
+
+    respondWith(429, JSON.stringify({ error: 'Daily limit', analysis_text: 'Earlier take.', quota: { used: 8, max: 8 } }))
+    expect(await requestAiAnalysis('2026-03-14', 'en')).toMatchObject({ status: 'cached', quota: { used: 8, max: 8 } })
+
+    respondWith(429, JSON.stringify({ error: 'Daily limit', quota: { used: 8, max: 8 } }))
+    expect(await requestAiAnalysis('2026-03-14', 'en')).toEqual({ status: 'error', reason: 'daily-quota', quota: { used: 8, max: 8 } })
+
+    respondWith(200, JSON.stringify({ insufficient: true, quota: { used: 2, max: 8 } }))
+    expect(await requestAiAnalysis('2026-03-14', 'en')).toEqual({ status: 'error', reason: 'insufficient-data', quota: { used: 2, max: 8 } })
+  })
+
+  it('leaves quota out when the function sends none or a malformed one', async () => {
+    respondWith(200, JSON.stringify({ analysis_text: 'Great focus.', focus_score: 81, quota: { used: 'three' } }))
+    expect(await requestAiAnalysis('2026-03-14', 'en')).toEqual({ status: 'success', analysisText: 'Great focus.', focusScore: 81 })
+  })
+
   it('returns success with the analysis text and score', async () => {
     expect(await requestAiAnalysis('2026-03-14', 'en')).toEqual({
       status: 'success',

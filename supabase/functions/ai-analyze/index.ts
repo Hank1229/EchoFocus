@@ -400,8 +400,30 @@ class GeminiError extends Error {
   }
 }
 
-// ── Weekly retrospective ───────────────────────────────────────────────────
 type ServiceClient = ReturnType<typeof createClient>
+
+// ── Daily quota as the client shows it ─────────────────────────────────────
+// Every daily answer carries { used, max } so the Dashboard can say how many
+// regenerations are left. consume_ai_generation() returns the count after its
+// own increment (or the full count when it refuses), which is `used`; the
+// insufficient path never calls it, so that path reads the row directly.
+type DailyQuota = { used: number; max: number }
+
+function dailyQuota(used: number): DailyQuota {
+  return { used: Math.min(used, MAX_GENERATIONS_PER_DAY), max: MAX_GENERATIONS_PER_DAY }
+}
+
+async function readDailyQuota(supabase: ServiceClient, userId: string, date: string): Promise<DailyQuota> {
+  const { data } = await supabase
+    .from('ai_generation_quota')
+    .select('generation_count')
+    .eq('user_id', userId)
+    .eq('date', date)
+    .maybeSingle<{ generation_count: number }>()
+  return dailyQuota(data?.generation_count ?? 0)
+}
+
+// ── Weekly retrospective ───────────────────────────────────────────────────
 
 // The stored analysis a 429 hands back travels with its own score and
 // timestamp — both quota paths need the same lookup.
@@ -553,7 +575,7 @@ Deno.serve(async (req: Request) => {
     // catches other clients; it costs the user nothing: no generation is
     // consumed and Gemini is not called.
     if (aggregate.totalMinutes < MIN_TRACKED_MINUTES) {
-      return jsonResponse({ insufficient: true }, 200)
+      return jsonResponse({ insufficient: true, quota: await readDailyQuota(supabase, user.id, date) }, 200)
     }
 
     // ── Rate limit: max 8 generations per user per day ───────────────────
@@ -585,6 +607,7 @@ Deno.serve(async (req: Request) => {
         error: `Daily AI analysis limit reached (${MAX_GENERATIONS_PER_DAY} per day). Try again tomorrow.`,
         analysis_text: quota.analysis_text,
         ...stored,
+        quota: dailyQuota(quota.generation_count),
       }, 429)
     }
 
@@ -614,7 +637,11 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: 'Failed to save analysis. Please try again.' }, 500)
     }
 
-    return jsonResponse({ analysis_text: analysisText, focus_score: aggregate.focusScore }, 200)
+    return jsonResponse({
+      analysis_text: analysisText,
+      focus_score: aggregate.focusScore,
+      quota: dailyQuota(quota.generation_count),
+    }, 200)
   } catch (err) {
     console.error('ai-analyze error:', err instanceof Error ? err.message : String(err).slice(0, 200))
     return jsonResponse({ error: 'Server error' }, 500)
