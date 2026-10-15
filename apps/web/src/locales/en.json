@@ -569,6 +569,7 @@
     "banner": "This is sample data. Once you install the extension and sign in, you see your own records here.",
     "backHome": "Back to home",
     "readOnly": "Demo mode",
-    "readOnlyTitle": "Demo mode: nothing here is saved or sent."
+    "readOnlyTitle": "Demo mode: nothing here is saved or sent.",
+    "insightLocked": "Demo mode: sign in to generate a real analysis."
   }
 }

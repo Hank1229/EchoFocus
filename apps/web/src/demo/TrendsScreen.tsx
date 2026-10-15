@@ -42,7 +42,7 @@ export default async function TrendsScreen({ reviewInOtherLanguage = false }: { 
           copy={t.trends}
           neutralLabel={t.today.neutral}
         />
-        <div className="mt-10"><WeeklyReview initialText={WEEKLY_REVIEW[reviewLanguage]} language={language} /></div>
+        <div className="mt-10"><WeeklyReview key={language} initialText={WEEKLY_REVIEW[reviewLanguage]} language={language} /></div>
       </main>
     </>
   )

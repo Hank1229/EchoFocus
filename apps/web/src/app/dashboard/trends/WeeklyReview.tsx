@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
-import { useReadOnly } from '@/lib/demo'
+import { useDemo } from '@/lib/demo'
 import { requestWeeklyAnalysis } from '@/lib/ai'
 import { insightLanguage, type InsightLanguage } from '@/lib/insight-language'
 import { nextWeeklyReset, resetPhrase } from '@/lib/quota-reset'
@@ -18,7 +18,9 @@ interface Props {
 // marks AI-written text.
 export default function WeeklyReview({ initialText, language }: Props) {
   const { t } = useLocale()
-  const { readOnly, title } = useReadOnly()
+  // The demo shows a written sample and never calls the function.
+  const readOnly = useDemo()
+  const title = readOnly ? t.demo.insightLocked : undefined
   const [text, setText] = useState<string | null>(initialText)
   const [isRunning, setIsRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -125,6 +127,10 @@ export default function WeeklyReview({ initialText, language }: Props) {
             </>
           )}
         </p>
+      )}
+
+      {readOnly && (
+        <p className="mt-4 text-caption text-content-secondary">{t.demo.insightLocked}</p>
       )}
 
       {error && (

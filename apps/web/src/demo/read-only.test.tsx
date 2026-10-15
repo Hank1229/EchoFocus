@@ -73,7 +73,7 @@ const today = (analysisText: string | null) => (
 
 // Every control the demo locks, by the screen it is on and its visible label
 // (or aria-label for the icon buttons).
-const LOCKED: Array<{ name: string; node: ReactNode; labels: string[] }> = [
+const LOCKED: Array<{ name: string; node: ReactNode; labels: string[]; why?: string }> = [
   { name: 'settings general', node: settings('general'), labels: [en.common.saveSettings] },
   {
     name: 'settings categories',
@@ -82,11 +82,11 @@ const LOCKED: Array<{ name: string; node: ReactNode; labels: string[] }> = [
   },
   { name: 'settings privacy', node: settings('privacy'), labels: [en.settings.exportAction, en.settings.deleteAction] },
   { name: 'settings account', node: settings('account'), labels: [en.settings.signOut] },
-  { name: 'today with an insight', node: today(DAILY_INSIGHT.en), labels: [en.today.regenerate] },
-  { name: 'today with no insight', node: today(null), labels: [en.today.generateInsight] },
-  { name: 'today with an insight in the other language', node: today(DAILY_INSIGHT['zh-TW']), labels: [en.aiInsights.regenerateIn.replace('{lang}', en.aiInsights.langEnglish)] },
-  { name: 'weekly review', node: <WeeklyReview initialText={WEEKLY_REVIEW.en} language="en" />, labels: [en.today.regenerate] },
-  { name: 'weekly review, none yet', node: <WeeklyReview initialText={null} language="en" />, labels: [en.aiInsights.generateWeekly] },
+  { name: 'today with an insight', node: today(DAILY_INSIGHT.en), labels: [en.today.regenerate], why: en.demo.insightLocked },
+  { name: 'today with no insight', node: today(null), labels: [en.today.generateInsight], why: en.demo.insightLocked },
+  { name: 'today with an insight in the other language', node: today(DAILY_INSIGHT['zh-TW']), labels: [en.aiInsights.regenerateIn.replace('{lang}', en.aiInsights.langEnglish)], why: en.demo.insightLocked },
+  { name: 'weekly review', node: <WeeklyReview initialText={WEEKLY_REVIEW.en} language="en" />, labels: [en.today.regenerate], why: en.demo.insightLocked },
+  { name: 'weekly review, none yet', node: <WeeklyReview initialText={null} language="en" />, labels: [en.aiInsights.generateWeekly], why: en.demo.insightLocked },
 ]
 
 function find(html: string, label: string): Button {
@@ -100,13 +100,13 @@ describe('demo mode is read-only', () => {
   beforeEach(() => { vi.stubGlobal('fetch', fetchSpy) })
   afterEach(() => { vi.unstubAllGlobals(); fetchSpy.mockReset() })
 
-  for (const { name, node, labels } of LOCKED) {
+  for (const { name, node, labels, why = en.demo.readOnlyTitle } of LOCKED) {
     it(`${name}: every write control is disabled and says why`, () => {
       const html = render(node, true)
       for (const label of labels) {
         const button = find(html, label)
         expect(button.disabled, label).toBe(true)
-        expect(button.title, label).toBe(en.demo.readOnlyTitle)
+        expect(button.title, label).toBe(why)
       }
     })
 
@@ -124,6 +124,14 @@ describe('demo mode is read-only', () => {
     for (const tab of ['general', 'categories', 'privacy', 'account'] as const) {
       expect(render(settings(tab), true)).toContain(en.demo.readOnly)
       expect(render(settings(tab), false)).not.toContain(en.demo.readOnly)
+    }
+  })
+
+  it('says why the insight cannot be generated, inside the insight box', () => {
+    const weekly = <WeeklyReview initialText={WEEKLY_REVIEW.en} language="en" />
+    for (const node of [today(DAILY_INSIGHT.en), weekly]) {
+      expect(render(node, true)).toContain(`>${en.demo.insightLocked}<`)
+      expect(render(node, false)).not.toContain(en.demo.insightLocked)
     }
   })
 

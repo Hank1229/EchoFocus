@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { MIN_TRACKED_SECONDS_FOR_ANALYSIS } from '@echofocus/shared'
 import { useLocale } from '@/lib/i18n'
-import { useReadOnly } from '@/lib/demo'
+import { useDemo } from '@/lib/demo'
 import { requestAiAnalysis, type DailyQuota } from '@/lib/ai'
 import { insightLanguage, type InsightLanguage } from '@/lib/insight-language'
 import { nextDailyReset, resetPhrase } from '@/lib/quota-reset'
@@ -23,7 +23,9 @@ interface Props {
 // for nothing else inside a card.
 export default function DailyInsight({ analysisText, date, canGenerate, language }: Props) {
   const { t } = useLocale()
-  const { readOnly, title } = useReadOnly()
+  // The demo shows a written sample and never calls the function.
+  const readOnly = useDemo()
+  const title = readOnly ? t.demo.insightLocked : undefined
   const [text, setText] = useState<string | null>(analysisText)
   const [isRunning, setIsRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -162,6 +164,10 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
             </button>
           )}
         </div>
+      )}
+
+      {readOnly && (
+        <p className="mt-4 text-caption text-content-secondary">{t.demo.insightLocked}</p>
       )}
 
       {notice && (

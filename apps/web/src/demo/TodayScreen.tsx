@@ -46,7 +46,10 @@ export default async function TodayScreen({ insightInOtherLanguage = false }: { 
       />
       <main className="mx-auto w-full max-w-[1200px] flex-1 px-6 pb-16 pt-8">
         <div className="space-y-10">
+          {/* Keyed so a language switch shows that language's sample, not a
+              stale one offering to regenerate. */}
           <TodayReview
+            key={language}
             totalSeconds={totalSeconds}
             focusScore={TODAY_ROW.score}
             productiveSeconds={productive}
