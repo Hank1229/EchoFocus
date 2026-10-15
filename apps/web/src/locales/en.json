@@ -564,5 +564,9 @@
     "failed": "Linking did not finish. Try again, or sign in from the extension's Options page.",
     "busy": "The extension already has a Google sign-in window open. Finish or close it, then try again.",
     "mismatch": "The Google account in this browser is not {email}, so the extension signed out again. Sign in as {email} from the extension's Options page."
+  },
+  "demo": {
+    "banner": "This is sample data. Once you install the extension and sign in, you see your own records here.",
+    "backHome": "Back to home"
   }
 }
