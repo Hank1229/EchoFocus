@@ -570,6 +570,9 @@
     "backHome": "回到首頁",
     "readOnly": "示範模式",
     "readOnlyTitle": "示範模式：這裡的操作不會儲存，也不會送出。",
-    "insightLocked": "示範模式：登入後才會產生真的分析。"
+    "insightLocked": "示範模式：登入後才會產生真的分析。",
+    "popupTitle": "擴充功能 popup 的樣子",
+    "popupNote": "同一天的資料在擴充功能裡的樣子，從工具列上的 EchoFocus 圖示打開。這是靜態截圖。",
+    "popupAlt": "EchoFocus 擴充功能 popup：專注分數、今日總計、番茄鐘、三個分類、每小時專注與今天的網站"
   }
 }

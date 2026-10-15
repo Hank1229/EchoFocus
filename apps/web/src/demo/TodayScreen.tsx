@@ -6,6 +6,7 @@ import TodayReview from '../app/dashboard/today/TodayReview'
 import SiteRanking from '../app/dashboard/today/SiteRanking'
 import DateNav from '../app/dashboard/today/DateNav'
 import { dayLabel } from '../app/dashboard/today/day-label'
+import PopupShot from './PopupShot'
 import { DAILY_INSIGHT, PREVIEW_TODAY, PREVIEW_USER, TODAY_HOURS, TODAY_ROW, TODAY_SITES, WEEK } from './fixtures'
 
 // The streak Today shows, worked out the way the real page does: days whose
@@ -74,6 +75,7 @@ export default async function TodayScreen({ insightInOtherLanguage = false }: { 
             emptyLabel={t.today.noData}
             total={formatDuration(totalSeconds)}
           />
+          <PopupShot />
         </div>
       </main>
     </>

@@ -570,6 +570,9 @@
     "backHome": "Back to home",
     "readOnly": "Demo mode",
     "readOnlyTitle": "Demo mode: nothing here is saved or sent.",
-    "insightLocked": "Demo mode: sign in to generate a real analysis."
+    "insightLocked": "Demo mode: sign in to generate a real analysis.",
+    "popupTitle": "What the extension popup looks like",
+    "popupNote": "The same day inside the extension, opened from the EchoFocus icon in the toolbar. This is a still picture.",
+    "popupAlt": "The EchoFocus popup: focus score, today's total, the focus timer, the three categories, focus by hour and today's sites"
   }
 }

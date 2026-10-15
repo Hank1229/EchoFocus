@@ -68,14 +68,15 @@ export interface Extension {
 }
 
 // A fresh browser with the built extension loaded and the page clock frozen.
-export async function launchExtension(): Promise<Extension> {
+// The demo popup capture asks for 2x pixels; every screen test uses 1x.
+export async function launchExtension(deviceScaleFactor = 1): Promise<Extension> {
   const context = await chromium.launchPersistentContext('', {
     channel: 'chromium',
     headless: true,
     timezoneId: TIMEZONE,
     locale: 'en-US',
     reducedMotion: 'reduce',
-    deviceScaleFactor: 1,
+    deviceScaleFactor,
     args: [`--disable-extensions-except=${EXTENSION_DIR}`, `--load-extension=${EXTENSION_DIR}`],
   })
   await context.clock.setFixedTime(FIXED_TIME)
