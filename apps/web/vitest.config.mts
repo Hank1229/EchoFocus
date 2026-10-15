@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url'
 
 // Plain node environment — only `src/lib` logic is under test, no components.
 export default defineConfig({
+  // tsconfig keeps JSX for Next ("preserve"); tests import .tsx modules.
+  oxc: { jsx: { runtime: 'automatic' } },
   resolve: {
     alias: {
       '@echofocus/shared': fileURLToPath(
