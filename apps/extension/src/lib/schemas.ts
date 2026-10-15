@@ -150,3 +150,12 @@ export function validateAiAnalysisResult(data: unknown): AiAnalysisResult | null
   }
   return parsed.data
 }
+
+// What the dashboard page may send over externally_connectable. Only these
+// two shapes are answered; anything else gets bad-request.
+export const dashboardMessageSchema = z.discriminatedUnion('type', [
+  z.object({ v: z.literal(1), type: z.literal('ECHOFOCUS_STATUS'), userId: z.uuid() }),
+  z.object({ v: z.literal(1), type: z.literal('ECHOFOCUS_CONNECT'), userId: z.uuid(), email: z.email().max(320) }),
+])
+
+export type DashboardMessage = z.infer<typeof dashboardMessageSchema>

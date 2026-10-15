@@ -20,7 +20,12 @@ import { requestAiAnalysis } from '../lib/ai'
 import { getTodayDateString } from '@echofocus/shared'
 import { drainSyncQueue, enqueueMissedSyncDates, backfillHistoryIfNeeded, postSignInBootstrap } from '../lib/sync'
 import { pushRules, pushSettings, pushSettingsSoon, reconcileWithCloud, reconcileIfStale, pullInstantPrefs } from '../lib/prefs-sync'
-import { signInWithGoogle, verifySessionAlive } from '../lib/auth'
+import { LINKED_USER_KEY, signInSilently, signInWithGoogle, signOut, verifySessionAlive } from '../lib/auth'
+import { accountUserId } from '../lib/account-email'
+import { DASHBOARD_ORIGINS } from '../lib/config'
+import { decideConnect, isAllowedSender, type ConnectDecision } from '../lib/handoff'
+import { dashboardMessageSchema } from '../lib/schemas'
+import { isSignInPending } from '../lib/signin-flag'
 
 // ─── Message Types ─────────────────────────────────────────────────────────
 
@@ -60,6 +65,14 @@ const ready: Promise<void> = (async () => {
   await chrome.storage.local.remove('signin_in_progress')
   await restoreState()
   await ensureHeartbeatAlarm()
+  // A device signed in before linked_user existed has a session and no
+  // marker; without one, the device-linked-elsewhere refusal would let any
+  // account in after the next sign-out.
+  const stored = await chrome.storage.local.get(['supabase_session', LINKED_USER_KEY])
+  const sessionUserId = accountUserId(stored.supabase_session)
+  if (sessionUserId && typeof stored[LINKED_USER_KEY] !== 'string') {
+    await chrome.storage.local.set({ [LINKED_USER_KEY]: sessionUserId })
+  }
 })().catch((err) => {
   console.error('[EchoFocus] Initialization failed:', err)
 })
@@ -318,28 +331,109 @@ export async function handleMessage(
 
 // ─── Sign-in ──────────────────────────────────────────────────────────────
 
-let signInInFlight: Promise<void> | null = null
+let signInInFlight: Promise<unknown> | null = null
 
-// One flow at a time: a popup reopened mid-flow joins the running one instead
-// of asking Chrome for a second, which it refuses.
-function signIn(): Promise<void> {
-  if (signInInFlight) return signInInFlight
-  signInInFlight = (async () => {
+// One flow at a time, whoever started it: the popup, onboarding, or the
+// dashboard's link. signin_in_progress tells pages a flow is running.
+function holdSignIn<T>(run: () => Promise<T>): Promise<T> {
+  const flow = (async () => {
     await chrome.storage.local.set({ signin_in_progress: Date.now() })
     try {
-      const outcome = await signInWithGoogle()
-      if (!('session' in outcome)) return
-      try {
-        await postSignInBootstrap()
-      } catch (err) {
-        console.error('[EchoFocus] Post-sign-in bootstrap failed:', err)
-      }
+      return await run()
     } finally {
       await chrome.storage.local.remove('signin_in_progress')
       signInInFlight = null
     }
   })()
-  return signInInFlight
+  signInInFlight = flow
+  return flow
+}
+
+async function bootstrapAfterSignIn(): Promise<void> {
+  try {
+    await postSignInBootstrap()
+  } catch (err) {
+    console.error('[EchoFocus] Post-sign-in bootstrap failed:', err)
+  }
+}
+
+// A popup reopened mid-flow joins the running one instead of asking Chrome
+// for a second, which it refuses.
+function signIn(): Promise<unknown> {
+  if (signInInFlight) return signInInFlight
+  return holdSignIn(async () => {
+    const outcome = await signInWithGoogle()
+    if ('session' in outcome) await bootstrapAfterSignIn()
+  })
+}
+
+// ─── Dashboard link (externally_connectable) ──────────────────────────────
+
+type DashboardReply =
+  | { ok: true; version: string; signedIn: boolean; sameAccount: boolean | null }
+  | { ok: true }
+  | { ok: false; reason: Exclude<ConnectDecision, 'proceed'> | 'bad-request' | 'failed' | 'mismatch' }
+
+// A sender outside the dashboard origins gets no answer at all. Chrome
+// already limits who can reach this listener to the manifest's matches; the
+// check here keeps the two from drifting apart.
+chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+  if (!isAllowedSender(sender, DASHBOARD_ORIGINS)) return false
+  answerDashboard(message)
+    .then(sendResponse)
+    .catch((err) => {
+      console.error('[EchoFocus] Dashboard message failed:', err)
+      sendResponse({ ok: false, reason: 'failed' })
+    })
+  return true
+})
+
+// The page learns whether this extension is signed in and whether that is
+// the page's own account. Never an email, a user id, a token, or tracking data.
+export async function answerDashboard(message: unknown): Promise<DashboardReply> {
+  await ready
+  const parsed = dashboardMessageSchema.safeParse(message)
+  if (!parsed.success) return { ok: false, reason: 'bad-request' }
+  const request = parsed.data
+
+  const stored = await chrome.storage.local.get(['supabase_session', LINKED_USER_KEY, 'signin_in_progress'])
+  const sessionUserId = accountUserId(stored.supabase_session)
+
+  if (request.type === 'ECHOFOCUS_STATUS') {
+    return {
+      ok: true,
+      version: chrome.runtime.getManifest().version,
+      signedIn: sessionUserId !== null,
+      sameAccount: sessionUserId === null ? null : sessionUserId === request.userId,
+    }
+  }
+
+  const linked = stored[LINKED_USER_KEY]
+  const decision = decideConnect({
+    sessionUserId,
+    linkedUser: typeof linked === 'string' ? linked : null,
+    requestedUserId: request.userId,
+    busy: signInInFlight !== null || isSignInPending(stored.signin_in_progress),
+  })
+  if (decision !== 'proceed') return { ok: false, reason: decision }
+
+  const reply = await holdSignIn(() => connectAs(request.userId, request.email))
+  // Answer the page now; the history upload can take a few seconds.
+  if (reply.ok) void bootstrapAfterSignIn()
+  return reply
+}
+
+// Signs in with the browser's current Google account and keeps the session
+// only when it is the account the dashboard is signed in to.
+async function connectAs(userId: string, email: string): Promise<DashboardReply> {
+  const outcome = await signInSilently(email)
+  if (!('session' in outcome)) return { ok: false, reason: outcome.failure === 'busy' ? 'busy' : 'failed' }
+  if (outcome.session.user.id !== userId) {
+    await signOut()
+    return { ok: false, reason: 'mismatch' }
+  }
+  await chrome.storage.local.set({ [LINKED_USER_KEY]: userId })
+  return { ok: true }
 }
 
 // Keep service worker alive during message handling (belt-and-suspenders)

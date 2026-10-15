@@ -10,7 +10,10 @@ vi.mock('../lib/ai', () => ({
 // SIGN_IN hands the OAuth flow to the worker; neither the identity API nor
 // the network exist here.
 vi.mock('../lib/auth', () => ({
+  LINKED_USER_KEY: 'linked_user',
   signInWithGoogle: vi.fn(async () => ({ session: { user: { id: 'user-1' } } })),
+  signInSilently: vi.fn(async () => ({ failure: 'failed' })),
+  signOut: vi.fn(async () => undefined),
   getSession: vi.fn(async () => null),
   refreshSession: vi.fn(async () => false),
   verifySessionAlive: vi.fn(async () => undefined),
@@ -26,7 +29,7 @@ vi.mock('../lib/sync', () => ({
 import * as ai from '../lib/ai'
 import * as auth from '../lib/auth'
 import * as sync from '../lib/sync'
-import { handleMessage } from './index'
+import { answerDashboard, handleMessage } from './index'
 
 // Macrotask turns drain every microtask the worker-side flow chains (storage
 // writes, tab queries) — a fixed microtask count went stale as the flow grew,
@@ -204,6 +207,7 @@ describe('SIGN_IN (one-click from the popup)', () => {
     expect(res.success).toBe(true)
 
     await flushSignInFlow()
+    // signInWithGoogle writes linked_user (lib/auth-signin.test.ts).
     expect(auth.signInWithGoogle).toHaveBeenCalledTimes(1)
     expect(sync.postSignInBootstrap).toHaveBeenCalled()
     expect(chromeStub.store.signin_in_progress).toBeUndefined()
@@ -254,5 +258,123 @@ describe('worker startup', () => {
     await flushSignInFlow()
 
     expect(chromeStub.store.signin_in_progress).toBeUndefined()
+  })
+
+  describe('linked_user for a device signed in before the marker existed', () => {
+    const session = (id: string) => JSON.stringify({ access_token: 'secret', user: { id, email: 'me@example.com' } })
+
+    async function startWorker(): Promise<void> {
+      vi.resetModules()
+      await import('./index')
+      await flushSignInFlow()
+    }
+
+    it('writes the session account when the marker is missing', async () => {
+      chromeStub.store.supabase_session = session('user-a')
+      await startWorker()
+      expect(chromeStub.store.linked_user).toBe('user-a')
+    })
+
+    it('keeps a marker that is already there', async () => {
+      chromeStub.store.supabase_session = session('user-a')
+      chromeStub.store.linked_user = 'user-b'
+      await startWorker()
+      expect(chromeStub.store.linked_user).toBe('user-b')
+    })
+
+    it('writes nothing when signed out', async () => {
+      await startWorker()
+      expect(chromeStub.store).not.toHaveProperty('linked_user')
+    })
+  })
+})
+
+describe('dashboard link (externally_connectable)', () => {
+  const A = '11111111-1111-4111-8111-111111111111'
+  const B = '22222222-2222-4222-8222-222222222222'
+  const session = (id: string) => JSON.stringify({ access_token: 'secret', user: { id, email: 'me@example.com' } })
+  const connect = { v: 1, type: 'ECHOFOCUS_CONNECT', userId: A, email: 'me@example.com' }
+
+  beforeEach(() => {
+    vi.mocked(auth.signInSilently).mockResolvedValue({ session: { user: { id: A } } } as never)
+    // The real signOut drops the stored session; the store has to follow.
+    vi.mocked(auth.signOut).mockImplementation(async () => { delete chromeStub.store.supabase_session })
+  })
+
+  it('STATUS says signed in and same account, and nothing else', async () => {
+    chromeStub.store.supabase_session = session(A)
+    const reply = await answerDashboard({ v: 1, type: 'ECHOFOCUS_STATUS', userId: A })
+    expect(reply).toEqual({ ok: true, version: '1.0.0', signedIn: true, sameAccount: true })
+    const text = JSON.stringify(reply)
+    expect(text).not.toContain('me@example.com')
+    expect(text).not.toContain(A)
+    expect(text).not.toContain('secret')
+  })
+
+  it('STATUS tells another account apart, and signed out from both', async () => {
+    chromeStub.store.supabase_session = session(B)
+    expect(await answerDashboard({ v: 1, type: 'ECHOFOCUS_STATUS', userId: A })).toMatchObject({ signedIn: true, sameAccount: false })
+    delete chromeStub.store.supabase_session
+    expect(await answerDashboard({ v: 1, type: 'ECHOFOCUS_STATUS', userId: A })).toMatchObject({ signedIn: false, sameAccount: null })
+  })
+
+  it('anything else is a bad request', async () => {
+    for (const message of [null, 'hi', { v: 2, type: 'ECHOFOCUS_STATUS', userId: A }, { v: 1, type: 'ECHOFOCUS_STATUS', userId: 'me' },
+      { ...connect, email: 'not an email' }, { v: 1, type: 'SIGN_IN' }]) {
+      expect(await answerDashboard(message)).toEqual({ ok: false, reason: 'bad-request' })
+    }
+    expect(auth.signInSilently).not.toHaveBeenCalled()
+  })
+
+  it('CONNECT signs in, records the account, answers, then bootstraps in the background', async () => {
+    let finishBootstrap: () => void = () => undefined
+    vi.mocked(sync.postSignInBootstrap).mockReturnValue(new Promise((resolve) => { finishBootstrap = () => resolve(null) }))
+
+    expect(await answerDashboard(connect)).toEqual({ ok: true })
+    expect(auth.signInSilently).toHaveBeenCalledWith('me@example.com')
+    expect(chromeStub.store.linked_user).toBe(A)
+    expect(chromeStub.store.signin_in_progress).toBeUndefined()
+
+    await flushSignInFlow()
+    expect(sync.postSignInBootstrap).toHaveBeenCalledTimes(1)
+    finishBootstrap()
+  })
+
+  it('a different Google account is signed out again and never recorded', async () => {
+    vi.mocked(auth.signInSilently).mockImplementation(async () => {
+      chromeStub.store.supabase_session = session(B)
+      return { session: { user: { id: B } } } as never
+    })
+    expect(await answerDashboard(connect)).toEqual({ ok: false, reason: 'mismatch' })
+    expect(auth.signOut).toHaveBeenCalledTimes(1)
+    expect(chromeStub.store.supabase_session).toBeUndefined()
+    expect(chromeStub.store.linked_user).toBeUndefined()
+    await flushSignInFlow()
+    expect(sync.postSignInBootstrap).not.toHaveBeenCalled()
+  })
+
+  it('a failed sign-in writes no session and clears the progress flag', async () => {
+    vi.mocked(auth.signInSilently).mockResolvedValue({ failure: 'failed' })
+    expect(await answerDashboard(connect)).toEqual({ ok: false, reason: 'failed' })
+    expect(chromeStub.store.supabase_session).toBeUndefined()
+    expect(chromeStub.store.signin_in_progress).toBeUndefined()
+    await flushSignInFlow()
+    expect(sync.postSignInBootstrap).not.toHaveBeenCalled()
+  })
+
+  it('a device linked to another account refuses before any sign-in', async () => {
+    chromeStub.store.linked_user = B
+    expect(await answerDashboard(connect)).toEqual({ ok: false, reason: 'device-linked-elsewhere' })
+    expect(auth.signInSilently).not.toHaveBeenCalled()
+  })
+
+  it('is busy while a popup sign-in is running', async () => {
+    let finish: (value: auth.SignInOutcome) => void = () => undefined
+    vi.mocked(auth.signInWithGoogle).mockReturnValue(new Promise((resolve) => { finish = resolve }))
+    await handleMessage({ type: 'SIGN_IN' })
+    expect(await answerDashboard(connect)).toEqual({ ok: false, reason: 'busy' })
+    expect(auth.signInSilently).not.toHaveBeenCalled()
+    finish({ failure: 'cancelled' })
+    await flushSignInFlow()
   })
 })

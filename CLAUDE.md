@@ -126,6 +126,7 @@ echofocus/
 3. **Sign-in backfills history.** `postSignInBootstrap()` (lib/sync.ts) merges rules/preferences, then uploads the WHOLE local aggregate archive (365-day scan, direct batched upserts that bypass the 60-entry retry queue). The per-user marker `history_backfilled_user` is set only after a clean pass, so an interrupted backfill reruns on the next startup. Every sign-in also recomputes today's aggregate and uploads it, even when the marker says the archive is already up. Try-first-register-later users never start from zero.
 4. **Settings ownership.** The extension Options page is the device-level editor and the only one that works signed out. Signed in, Options and Dashboard Settings edit the same user_preferences row (cloud authoritative). "Local non-default wins" applies only to the first-contact bootstrap merge. The popup's idle steppers also edit the two pomodoro durations.
 5. **Concurrent-edit trade-off (accepted).** Cross-surface settings writes resolve last-writer-wins: a device pushing stale values can overwrite a newer cloud row in the window before its next pull. Accepted deliberately (single user, narrow window); escalate to conditional writes only if real multi-device conflicts appear.
+6. **Two sessions; the dashboard can ask the extension to sign in.** The extension and the dashboard each hold their own Supabase session and each signs out alone (`scope: 'local'`; the extension's `signOut()` in lib/auth.ts also clears `last_sync_at`, `history_backfill_result`, `last_session_verify_at` and `pending_prefs_push`). The dashboard's link card (`ExtensionLinkCard`, on Today and in Settings → Account) asks the extension over `externally_connectable` (`ECHOFOCUS_CONNECT`, background/index.ts) to sign in with the browser's current Google account: a silent OAuth flow (`signInSilently`: `prompt=none` + `login_hint`, a Google window only when Google needs one). The extension keeps the session only when its user.id equals the dashboard's user id, and signs out again otherwise. Every successful sign-in writes `linked_user`, which sign-out keeps; a device whose `linked_user` is another account refuses the request, and that switch is made in Options.
 
 ## Known Limitations (accepted)
 
@@ -137,6 +138,7 @@ echofocus/
 6. **The dashboard trails the popup.** The popup reads the local aggregate plus the session in progress, live. The dashboard reads the synced row, which the extension uploads once an hour (the `echofocus-aggregate` alarm), at sign-in, and when "Sync today's data" is pressed in Options → Account. The dashboard's "Synced" time shows when that row was last uploaded. A session in progress reaches the dashboard only at the first upload after it ends, and no hourly upload runs while the computer sleeps or Chrome is closed, so the gap can exceed an hour. Before a demo, press "Sync today's data", then reload the dashboard.
 7. **Pomodoro durations follow the last whole-row upload.** The extension uploads the whole preferences row, so when two devices each change one duration, the later upload sets both. Changing durations from the popup makes this easier to hit than before.
 8. **The daily alarms drift across a DST change or a timezone move.** The 00:05 sync and the 21:00 analysis (`echofocus-sync`, `echofocus-ai-daily` in background/alarms.ts) are created once at the next local 00:05 or 21:00 and then repeat every fixed 24 hours, so after a DST switch or a move to another timezone they fire an hour or more off the clock time until the alarm is rebuilt. Taiwan has no DST, so current users are not affected.
+9. **The dashboard finds the extension only by an ID it was given.** The link card (`ExtensionLinkCard`) messages the extension IDs listed, comma-separated, in `NEXT_PUBLIC_EXTENSION_IDS` (`extensionIds()` in apps/web/src/lib/extension-link.ts). The manifest has no `key`, so an unpacked install's ID comes from the absolute path of the folder it was loaded from: an extension built and loaded on another machine, or from a moved folder, has an ID the dashboard does not know: Settings → Account says the extension was not found, and Today shows the install prompt when the account has no synced data. Add that ID to the variable (`apps/web/.env.local` locally, the Vercel environment for production); it is read at build time, so the dashboard needs a rebuild or redeploy to pick it up.
 
 ---
 
@@ -145,15 +147,15 @@ echofocus/
 ### Privacy (MOST IMPORTANT)
 
 1. **NEVER send raw URLs, page titles, or full browsing history to any server**
-2. **NEVER store browsing data in Supabase** — only user preferences, auth, daily aggregates (domain names, seconds, categories, productive-by-hour) and AI analysis text
+2. **NEVER store browsing data in Supabase** — only user preferences, auth, daily aggregates (domain names, seconds, categories, productive-by-hour) and AI analysis text. Between the dashboard page and the extension travel only the signed-in boolean, whether the extension's account is the page's (the page sends its user id, the extension answers yes or no) and the email as a sign-in hint; never a token, never browsing data
 3. **AI analysis input must be aggregated** — only domain names + durations + categories, NEVER full URLs
 4. **All browsing data lives in chrome.storage.local** — the user's device only
 5. When displaying privacy-related UI, be explicit about what data goes where
 
 ### Chrome Extension (Manifest V3)
 
-1. Use **minimal permissions**: `tabs`, `storage`, `alarms`, `idle` — nothing more
-2. **NO `host_permissions` for `<all_urls>`** — we only read tab info from the `tabs` API
+1. Use **minimal permissions**: `tabs`, `storage`, `alarms`, `idle`, `identity`, `notifications`, `favicon` — nothing more
+2. **NO `host_permissions` and no content scripts** — we only read tab info from the `tabs` API. `externally_connectable` lists only the dashboard: the production origin, plus `VITE_DASHBOARD_URL`'s host (no port) in a build pointed elsewhere (vite.config.ts); the production build lists production alone
 3. Background must be a **Service Worker** (not a persistent background page)
 4. Service Worker can be terminated at any time — persist state to chrome.storage
 5. Use `chrome.storage.local` for browsing data, `chrome.storage.sync` for settings

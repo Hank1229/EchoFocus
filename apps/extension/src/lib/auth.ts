@@ -12,25 +12,44 @@ import { getSupabaseClient } from './supabase'
 type SignInFailure = 'busy' | 'cancelled' | 'failed'
 export type SignInOutcome = { session: Session } | { failure: SignInFailure }
 
-function flowFailure(err: unknown): SignInFailure {
+// The account this device last signed in to, written the moment a sign-in
+// succeeds and kept through sign-out. A sign-in the dashboard asks for is
+// refused when it names a different account (lib/handoff.ts), so a web page
+// can never move this device's history to another account on its own.
+export const LINKED_USER_KEY = 'linked_user'
+
+// 'needs-interaction' only comes out of a silent (non-interactive) flow:
+// Google wants the user to pick or confirm the account, so the caller may
+// retry with a window.
+type FlowOutcome = SignInOutcome | { failure: 'needs-interaction' }
+
+// Google's answers to prompt=none when it cannot finish without the user.
+const INTERACTION_ERRORS = ['interaction_required', 'login_required', 'consent_required', 'account_selection_required']
+
+function flowFailure(err: unknown, interactive: boolean): FlowOutcome {
   const message = err instanceof Error ? err.message : String(err)
-  if (message.includes('Only one web auth flow')) return 'busy'
-  if (message.includes('did not approve')) return 'cancelled'
-  return 'failed'
+  if (message.includes('Only one web auth flow')) return { failure: 'busy' }
+  if (message.includes('did not approve')) return { failure: 'cancelled' }
+  // Chrome's own refusal when a non-interactive flow would have to show a page.
+  if (!interactive && message.includes('User interaction required')) return { failure: 'needs-interaction' }
+  return { failure: 'failed' }
 }
 
-export async function signInWithGoogle(): Promise<SignInOutcome> {
+// An error Supabase passed back from Google, in the fragment or the query.
+function redirectError(url: URL, hashParams: URLSearchParams): string {
+  return [
+    hashParams.get('error'), hashParams.get('error_description'),
+    url.searchParams.get('error'), url.searchParams.get('error_description'),
+  ].filter(Boolean).join(' ')
+}
+
+async function runGoogleFlow(queryParams: Record<string, string>, interactive: boolean): Promise<FlowOutcome> {
   const supabase = getSupabaseClient()
   const redirectTo = chrome.identity.getRedirectURL()
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: {
-      redirectTo,
-      skipBrowserRedirect: true,
-      // Always show Google's account chooser so the user picks the account.
-      queryParams: { prompt: 'select_account' },
-    },
+    options: { redirectTo, skipBrowserRedirect: true, queryParams },
   })
 
   if (error || !data.url) {
@@ -40,13 +59,10 @@ export async function signInWithGoogle(): Promise<SignInOutcome> {
 
   let responseUrl: string | undefined
   try {
-    responseUrl = await chrome.identity.launchWebAuthFlow({
-      url: data.url,
-      interactive: true,
-    })
+    responseUrl = await chrome.identity.launchWebAuthFlow({ url: data.url, interactive })
   } catch (err) {
     console.error('[EchoFocus] OAuth: launchWebAuthFlow threw:', err)
-    return { failure: flowFailure(err) }
+    return flowFailure(err, interactive)
   }
 
   if (!responseUrl) {
@@ -70,6 +86,10 @@ export async function signInWithGoogle(): Promise<SignInOutcome> {
   const refreshToken = hashParams.get('refresh_token')
 
   if (!accessToken || !refreshToken) {
+    const returned = redirectError(url, hashParams)
+    if (!interactive && INTERACTION_ERRORS.some(code => returned.includes(code))) {
+      return { failure: 'needs-interaction' }
+    }
     // SECURITY: never log the redirect URL, hash, or query — they carry tokens.
     console.error('[EchoFocus] OAuth: redirect completed but tokens were missing.',
       'This usually means flowType is not "implicit" — check supabase.ts.')
@@ -90,13 +110,49 @@ export async function signInWithGoogle(): Promise<SignInOutcome> {
   return { session: sessionData.session }
 }
 
-export async function signOut(): Promise<void> {
-  const supabase = getSupabaseClient()
-  await supabase.auth.signOut({ scope: 'global' })
+// An interactive flow never reports needs-interaction; this only narrows the type.
+function settled(outcome: FlowOutcome): SignInOutcome {
+  return 'failure' in outcome && outcome.failure === 'needs-interaction' ? { failure: 'failed' } : outcome as SignInOutcome
 }
 
-// The dashboard already revoked the account server-side; only this device's
-// copy is left to drop. storage.onChanged flips every open page.
+export async function signInWithGoogle(): Promise<SignInOutcome> {
+  // Always show Google's account chooser so the user picks the account.
+  const outcome = settled(await runGoogleFlow({ prompt: 'select_account' }, true))
+  // Options and the worker's SIGN_IN (popup, onboarding) both end here.
+  if ('session' in outcome) await chrome.storage.local.set({ [LINKED_USER_KEY]: outcome.session.user.id })
+  return outcome
+}
+
+// The dashboard's one-click link: sign in with the Google account the browser
+// is already using, without a window when Google allows it. When Google wants
+// the user to choose or confirm, the same request runs once more with a
+// window, the dashboard's account pre-filled. Writes no linked_user: the
+// caller does, once it has checked the account is the one the dashboard asked
+// for.
+export async function signInSilently(email: string): Promise<SignInOutcome> {
+  const silent = await runGoogleFlow({ prompt: 'none', login_hint: email }, false)
+  if (!('failure' in silent) || silent.failure !== 'needs-interaction') return settled(silent)
+  return settled(await runGoogleFlow({ login_hint: email }, true))
+}
+
+// Keys that describe the account this device last synced to. The per-user
+// markers (history_backfilled_user, prefs_bootstrapped_user, linked_user) and
+// the retry queue stay: signing back in to the same account must not re-run
+// the year-long backfill or the first-contact merge.
+export const ACCOUNT_KEYS = ['last_sync_at', 'history_backfill_result', 'last_session_verify_at', 'pending_prefs_push']
+
+// The extension and the dashboard each hold their own session, so this signs
+// out the extension alone; the dashboard stays signed in. supabase-js drops
+// the stored session even when the server cannot be reached, so the account
+// keys go with it either way.
+export async function signOut(): Promise<void> {
+  const supabase = getSupabaseClient()
+  await supabase.auth.signOut({ scope: 'local' })
+  await chrome.storage.local.remove(ACCOUNT_KEYS)
+}
+
+// The server already revoked this session; only this device's copy is left
+// to drop. storage.onChanged flips every open page.
 async function signOutLocally(): Promise<void> {
   const supabase = getSupabaseClient()
   await supabase.auth.signOut({ scope: 'local' })
@@ -117,7 +173,7 @@ export async function refreshSession(): Promise<Session | null> {
   const { data, error } = await supabase.auth.refreshSession()
   if (error || !data.session) {
     console.warn('[EchoFocus] Session refresh failed; signing out locally.')
-    await supabase.auth.signOut()
+    await supabase.auth.signOut({ scope: 'local' })
     return null
   }
   return data.session
@@ -125,11 +181,12 @@ export async function refreshSession(): Promise<Session | null> {
 
 const LAST_VERIFY_KEY = 'last_session_verify_at'
 
-// The other direction of the product rule: a dashboard sign-out revokes this
-// session server-side, but the stateless JWT keeps working locally until it
-// expires. Ask the auth server (which checks revocation) on popup opens,
-// throttled; a revoked session signs out locally, which flips every open
-// page via storage.onChanged and stops the sync chain at once. Network
+// A session revoked server-side (the account deleted, a sign-out of every
+// device elsewhere) keeps working locally until its stateless JWT expires.
+// Ask the auth server, which checks revocation, on popup opens, throttled; a
+// revoked session signs out locally, which flips every open page via
+// storage.onChanged and stops the sync chain at once. A dashboard sign-out
+// no longer lands here: it ends the dashboard's own session only. Network
 // failures must never sign the user out.
 export async function verifySessionAlive(minIntervalMs = 60_000): Promise<void> {
   const supabase = getSupabaseClient()

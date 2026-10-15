@@ -4,16 +4,14 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useLocale } from '@/lib/i18n'
 import { LogOut } from 'lucide-react'
+import { signOutOfDashboard } from './sign-out'
 
 export default function SignOutButton() {
   const router = useRouter()
   const { t } = useLocale()
 
   const handleSignOut = async () => {
-    const supabase = createClient()
-    // Product rule: one account, both surfaces together — global revokes the
-    // extension's session too; it notices on its next popup open.
-    await supabase.auth.signOut({ scope: 'global' })
+    await signOutOfDashboard(createClient())
     router.push('/')
     router.refresh()
   }

@@ -131,7 +131,7 @@
     "noDailyInsights": "No daily insights yet",
     "goToSnapshots": "Go to Daily Snapshots to analyze",
     "noSyncedData": "No synced data yet",
-    "noSyncedDesc": "Install the EchoFocus Chrome extension and sign in. Today's data appears here when you sign in and updates every hour, and each day is finished at 00:05. You can also sync manually from the extension settings under the Account tab.",
+    "noSyncedDesc": "Install the EchoFocus Chrome extension and sign in. Today's data appears here when you sign in and updates every hour, and each day is finished at 00:05. You can also sync manually from the extension settings under the Account tab, or link the extension with the button above.",
     "synced": "Synced",
     "goodMorning": "Good morning",
     "goodAfternoon": "Good afternoon",
@@ -235,6 +235,7 @@
     "profile": "Profile",
     "connectedViaGoogle": "Connected via Google",
     "signOut": "Sign out",
+    "signOutNote": "Signs out of this website only. To stop the extension from uploading, sign out in the extension's Options page.",
     "language": "Language",
     "languageEn": "English",
     "languageZhTW": "繁體中文",
@@ -420,7 +421,7 @@
       },
       {
         "label": "Google OAuth:",
-        "text": "Account sign-in, via Supabase Auth."
+        "text": "Account sign-in, via Supabase Auth. The dashboard can ask the extension to sign in with the Google account already signed in to this browser; no token passes between them."
       }
     ],
     "section4Items": [
@@ -436,7 +437,7 @@
       "Pause or disable tracking entirely from the extension",
       "Sign out and keep using every local feature. An account is never required for tracking"
     ],
-    "section6Body": "Local data is protected by Chrome's extension security model: no website or other app can read it. Cloud data is transmitted over HTTPS, and row-level security ensures each user can only access their own rows.",
+    "section6Body": "Local data is protected by Chrome's extension security model: no website or other app can read it. The EchoFocus dashboard can only ask the extension whether it is signed in, and ask it to sign in with the browser's current Google account; it cannot read any browsing data. Cloud data is transmitted over HTTPS, and row-level security ensures each user can only access their own rows.",
     "section7Body": "EchoFocus is not designed for children under 13, and we do not knowingly collect personal information from that age group.",
     "section8Body": "We may update this policy from time to time. Significant changes will be announced through the extension; continued use after notice constitutes acceptance.",
     "section9Body": "For any privacy question, reach out via GitHub Issues."
@@ -544,5 +545,24 @@
     "onBreak": "Break",
     "timerPaused": "Paused",
     "focusScore": "Focus score"
+  },
+  "extensionLink": {
+    "statusLabel": "Extension",
+    "statusChecking": "Checking…",
+    "statusLinked": "Signed in to this account",
+    "statusUnlinked": "Not signed in",
+    "statusOtherAccount": "Signed in to another account",
+    "statusNotInstalled": "Not found in this browser",
+    "statusDeviceLinkedElsewhere": "Linked to another account on this device",
+    "unlinked": "The extension in this browser is not signed in, so its data does not reach this page.",
+    "connect": "Link the extension ({email})",
+    "connecting": "Linking… If a Google window opens, choose {email}.",
+    "linked": "Linked. Your data appears here within a few minutes.",
+    "otherAccount": "The extension in this browser is signed in to another account, so its data goes there. Sign out in the extension's Options page, then link it here.",
+    "deviceLinkedElsewhere": "The extension on this device was linked to another account before. So its history never moves to this account without you choosing it, sign in from the extension's Options page.",
+    "notInstalled": "The EchoFocus extension was not found in this browser. Install it, then reload this page.",
+    "failed": "Linking did not finish. Try again, or sign in from the extension's Options page.",
+    "busy": "The extension already has a Google sign-in window open. Finish or close it, then try again.",
+    "mismatch": "The Google account in this browser is not {email}, so the extension signed out again. Sign in as {email} from the extension's Options page."
   }
 }

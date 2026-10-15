@@ -249,7 +249,9 @@ export function installChromeStub(): ChromeStub {
       getURL: (path: string) => `chrome-extension://echofocus-test/${path}`,
       onInstalled: { addListener: () => undefined },
       onStartup: { addListener: () => undefined },
+      getManifest: () => ({ version: '1.0.0' }),
       onMessage: { addListener: () => undefined },
+      onMessageExternal: { addListener: () => undefined },
       onConnect: { addListener: () => undefined },
     },
   }
