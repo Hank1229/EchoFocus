@@ -9,7 +9,7 @@ import SettingsContent from '@/app/dashboard/settings/SettingsContent'
 import type { SettingsTab } from '@/app/dashboard/settings/SettingsTabs'
 import TodayReview from '@/app/dashboard/today/TodayReview'
 import WeeklyReview from '@/app/dashboard/trends/WeeklyReview'
-import { DAILY_INSIGHT, PREVIEW_RULES, PREVIEW_TODAY, PREVIEW_USER, WEEKLY_REVIEW } from './fixtures'
+import { DAILY_INSIGHT, PREVIEW_RULES, PREVIEW_TODAY, PREVIEW_USER, TODAY_ROW, WEEKLY_REVIEW } from './fixtures'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -57,11 +57,11 @@ const settings = (tab: SettingsTab) => (
 
 const today = (analysisText: string | null) => (
   <TodayReview
-    totalSeconds={31020}
-    focusScore={76}
-    productiveSeconds={22680}
-    distractionSeconds={5940}
-    neutralSeconds={2400}
+    totalSeconds={TODAY_ROW.productive + TODAY_ROW.distraction + TODAY_ROW.neutral}
+    focusScore={TODAY_ROW.score}
+    productiveSeconds={TODAY_ROW.productive}
+    distractionSeconds={TODAY_ROW.distraction}
+    neutralSeconds={TODAY_ROW.neutral}
     uncategorizedSeconds={0}
     streak={{ current: 1, best: 1 }}
     analysisText={analysisText}

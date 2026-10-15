@@ -14,6 +14,7 @@ export default async function TrendsScreen({ reviewInOtherLanguage = false }: { 
   const totalProductive = WEEK.reduce((s, d) => s + d.productive, 0)
   const totalBreaks = WEEK.reduce((s, d) => s + d.distraction, 0)
   const avgScore = Math.round(WEEK.reduce((s, d) => s + d.score, 0) / WEEK.length)
+  const best = WEEK.reduce((top, d) => (d.score > top.score ? d : top))
 
   return (
     <>
@@ -34,7 +35,7 @@ export default async function TrendsScreen({ reviewInOtherLanguage = false }: { 
           daysTracked={7}
           totalProductive={totalProductive}
           totalBreaks={totalBreaks}
-          bestDay={{ label: shortDate('2026-09-16', language), score: 78 }}
+          bestDay={{ label: shortDate(best.date, language), score: best.score }}
           hours={WEEK_HOURS}
           barData={WEEK.map(({ date, productive, distraction, neutral }) => ({ date: shortDate(date, language), productive, distraction, neutral }))}
           scoreData={WEEK.map(({ date, score }) => ({ date: shortDate(date, language), score }))}
