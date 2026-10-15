@@ -18,16 +18,16 @@
   "landing": {
     "nav": {
       "signIn": "Sign in",
-      "download": "Download"
+      "demo": "View the demo"
     },
     "hero": {
       "badge": "Privacy-first: your browsing history never leaves your device",
       "headline1": "See where your time goes.",
       "headline2": "Without handing it over.",
       "sub": "EchoFocus tracks your active tab on-device, scores your focus, and sends Gemini nothing but an anonymized daily summary of domain names and minutes. No URLs, no page titles, no history upload.",
-      "download": "Download from GitHub",
+      "demo": "View the demo",
       "dashboard": "Open dashboard",
-      "note": "Free, and it runs in Chrome as a Manifest V3 extension. It isn't on the Chrome Web Store yet, so download the latest release build from GitHub."
+      "note": "Free, and it runs in Chrome as a Manifest V3 extension. It isn't on the Chrome Web Store yet. The demo shows the dashboard on sample data, with no sign-in."
     },
     "preview": {
       "day": "Today",
@@ -85,7 +85,7 @@
     "cta": {
       "title": "Start with one day of data",
       "desc": "Install it, browse the way you normally do, and read your first insight tonight.",
-      "download": "Download from GitHub",
+      "demo": "View the demo",
       "dashboard": "Sign in to the dashboard"
     },
     "footer": {

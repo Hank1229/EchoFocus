@@ -4,6 +4,10 @@ EchoFocus is a Chrome extension that times the tab in front of you, scores your 
 
 **Raw URLs and page titles stay on your device.** Nothing syncs until you sign in. After that, the extension keeps one aggregate per day in your account, made of domain names, durations, and categories. Today's is updated every hour, and each day is finished at 00:05.
 
+## Live demo
+
+**[echo-focus-web.vercel.app/demo](https://echo-focus-web.vercel.app/demo)** opens the dashboard on a week of sample data: Today, Trends, Settings and the Guide, plus a picture of the extension popup on the same day. It needs no account and no extension, and it is read-only. The demo calls no backend at all, so the buttons that would save settings, edit rules or generate an AI insight are switched off there.
+
 ## Screenshots
 
 All screenshots use the dark theme.
@@ -78,6 +82,21 @@ flowchart TB
 - **Backend**: Supabase (Auth, Postgres with RLS, Edge Functions)
 - **AI**: Gemini behind a rate-limited edge function proxy
 - **Monorepo**: pnpm workspaces (`packages/shared` holds types, tokens, and shared UI), Vitest suites checked with mutation testing
+
+## Build from source
+
+The extension is not on the Chrome Web Store, so you run it from a build of this repository.
+
+```bash
+git clone https://github.com/Hank1229/EchoFocus.git
+cd EchoFocus
+pnpm install
+pnpm build:extension   # → apps/extension/dist
+```
+
+In Chrome, open `chrome://extensions`, turn on Developer mode, choose **Load unpacked**, and pick `apps/extension/dist`. Tracking, the focus score, the pomodoro timer and the popup all work signed out, with everything kept in `chrome.storage.local`.
+
+Signing in, sync and the dashboard need a Supabase project of your own: put its URL and anon key in `apps/extension/.env` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) and `apps/web/.env.local` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`), run the migrations in `supabase/migrations/`, and enable the Google provider. The dashboard finds the extension only by the IDs in `NEXT_PUBLIC_EXTENSION_IDS`; an unpacked build's ID comes from the folder it was loaded from, so add yours there.
 
 ## Local development
 

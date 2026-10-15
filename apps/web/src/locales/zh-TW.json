@@ -18,16 +18,16 @@
   "landing": {
     "nav": {
       "signIn": "登入",
-      "download": "下載"
+      "demo": "查看示範"
     },
     "hero": {
       "badge": "隱私優先：瀏覽紀錄永遠不離開你的裝置",
       "headline1": "看清時間花在哪裡。",
       "headline2": "但資料不必交出去。",
       "sub": "EchoFocus 在本機記錄你正在使用的分頁、計算專注分數，傳給 Gemini 的只有一份匿名的每日摘要：網域名稱與分鐘數。沒有網址、沒有網頁標題，也不會上傳瀏覽紀錄。",
-      "download": "從 GitHub 下載",
+      "demo": "查看示範",
       "dashboard": "開啟儀表板",
-      "note": "免費，以 Manifest V3 擴充功能的形式在 Chrome 上執行。目前還沒上架 Chrome 線上應用程式商店，請到 GitHub 下載最新的 release 版本。"
+      "note": "免費，以 Manifest V3 擴充功能的形式在 Chrome 上執行。目前還沒上架 Chrome 線上應用程式商店。示範頁用範例資料呈現儀表板，不需要登入。"
     },
     "preview": {
       "day": "今天",
@@ -85,7 +85,7 @@
     "cta": {
       "title": "從一天的資料開始",
       "desc": "裝上它，照平常的方式上網，今晚就能讀到第一份洞察。",
-      "download": "從 GitHub 下載",
+      "demo": "查看示範",
       "dashboard": "登入儀表板"
     },
     "footer": {
