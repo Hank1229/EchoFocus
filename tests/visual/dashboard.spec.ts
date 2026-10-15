@@ -3,6 +3,8 @@ import { expectScreen, shotName, THEMES, LANGUAGES, FIXED_TIME, TIMEZONE } from 
 
 // The /dev/preview pages render the real dashboard components on fixture
 // data with no session; the dev server they need is started by the config.
+// The /demo pages are the same screens as the public, read-only demo: the
+// banner, the disabled controls and the popup picture.
 const SETTINGS_TABS = ['general', 'categories', 'privacy', 'account', 'about']
 
 const PAGES = [
@@ -13,6 +15,10 @@ const PAGES = [
   { name: 'today-insight-mismatch', path: '/dev/preview?insight=other' },
   { name: 'trends-review-mismatch', path: '/dev/preview/trends?review=other' },
   ...SETTINGS_TABS.map(tab => ({ name: `settings-${tab}`, path: `/dev/preview/settings?tab=${tab}` })),
+  { name: 'demo-today', path: '/demo' },
+  { name: 'demo-trends', path: '/demo/trends' },
+  { name: 'demo-guide', path: '/demo/guide' },
+  ...SETTINGS_TABS.map(tab => ({ name: `demo-settings-${tab}`, path: `/demo/settings?tab=${tab}` })),
 ]
 
 // The dev server compiles each page on its first request, which can take

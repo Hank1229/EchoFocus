@@ -15,6 +15,7 @@ Playwright image.
 | `csv-export.spec.ts` | A6: the CSV floors minutes the way the popup does; the filename carries the local date |
 | `delete-data.spec.ts` | A7: which keys "Delete all tracking data" removes and keeps; tracking resumes |
 | `corrupt-aggregate.spec.ts` | A11: four corrupt `aggregates:<today>` shapes all show the empty state with no console error |
+| `demo.spec.ts` | The public `/demo` in a browser with no extension: all eight pages open signed out with no console error, no request to Supabase (also for a visitor holding a dashboard session cookie, with a control showing the cookie works outside the demo), every write control disabled, every link inside `/demo` or to a public page, `noindex` on each page |
 | `dashboard-link.spec.ts` | The dashboard's extension card on `/dev/preview/link`: signed out, same account, another account, a device linked elsewhere refusing, a link whose Google sign-in fails (Supabase is unreachable, so a link never succeeds here; that is a manual test), a non-dashboard page with no `chrome.runtime`, and no extension at all |
 
 A12 (the dashboard preview pages log no console error) is an assertion
