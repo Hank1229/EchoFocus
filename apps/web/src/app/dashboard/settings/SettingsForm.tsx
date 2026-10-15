@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useLocale, type Language } from '@/lib/i18n'
 import { useTheme, type ThemePreference } from '@/lib/theme'
 import SettingRow from '@/components/dashboard/SettingRow'
+import { DemoNote, useReadOnly } from '@/lib/demo'
 import { DEFAULT_PREFS, prefsToWrite, type UserPreference } from './prefs-to-write'
 
 // NOTE (Phase 0): the email-report toggle and "send test email" UI are hidden
@@ -118,6 +119,7 @@ function Switch({ checked, onToggle, ariaLabel }: { checked: boolean; onToggle: 
 export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps) {
   const { t, language, setLanguage } = useLocale()
   const { theme, setTheme } = useTheme()
+  const { readOnly, title } = useReadOnly()
   const [prefs, setPrefs] = useState<UserPreference>({ ...DEFAULT_PREFS, ...initialPrefs })
   const [saved, setSaved] = useState<UserPreference | null>(initialPrefs ? { ...DEFAULT_PREFS, ...initialPrefs } : null)
   const [isSaving, setIsSaving] = useState(false)
@@ -289,11 +291,13 @@ export default function SettingsForm({ userId, initialPrefs }: SettingsFormProps
           <div className="flex items-center gap-4">
             <button
               onClick={save}
-              disabled={isSaving}
-              className="pressable rounded-md bg-accent px-5 py-2 text-label text-accent-ink disabled:opacity-60"
+              disabled={readOnly || isSaving}
+              title={title}
+              className="pressable rounded-md bg-accent px-5 py-2 text-label text-accent-ink disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSaving ? t.common.saving : t.common.saveSettings}
             </button>
+            <DemoNote />
             {saveState === 'saved' && (
               <span className="flex items-center gap-1.5 text-caption text-accent">
                 <Check size={13} strokeWidth={1.5} /> {t.common.saved}

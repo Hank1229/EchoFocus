@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { MIN_TRACKED_SECONDS_FOR_ANALYSIS } from '@echofocus/shared'
 import { useLocale } from '@/lib/i18n'
+import { useReadOnly } from '@/lib/demo'
 import { requestAiAnalysis, type DailyQuota } from '@/lib/ai'
 import { insightLanguage, type InsightLanguage } from '@/lib/insight-language'
 import { nextDailyReset, resetPhrase } from '@/lib/quota-reset'
@@ -22,6 +23,7 @@ interface Props {
 // for nothing else inside a card.
 export default function DailyInsight({ analysisText, date, canGenerate, language }: Props) {
   const { t } = useLocale()
+  const { readOnly, title } = useReadOnly()
   const [text, setText] = useState<string | null>(analysisText)
   const [isRunning, setIsRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -101,7 +103,8 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
             )}
             <button
               onClick={run}
-              disabled={isRunning}
+              disabled={readOnly || isRunning}
+              title={title}
               className="pressable flex-shrink-0 rounded-md border border-accent px-3 py-1 text-label text-accent hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isRunning ? t.today.regenerating : t.today.regenerate}
@@ -127,7 +130,8 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
           {canGenerate && (
             <button
               onClick={run}
-              disabled={isRunning}
+              disabled={readOnly || isRunning}
+              title={title}
               className="pressable mt-4 rounded-md bg-accent px-4 py-2 text-label text-accent-ink disabled:opacity-60"
             >
               {isRunning ? t.today.regenerating : t.today.generateInsight}
@@ -150,7 +154,8 @@ export default function DailyInsight({ analysisText, date, canGenerate, language
           {canGenerate && !quotaResetsAt && (
             <button
               onClick={run}
-              disabled={isRunning}
+              disabled={readOnly || isRunning}
+              title={title}
               className="pressable rounded-md border border-accent px-3 py-1 text-label text-accent hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isRunning ? t.today.regenerating : t.aiInsights.regenerateIn.replace('{lang}', languageName(ui))}

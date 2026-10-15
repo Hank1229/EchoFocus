@@ -1,7 +1,9 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { isDemoPath } from '@/lib/demo'
 
 export type ThemePreference = 'light' | 'dark' | 'system'
 
@@ -49,17 +51,21 @@ const ThemeContext = createContext<{
 
 export function ThemeProvider({ initialTheme, children }: { initialTheme: ThemePreference; children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemePreference>(initialTheme)
+  // The demo must not read or write a signed-in visitor's cloud row; there
+  // the theme stays a local preference.
+  const cloudSync = !isDemoPath(usePathname())
 
   const setTheme = (preference: ThemePreference) => {
     setThemeState(preference)
     stamp(preference)
     persistLocally(preference)
-    void pushToCloud(preference)
+    if (cloudSync) void pushToCloud(preference)
   }
 
   // The cloud copy wins over a stale local one: a choice made on another
   // device (or in the extension's synced storage) lands here on next load.
   useEffect(() => {
+    if (!cloudSync) return
     let cancelled = false
     const adopt = async () => {
       try {

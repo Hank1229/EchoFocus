@@ -4,9 +4,11 @@ import { useState } from 'react'
 import { Check, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLocale } from '@/lib/i18n'
+import { DemoNote, useReadOnly } from '@/lib/demo'
 
 export default function DeleteCloudDataButton({ userId }: { userId: string }) {
   const { t } = useLocale()
+  const { readOnly, title } = useReadOnly()
   const [showConfirm, setShowConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [done, setDone] = useState(false)
@@ -43,13 +45,18 @@ export default function DeleteCloudDataButton({ userId }: { userId: string }) {
 
   if (!showConfirm) {
     return (
-      <button
-        onClick={() => setShowConfirm(true)}
-        className="pressable flex items-center gap-2 rounded-md border border-line px-4 py-2 text-label hover:bg-surface-hover" style={{ color: 'var(--danger)' }}
-      >
-        <Trash2 size={14} strokeWidth={1.5} />
-        {t.settings.deleteAction}
-      </button>
+      <>
+        <button
+          onClick={() => setShowConfirm(true)}
+          disabled={readOnly}
+          title={title}
+          className="pressable flex items-center gap-2 rounded-md border border-line px-4 py-2 text-label hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50" style={{ color: 'var(--danger)' }}
+        >
+          <Trash2 size={14} strokeWidth={1.5} />
+          {t.settings.deleteAction}
+        </button>
+        <DemoNote className="mt-2 block" />
+      </>
     )
   }
 

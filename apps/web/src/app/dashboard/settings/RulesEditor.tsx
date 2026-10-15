@@ -5,6 +5,7 @@ import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { checkRulePattern, normalizeRulePattern, RULE_PATTERN_MAX, type Category, type MatchType, type RulePatternProblem } from '@echofocus/shared'
 import { createClient } from '@/lib/supabase/client'
 import { useLocale, type Locale } from '@/lib/i18n'
+import { DemoNote, useReadOnly } from '@/lib/demo'
 
 export interface Rule {
   id: string
@@ -109,6 +110,7 @@ function RuleFields({
 
 export default function RulesEditor({ userId, initialRules }: { userId: string; initialRules: Rule[] }) {
   const { t } = useLocale()
+  const { readOnly, title } = useReadOnly()
   const [rules, setRules] = useState(initialRules)
 
   const [draft, setDraft] = useState(EMPTY_DRAFT)
@@ -230,14 +232,16 @@ export default function RulesEditor({ userId, initialRules }: { userId: string; 
           <RuleFields draft={draft} onChange={setDraft} />
           <button
             type="submit"
-            disabled={isAdding}
-            className="pressable flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-label text-accent-ink disabled:opacity-60"
+            disabled={readOnly || isAdding}
+            title={title}
+            className="pressable flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-label text-accent-ink disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Plus size={15} strokeWidth={1.5} />
             {isAdding ? t.rules.adding : t.rules.add}
           </button>
         </div>
         <p className="mt-2.5 max-w-[62ch] text-caption text-content-tertiary">{matchHints(t)[draft.matchType]}</p>
+        <DemoNote className="mt-2 block" />
         {addError && <p role="alert" className="mt-2 text-caption" style={{ color: 'var(--danger)' }}>{addError}</p>}
       </form>
 
@@ -291,15 +295,19 @@ export default function RulesEditor({ userId, initialRules }: { userId: string; 
                       <div className="flex flex-shrink-0 items-center gap-0.5">
                         <button
                           onClick={() => startEdit(rule)}
+                          disabled={readOnly}
+                          title={title}
                           aria-label={t.rules.editAria.replace('{pattern}', rule.pattern)}
-                          className="pressable rounded-md border border-line p-1.5 text-content-secondary hover:border-line-strong hover:text-content"
+                          className="pressable rounded-md border border-line p-1.5 text-content-secondary hover:border-line-strong hover:text-content disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           <Pencil size={14} strokeWidth={1.5} />
                         </button>
                         <button
                           onClick={() => { setConfirmingId(rule.id); setRowError(null) }}
+                          disabled={readOnly}
+                          title={title}
                           aria-label={t.rules.deleteAria.replace('{pattern}', rule.pattern)}
-                          className="pressable rounded-md border border-line p-1.5 text-content-secondary hover:border-line-strong hover:text-[color:var(--danger)]"
+                          className="pressable rounded-md border border-line p-1.5 text-content-secondary hover:border-line-strong hover:text-[color:var(--danger)] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           <Trash2 size={14} strokeWidth={1.5} />
                         </button>

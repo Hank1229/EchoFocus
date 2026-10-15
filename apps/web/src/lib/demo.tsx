@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { createContext, useContext, type ComponentProps, type ReactNode } from 'react'
+import { useLocale } from '@/lib/i18n'
 
 const DemoContext = createContext(false)
 
@@ -13,6 +14,22 @@ export function DemoProvider({ children }: { children: ReactNode }) {
 
 export function useDemo(): boolean {
   return useContext(DemoContext)
+}
+
+// For every control that writes data or calls an API: in the demo it is
+// disabled and its title says why. Outside the demo both are inert.
+export function useReadOnly(): { readOnly: boolean; title: string | undefined } {
+  const readOnly = useDemo()
+  const { t } = useLocale()
+  return { readOnly, title: readOnly ? t.demo.readOnlyTitle : undefined }
+}
+
+// The small "Demo mode" line beside a disabled control; nothing outside the demo.
+export function DemoNote({ className = '' }: { className?: string }) {
+  const demo = useDemo()
+  const { t } = useLocale()
+  if (!demo) return null
+  return <span className={`text-caption text-content-tertiary ${className}`}>{t.demo.readOnly}</span>
 }
 
 // For code above the provider (the root layout's theme sync).

@@ -1,7 +1,8 @@
 import { defineConfig } from 'vitest/config'
 import { fileURLToPath } from 'node:url'
 
-// Plain node environment — only `src/lib` logic is under test, no components.
+// Plain node environment. Components are tested through react-dom/server's
+// static markup (the demo's read-only checks), so no DOM library is needed.
 export default defineConfig({
   // tsconfig keeps JSX for Next ("preserve"); tests import .tsx modules.
   oxc: { jsx: { runtime: 'automatic' } },
@@ -15,7 +16,7 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
     // Pin the Supabase config so URL assertions don't depend on a developer's
     // .env.local (CI has none). All fetches are stubbed — nothing goes out.
     env: {
