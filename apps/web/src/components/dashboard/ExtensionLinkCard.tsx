@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLocale } from '@/lib/i18n'
 import { connectExtension, detectExtension } from '@/lib/extension-link'
+import { useDemo } from '@/lib/demo'
 
 export type LinkStatus =
   | 'checking'
@@ -35,7 +36,12 @@ export function isVisibleOnToday(status: LinkStatus, notice: LinkNotice, hasAnyD
 
 const REFRESH_AFTER_LINK_MS = 10_000
 
-export default function ExtensionLinkCard({ userId, email, hasAnyData, variant }: Props) {
+// The demo has no account to link and must not message an extension.
+export default function ExtensionLinkCard(props: Props) {
+  return useDemo() ? null : <DetectingCard {...props} />
+}
+
+function DetectingCard({ userId, email, hasAnyData, variant }: Props) {
   const router = useRouter()
   const [status, setStatus] = useState<LinkStatus>('checking')
   const [notice, setNotice] = useState<LinkNotice>(null)

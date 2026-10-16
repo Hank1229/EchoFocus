@@ -14,7 +14,8 @@
     "clean": "pnpm -r exec rm -rf dist node_modules/.vite",
     "test:visual": "sh tests/visual/docker.sh",
     "test:visual:run": "node tests/visual/build-extension.mjs && playwright test -c tests/visual",
-    "test:e2e": "node tests/visual/build-extension.mjs && playwright test -c tests/e2e"
+    "test:e2e": "node tests/visual/build-extension.mjs && playwright test -c tests/e2e",
+    "capture:demo-popup": "sh tests/visual/capture-demo-popup.sh"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

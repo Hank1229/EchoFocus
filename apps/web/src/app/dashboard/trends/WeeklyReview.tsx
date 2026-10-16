@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
+import { useDemo } from '@/lib/demo'
 import { requestWeeklyAnalysis } from '@/lib/ai'
 import { insightLanguage, type InsightLanguage } from '@/lib/insight-language'
 import { nextWeeklyReset, resetPhrase } from '@/lib/quota-reset'
@@ -17,6 +18,9 @@ interface Props {
 // marks AI-written text.
 export default function WeeklyReview({ initialText, language }: Props) {
   const { t } = useLocale()
+  // The demo shows a written sample and never calls the function.
+  const readOnly = useDemo()
+  const title = readOnly ? t.demo.insightLocked : undefined
   const [text, setText] = useState<string | null>(initialText)
   const [isRunning, setIsRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -81,7 +85,8 @@ export default function WeeklyReview({ initialText, language }: Props) {
         {text && !mismatch && (
           <button
             onClick={run}
-            disabled={isRunning}
+            disabled={readOnly || isRunning}
+            title={title}
             className="pressable flex-shrink-0 rounded-md border border-accent px-3 py-1 text-label text-accent hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isRunning ? t.today.regenerating : t.today.regenerate}
@@ -103,7 +108,8 @@ export default function WeeklyReview({ initialText, language }: Props) {
           <p className="text-body text-content-secondary">{t.aiInsights.weeklyDesc}</p>
           <button
             onClick={run}
-            disabled={isRunning}
+            disabled={readOnly || isRunning}
+            title={title}
             className="pressable mt-4 rounded-md bg-accent px-4 py-2 text-label text-accent-ink disabled:opacity-60"
           >
             {isRunning ? t.today.regenerating : t.aiInsights.generateWeekly}
@@ -121,6 +127,10 @@ export default function WeeklyReview({ initialText, language }: Props) {
             </>
           )}
         </p>
+      )}
+
+      {readOnly && (
+        <p className="mt-4 text-caption text-content-secondary">{t.demo.insightLocked}</p>
       )}
 
       {error && (

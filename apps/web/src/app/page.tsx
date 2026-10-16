@@ -1,11 +1,11 @@
 import Link from 'next/link'
+import { Fragment } from 'react'
 import Image from 'next/image'
-import { ArrowUpRight, Cloud, Download, Github, HardDrive, Lock, ShieldCheck } from 'lucide-react'
+import { ArrowUpRight, Cloud, HardDrive, LayoutDashboard, Lock, ShieldCheck } from 'lucide-react'
 import { getLocale } from '@/lib/i18n-server'
 import LanguageToggle from '@/components/landing/LanguageToggle'
 import ProductPreview from '@/components/landing/ProductPreview'
 
-const RELEASES_URL = 'https://github.com/Hank1229/EchoFocus/releases'
 const REPO_URL = 'https://github.com/Hank1229/EchoFocus'
 
 // Mirrors the real request built in apps/extension/src/lib/ai.ts — keep in sync
@@ -73,15 +73,13 @@ export default async function LandingPage() {
             <Link href="/login" className="hidden text-sm text-slate-400 transition-colors hover:text-slate-200 sm:block">
               {nav.signIn}
             </Link>
-            <a
-              href={RELEASES_URL}
-              target="_blank"
-              rel="noreferrer"
+            <Link
+              href="/demo"
               className="flex items-center gap-1.5 rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-brand-soft"
             >
-              <Github size={14} strokeWidth={2} />
-              {nav.download}
-            </a>
+              <LayoutDashboard size={14} strokeWidth={2} />
+              {nav.demo}
+            </Link>
           </div>
         </div>
       </nav>
@@ -105,15 +103,13 @@ export default async function LandingPage() {
             </h1>
             <p className="mt-7 max-w-xl text-lg leading-relaxed text-slate-400">{hero.sub}</p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
-              <a
-                href={RELEASES_URL}
-                target="_blank"
-                rel="noreferrer"
+              <Link
+                href="/demo"
                 className="flex items-center gap-2 rounded-lg bg-brand px-6 py-3 font-semibold text-slate-950 transition-colors hover:bg-brand-soft"
               >
-                <Download size={18} strokeWidth={2} />
-                {hero.download}
-              </a>
+                <LayoutDashboard size={18} strokeWidth={2} />
+                {hero.demo}
+              </Link>
               <Link
                 href="/login"
                 className="rounded-lg border border-slate-700 px-6 py-3 font-semibold text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-100"
@@ -121,7 +117,19 @@ export default async function LandingPage() {
                 {hero.dashboard}
               </Link>
             </div>
-            <p className="mt-5 max-w-md text-xs leading-relaxed text-slate-500">{hero.note}</p>
+            <p className="mt-5 max-w-md text-xs leading-relaxed text-slate-500">
+              {hero.note}{' '}
+              {hero.install.split('{github}').map((part, i) => (
+                <Fragment key={i}>
+                  {i > 0 && (
+                    <a href={REPO_URL} target="_blank" rel="noreferrer" className="underline underline-offset-2 transition-colors hover:text-slate-300">
+                      GitHub
+                    </a>
+                  )}
+                  {part}
+                </Fragment>
+              ))}
+            </p>
           </div>
 
           <ProductPreview copy={preview} />
@@ -240,15 +248,13 @@ export default async function LandingPage() {
           <h2 className="text-balance font-display text-3xl font-semibold tracking-tight text-slate-100 sm:text-4xl">{cta.title}</h2>
           <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-slate-400">{cta.desc}</p>
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-            <a
-              href={RELEASES_URL}
-              target="_blank"
-              rel="noreferrer"
+            <Link
+              href="/demo"
               className="flex items-center gap-2 rounded-lg bg-brand px-6 py-3 font-semibold text-slate-950 transition-colors hover:bg-brand-soft"
             >
-              <Download size={18} strokeWidth={2} />
-              {cta.download}
-            </a>
+              <LayoutDashboard size={18} strokeWidth={2} />
+              {cta.demo}
+            </Link>
             <Link
               href="/login"
               className="rounded-lg border border-slate-700 px-6 py-3 font-semibold text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-100"

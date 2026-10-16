@@ -18,16 +18,17 @@
   "landing": {
     "nav": {
       "signIn": "Sign in",
-      "download": "Download"
+      "demo": "View the demo"
     },
     "hero": {
       "badge": "Privacy-first: your browsing history never leaves your device",
       "headline1": "See where your time goes.",
       "headline2": "Without handing it over.",
       "sub": "EchoFocus tracks your active tab on-device, scores your focus, and sends Gemini nothing but an anonymized daily summary of domain names and minutes. No URLs, no page titles, no history upload.",
-      "download": "Download from GitHub",
+      "demo": "View the demo",
       "dashboard": "Open dashboard",
-      "note": "Free, and it runs in Chrome as a Manifest V3 extension. It isn't on the Chrome Web Store yet, so download the latest release build from GitHub."
+      "note": "Free, and it runs in Chrome as a Manifest V3 extension. It isn't on the Chrome Web Store yet. The demo shows the dashboard on sample data, with no sign-in.",
+      "install": "To install the extension yourself, see the README on {github}."
     },
     "preview": {
       "day": "Today",
@@ -84,8 +85,8 @@
     },
     "cta": {
       "title": "Start with one day of data",
-      "desc": "Install it, browse the way you normally do, and read your first insight tonight.",
-      "download": "Download from GitHub",
+      "desc": "Walk through the demo first, or sign in to see your own data.",
+      "demo": "View the demo",
       "dashboard": "Sign in to the dashboard"
     },
     "footer": {
@@ -564,5 +565,15 @@
     "failed": "Linking did not finish. Try again, or sign in from the extension's Options page.",
     "busy": "The extension already has a Google sign-in window open. Finish or close it, then try again.",
     "mismatch": "The Google account in this browser is not {email}, so the extension signed out again. Sign in as {email} from the extension's Options page."
+  },
+  "demo": {
+    "banner": "This is sample data. Once you install the extension and sign in, you see your own records here.",
+    "backHome": "Back to home",
+    "readOnly": "Demo mode",
+    "readOnlyTitle": "Demo mode: nothing here is saved or sent.",
+    "insightLocked": "Demo mode: sign in to generate a real analysis.",
+    "popupTitle": "What the extension popup looks like",
+    "popupNote": "The same day inside the extension, opened from the EchoFocus icon in the toolbar. This is a still picture.",
+    "popupAlt": "The EchoFocus popup: focus score, today's total, the focus timer, the three categories, focus by hour and today's sites"
   }
 }

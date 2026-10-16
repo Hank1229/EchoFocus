@@ -1,30 +1,23 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
+import { DashboardLink } from '@/lib/demo'
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 import DayWaveform from '@/components/dashboard/DayWaveform'
 import SiteRanking from '../today/SiteRanking'
 import GuideTimerDemo from './GuideTimerDemo'
 import ScoreDial from '@/components/dashboard/ScoreDial'
+import { TODAY_HOURS, TODAY_ROW, TODAY_SITES } from '@/demo/fixtures'
 
 // The guide is a walkthrough again — one idea per page, a picture beside the
 // words, and a Next button — because being handed a wall of prose is how a
 // reader ends up knowing ABOUT the product without knowing how to work it.
 
-const DEMO_SITES = [
-  { domain: 'github.com', seconds: 9240, category: 'productive' as const },
-  { domain: 'youtube.com', seconds: 3420, category: 'distraction' as const },
-  { domain: 'docs.google.com', seconds: 2760, category: 'productive' as const },
-  { domain: 'gmail.com', seconds: 1560, category: 'neutral' as const },
-]
-
-const DEMO_HOURS = [
-  0, 0, 0, 0, 0, 0, 0, 420,
-  2340, 3120, 2760, 1980, 540, 1260, 2880, 3540,
-  3060, 1740, 660, 0, 900, 480, 0, 0,
-]
+// The demo card shows the fixture day the /demo pages show, a few sites of
+// each category.
+const DEMO_DOMAINS = ['github.com', 'youtube.com', 'docs.google.com', 'gmail.com']
+const DEMO_SITES = TODAY_SITES.filter(site => DEMO_DOMAINS.includes(site.domain))
 
 const STEPS = 6
 
@@ -77,7 +70,7 @@ export default function GuideWalkthrough() {
       <div className="rounded-lg border border-line bg-surface px-6 py-6">
         <p className="text-caption text-content-tertiary">{t.guide.demoDay}</p>
         <div className="mt-4">
-          <DayWaveform hours={DEMO_HOURS} label={t.today.focusByHour} />
+          <DayWaveform hours={TODAY_HOURS} label={t.today.focusByHour} />
         </div>
         <div className="mt-6 border-t border-line pt-4">
           <p className="text-caption text-content-tertiary">{t.guide.demoSites}</p>
@@ -104,7 +97,7 @@ export default function GuideWalkthrough() {
         </p>
       </div>
       <div className="flex justify-center">
-        <ScoreDial score={76} label={t.today.focusScore} />
+        <ScoreDial score={TODAY_ROW.score} label={t.today.focusScore} />
       </div>
     </div>,
 
@@ -134,12 +127,12 @@ export default function GuideWalkthrough() {
           ))}
         </ul>
         <p className="mt-5 max-w-[58ch] text-caption text-content-tertiary">{t.guide.categoriesNote}</p>
-        <Link
+        <DashboardLink
           href="/dashboard/settings?tab=categories"
           className="pressable mt-5 inline-flex items-center gap-1.5 text-label text-accent"
         >
           {t.guide.linkRules} <ArrowRight size={13} strokeWidth={1.5} />
-        </Link>
+        </DashboardLink>
       </div>
       <div className="rounded-lg border border-line bg-surface px-6 py-6">
         <p className="text-caption text-content-tertiary">{t.guide.ruleExampleLabel}</p>
@@ -192,7 +185,7 @@ export default function GuideWalkthrough() {
       <ul className="mt-7 space-y-3">
         {checklist.map((item, i) => (
           <li key={item}>
-            <Link
+            <DashboardLink
               href={checklistHrefs[i] ?? '/dashboard/settings'}
               className="pressable group flex items-center gap-4 rounded-lg border border-line bg-surface px-5 py-4 hover:border-accent"
             >
@@ -201,7 +194,7 @@ export default function GuideWalkthrough() {
               </span>
               <span className="min-w-0 flex-1 text-body text-content group-hover:text-content">{item}</span>
               <span className="flex flex-shrink-0 items-center gap-1 text-label text-accent">{checklistLinks[i]} <ArrowRight size={12} strokeWidth={1.5} /></span>
-            </Link>
+            </DashboardLink>
           </li>
         ))}
       </ul>
@@ -259,12 +252,12 @@ export default function GuideWalkthrough() {
             {t.guide.next} <ArrowRight size={15} strokeWidth={1.5} />
           </button>
         ) : (
-          <Link
+          <DashboardLink
             href="/dashboard/settings"
             className="pressable flex items-center gap-2 rounded-md border border-accent bg-accent px-5 py-2.5 text-label text-accent-ink"
           >
             {t.guide.startSetup} <ArrowRight size={15} strokeWidth={1.5} />
-          </Link>
+          </DashboardLink>
         )}
       </div>
     </div>

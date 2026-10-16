@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { DashboardLink } from '@/lib/demo'
 import type { ReactNode } from 'react'
 
 interface DashboardHeaderProps {
@@ -22,7 +22,7 @@ export default function DashboardHeader({ title, context, userEmail, avatarUrl }
           {context}
         </div>
 
-        <Link
+        <DashboardLink
           href="/dashboard/settings?tab=account"
           title={userEmail}
           className="flex-shrink-0"
@@ -43,7 +43,7 @@ export default function DashboardHeader({ title, context, userEmail, avatarUrl }
               {initial}
             </span>
           )}
-        </Link>
+        </DashboardLink>
       </div>
     </header>
   )

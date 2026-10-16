@@ -5,22 +5,24 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Sun, TrendingUp, Compass, SlidersHorizontal, Lock } from 'lucide-react'
 import { useLocale, type Language } from '@/lib/i18n'
+import { useDashboardHref } from '@/lib/demo'
 
 export default function DashboardSidebar() {
   const pathname = usePathname()
   const { t, language, setLanguage } = useLocale()
+  const dashboardHref = useDashboardHref()
 
   const navItems = [
     { href: '/dashboard/today', label: t.sidebar.todaysOverview, Icon: Sun },
     { href: '/dashboard/trends', label: t.sidebar.trends, Icon: TrendingUp },
     { href: '/dashboard/guide', label: t.sidebar.guide, Icon: Compass },
     { href: '/dashboard/settings', label: t.sidebar.settings, Icon: SlidersHorizontal },
-  ]
+  ].map(item => ({ ...item, href: dashboardHref(item.href) }))
 
   return (
     <aside className="sticky top-0 flex h-screen w-16 flex-shrink-0 flex-col border-r border-line bg-canvas md:w-52">
       <div className="flex h-16 items-center justify-center border-b border-line md:justify-start md:px-5">
-        <Link href="/dashboard/today" className="flex items-center gap-2">
+        <Link href={dashboardHref('/dashboard/today')} className="flex items-center gap-2">
           <Image src="/images/logo-icon.png" alt="EchoFocus logo" width={26} height={26} className="rounded-lg" />
           <span className="hidden text-label font-semibold text-content md:inline">EchoFocus</span>
         </Link>

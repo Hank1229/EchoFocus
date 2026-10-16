@@ -18,16 +18,17 @@
   "landing": {
     "nav": {
       "signIn": "登入",
-      "download": "下載"
+      "demo": "查看示範"
     },
     "hero": {
       "badge": "隱私優先：瀏覽紀錄永遠不離開你的裝置",
       "headline1": "看清時間花在哪裡。",
       "headline2": "但資料不必交出去。",
       "sub": "EchoFocus 在本機記錄你正在使用的分頁、計算專注分數，傳給 Gemini 的只有一份匿名的每日摘要：網域名稱與分鐘數。沒有網址、沒有網頁標題，也不會上傳瀏覽紀錄。",
-      "download": "從 GitHub 下載",
+      "demo": "查看示範",
       "dashboard": "開啟儀表板",
-      "note": "免費，以 Manifest V3 擴充功能的形式在 Chrome 上執行。目前還沒上架 Chrome 線上應用程式商店，請到 GitHub 下載最新的 release 版本。"
+      "note": "免費，以 Manifest V3 擴充功能的形式在 Chrome 上執行。目前還沒上架 Chrome 線上應用程式商店。示範頁用範例資料呈現儀表板，不需要登入。",
+      "install": "想自己安裝擴充功能，請看 {github} 上的 README。"
     },
     "preview": {
       "day": "今天",
@@ -84,8 +85,8 @@
     },
     "cta": {
       "title": "從一天的資料開始",
-      "desc": "裝上它，照平常的方式上網，今晚就能讀到第一份洞察。",
-      "download": "從 GitHub 下載",
+      "desc": "先逛一遍示範；想看自己的資料，登入儀表板。",
+      "demo": "查看示範",
       "dashboard": "登入儀表板"
     },
     "footer": {
@@ -564,5 +565,15 @@
     "failed": "連結沒有完成。再試一次，或從擴充功能的設定頁登入。",
     "busy": "擴充功能已經開著一個 Google 登入視窗。完成或關掉它，再試一次。",
     "mismatch": "這個瀏覽器目前的 Google 帳號不是 {email}，擴充功能已重新登出。請從擴充功能的設定頁用 {email} 登入。"
+  },
+  "demo": {
+    "banner": "這是示範資料。安裝擴充功能並登入後，看到的會是你自己的紀錄。",
+    "backHome": "回到首頁",
+    "readOnly": "示範模式",
+    "readOnlyTitle": "示範模式：這裡的操作不會儲存，也不會送出。",
+    "insightLocked": "示範模式：登入後才會產生真的分析。",
+    "popupTitle": "擴充功能 popup 的樣子",
+    "popupNote": "同一天的資料在擴充功能裡的樣子，從工具列上的 EchoFocus 圖示打開。這是靜態截圖。",
+    "popupAlt": "EchoFocus 擴充功能 popup：專注分數、今日總計、番茄鐘、三個分類、每小時專注與今天的網站"
   }
 }

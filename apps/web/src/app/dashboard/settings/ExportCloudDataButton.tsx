@@ -4,10 +4,12 @@ import { useState } from 'react'
 import { Download } from 'lucide-react'
 import { formatLocalDate } from '@echofocus/shared'
 import { useLocale } from '@/lib/i18n'
+import { DemoNote, useReadOnly } from '@/lib/demo'
 import { fetchCloudExport } from './cloud-export'
 
 export default function ExportCloudDataButton({ userId }: { userId: string }) {
   const { t } = useLocale()
+  const { readOnly, title } = useReadOnly()
   const [isExporting, setIsExporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -38,12 +40,14 @@ export default function ExportCloudDataButton({ userId }: { userId: string }) {
     <>
       <button
         onClick={handleExport}
-        disabled={isExporting}
-        className="pressable flex items-center gap-2 rounded-md border border-line px-4 py-2 text-label text-content-secondary hover:border-line-strong hover:text-content disabled:opacity-50"
+        disabled={readOnly || isExporting}
+        title={title}
+        className="pressable flex items-center gap-2 rounded-md border border-line px-4 py-2 text-label text-content-secondary hover:border-line-strong hover:text-content disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Download size={14} strokeWidth={1.5} />
         {isExporting ? t.settings.exporting : t.settings.exportAction}
       </button>
+      <DemoNote className="mt-2 block" />
       {error && (
         <p role="alert" className="mt-3 text-caption leading-relaxed" style={{ color: 'var(--danger)' }}>
           {t.settings.exportFailed}{error}
