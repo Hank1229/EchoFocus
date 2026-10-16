@@ -81,8 +81,8 @@ export const WEEK_HOURS = spreadOverHours(WEEK.reduce((sum, d) => sum + d.produc
 
 export const PREVIEW_USER = {
   id: '00000000-0000-4000-8000-000000000000',
-  email: 'preview@echofocus.dev',
-  fullName: 'Preview User',
+  email: 'demo@echofocus.dev',
+  fullName: 'Demo User',
 }
 
 export const PREVIEW_RULES = [
