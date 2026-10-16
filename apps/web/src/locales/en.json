@@ -27,7 +27,8 @@
       "sub": "EchoFocus tracks your active tab on-device, scores your focus, and sends Gemini nothing but an anonymized daily summary of domain names and minutes. No URLs, no page titles, no history upload.",
       "demo": "View the demo",
       "dashboard": "Open dashboard",
-      "note": "Free, and it runs in Chrome as a Manifest V3 extension. It isn't on the Chrome Web Store yet. The demo shows the dashboard on sample data, with no sign-in."
+      "note": "Free, and it runs in Chrome as a Manifest V3 extension. It isn't on the Chrome Web Store yet. The demo shows the dashboard on sample data, with no sign-in.",
+      "install": "To install the extension yourself, see the README on {github}."
     },
     "preview": {
       "day": "Today",
@@ -84,7 +85,7 @@
     },
     "cta": {
       "title": "Start with one day of data",
-      "desc": "Install it, browse the way you normally do, and read your first insight tonight.",
+      "desc": "Walk through the demo first, or sign in to see your own data.",
       "demo": "View the demo",
       "dashboard": "Sign in to the dashboard"
     },

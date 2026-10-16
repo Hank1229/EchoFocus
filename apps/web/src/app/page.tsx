@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Fragment } from 'react'
 import Image from 'next/image'
 import { ArrowUpRight, Cloud, HardDrive, LayoutDashboard, Lock, ShieldCheck } from 'lucide-react'
 import { getLocale } from '@/lib/i18n-server'
@@ -116,7 +117,19 @@ export default async function LandingPage() {
                 {hero.dashboard}
               </Link>
             </div>
-            <p className="mt-5 max-w-md text-xs leading-relaxed text-slate-500">{hero.note}</p>
+            <p className="mt-5 max-w-md text-xs leading-relaxed text-slate-500">
+              {hero.note}{' '}
+              {hero.install.split('{github}').map((part, i) => (
+                <Fragment key={i}>
+                  {i > 0 && (
+                    <a href={REPO_URL} target="_blank" rel="noreferrer" className="underline underline-offset-2 transition-colors hover:text-slate-300">
+                      GitHub
+                    </a>
+                  )}
+                  {part}
+                </Fragment>
+              ))}
+            </p>
           </div>
 
           <ProductPreview copy={preview} />
