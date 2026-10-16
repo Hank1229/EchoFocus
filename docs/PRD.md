@@ -287,7 +287,7 @@ Format: Plain text, no Markdown formatting, no emoji
 **Deliverable:** AI analysis and daily email reports both work.
 
 ### Phase 4: Polish + Store (Week 7-8), "It's ready"
-**Status:** not submitted to the Chrome Web Store. The landing page's install links point to GitHub Releases.
+**Status:** not submitted to the Chrome Web Store. The landing page links to the /demo sample dashboard; anyone who wants to install it builds from source (see the README).
 - [ ] Extension icons (16, 48, 128px)
 - [ ] Chrome Web Store listing assets (screenshots, promo images, description)
 - [ ] Privacy policy page

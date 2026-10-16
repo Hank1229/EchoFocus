@@ -51,7 +51,7 @@ EchoFocus is a productivity tracker that ships as a **Chrome Extension** (Manife
 
 ### WF-01 First Install & Onboarding
 
-**Trigger:** The user loads the extension unpacked, for example from the GitHub release build. It is not on the Chrome Web Store yet.
+**Trigger:** The user loads the extension unpacked, built from source (see the README). It is not on the Chrome Web Store yet; the landing page links to the /demo sample dashboard instead.
 
 **Steps:**
 
